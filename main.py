@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# 240810 pbs
 
 import platform
 import numpy as np
@@ -12,7 +11,7 @@ from threading import Thread
 import csv
 
 import math
-KEY1
+
 
 X_255_point = 0
 Y_255_point = 0
@@ -406,7 +405,6 @@ if __name__ == '__main__':
         serial_t.start()
         
     # First -> Start Code Send 
-    - 시리얼포트로 숫자를 보내 모션 수행
     TX_data(serial_port, 250)
     TX_data(serial_port, 250)
     TX_data(serial_port, 250)
@@ -415,6 +413,8 @@ if __name__ == '__main__':
 
     View_select = 0
     msg_one_view = 0
+    
+    object_detacted = False
     # -------- Main Loop Start --------
     while True:
 
@@ -475,8 +475,12 @@ if __name__ == '__main__':
                 Y_Size = int((255.0 / H_View_size) * h4)
                 X_255_point = int((255.0 / W_View_size) * X)
                 Y_255_point = int((255.0 / H_View_size) * Y)
+                object_detacted = True
+            
+            else:
+                object_detacted = False
+                
         else:
-
             x = 0
             y = 0
             X_255_point = 0
@@ -485,11 +489,11 @@ if __name__ == '__main__':
             Y_Size = 0
             Area = 0
             Angle = 0
+            
 
        
         Frame_time = (clock() - old_time) * 1000.
         old_time = clock()
-
            
         if View_select == 0: # Fast operation 
             print(" " + str(W_View_size) + " x " + str(H_View_size) + " =  %.1f ms" % (Frame_time ))
@@ -509,6 +513,13 @@ if __name__ == '__main__':
             draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, Area: %.1d' % (X_255_point, Y_255_point, Area))
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
+                      
+            # Haejin 20240810
+            if object_detacted: # dectecting object
+                TX_data(serial_port, 11)
+            else: # failed to detect object
+                TX_data(serial_port, 0)
+                      
                       
             #------mouse pixel hsv -------------------------------
             mx2 = mx
@@ -558,6 +569,7 @@ if __name__ == '__main__':
         elif key == ord('s') or key == ord('S'):  # s or S Key:  Setting valus Save
             hsv_setting_save()
             msg_one_view = 1
+            
 
     # cleanup the camera and close any open windows
     receiving_exit = 0
@@ -565,9 +577,3 @@ if __name__ == '__main__':
     
     camera.release()
     cv2.destroyAllWindows()
-
-
-
-
-
-
