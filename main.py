@@ -13,7 +13,7 @@ import csv
 import math
 KEY1
 
-X_255_point = 0
+X_255_point = 255
 Y_255_point = 0
 X_Size = 0
 Y_Size = 0
