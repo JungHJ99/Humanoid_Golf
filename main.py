@@ -468,7 +468,11 @@ if __name__ == '__main__':
                 x4, y4, w4, h4 = cv2.boundingRect(c)
                 cv2.rectangle(frame, (x4, y4), (x4 + w4, y4 + h4), (0, 255, 0), 2)
                 #----------------------------------------
-               
+                
+                # center of rectangle
+                cx = x4 + w4 / 2
+                cy = y4 + h4 / 2
+
                 #----------------------------------------
                 
                 X_Size = int((255.0 / W_View_size) * w4)
@@ -513,10 +517,20 @@ if __name__ == '__main__':
             draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, Area: %.1d' % (X_255_point, Y_255_point, Area))
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
+
+            # Byoungseo 20240823
+            center_region_width = 200
+            left_region_limit = W_View_size / 2 - center_region_width / 2
+            right_region_limit = W_View_size / 2 + center_region_width / 2
                       
             # Haejin 20240810
             if object_detacted: # dectecting object
-                TX_data(serial_port, 11)
+                if cx <= left_region_limit:
+                    TX_data(serial_port, 1)
+                if cx >= right_region_limit:
+                    TX_data(serial_port, 3)
+                else:
+                    TX_data(serial_port, 11)
             else: # failed to detect object
                 TX_data(serial_port, 0)
                       
