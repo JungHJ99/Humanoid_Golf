@@ -46,7 +46,6 @@ min_area =  [  28, 50, 50, 10, 10]
 
 now_color = 0
 serial_use = 1
-
 serial_port =  None
 Temp_count = 0
 Read_RX =  0
@@ -414,7 +413,15 @@ if __name__ == '__main__':
     View_select = 0
     msg_one_view = 0
     
-    object_detacted = False
+    object_detected = False
+
+        # Byoungseo 20240823
+    center_region_width = 200
+    left_region_limit = W_View_size / 2 - center_region_width / 2
+    right_region_limit = W_View_size / 2 + center_region_width / 2
+
+    bottom_region_width = 200
+    bottom_region_limit = H_View_size - bottom_region_width
     # -------- Main Loop Start --------
     while True:
 
@@ -444,6 +451,8 @@ if __name__ == '__main__':
         #mask = cv2.GaussianBlur(mask, (3, 3), 2)  # softly
 
         cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+
+        cv2.line(frame, (0, bottom_region_limit), (W_View_size, bottom_region_limit), 3)
         
         '''
         cnts0 = cv2.findContours(mask0.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
@@ -461,6 +470,7 @@ if __name__ == '__main__':
             ((X, Y), radius) = cv2.minEnclosingCircle(c)
 
             Area = cv2.contourArea(c) / min_area[now_color]
+
             if Area > 255:
                 Area = 255
 
@@ -479,10 +489,10 @@ if __name__ == '__main__':
                 Y_Size = int((255.0 / H_View_size) * h4)
                 X_255_point = int((255.0 / W_View_size) * X)
                 Y_255_point = int((255.0 / H_View_size) * Y)
-                object_detacted = True
+                object_detected = True
             
             else:
-                object_detacted = False
+                object_detected = False
                 
         else:
             x = 0
@@ -517,20 +527,19 @@ if __name__ == '__main__':
             draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, Area: %.1d' % (X_255_point, Y_255_point, Area))
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
-
-            # Byoungseo 20240823
-            center_region_width = 200
-            left_region_limit = W_View_size / 2 - center_region_width / 2
-            right_region_limit = W_View_size / 2 + center_region_width / 2
                       
             # Haejin 20240810
-            if object_detacted: # dectecting object
+            if object_detected: # dectecting object
                 if cx <= left_region_limit:
                     TX_data(serial_port, 1)
                 if cx >= right_region_limit:
                     TX_data(serial_port, 3)
                 else:
-                    TX_data(serial_port, 11)
+                    if cy < bottom_region_limit:
+                        TX_data(serial_port, 11)
+                    else:
+                        TX_data(serial_port, 0)
+
             else: # failed to detect object
                 TX_data(serial_port, 0)
                       
