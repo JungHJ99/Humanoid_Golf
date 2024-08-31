@@ -602,7 +602,6 @@ if __name__ == '__main__':
                 pass
 
             if head_status != previous_head_status:
-                print('aaaa')
                 TX_data(serial_port, head_status)
 
                       
