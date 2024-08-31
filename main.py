@@ -424,8 +424,8 @@ if __name__ == '__main__':
     bottom_region_limit = H_View_size - bottom_region_width
 
     ball_at_center_range = 80
-    ball_at_center_left_limit = W_View_size / 2 - ball_at_center_range / 2 + ball_at_center_range * 2
-    ball_at_center_right_limit = W_View_size / 2 + ball_at_center_range / 2 + ball_at_center_range * 2
+    ball_at_center_left_limit = W_View_size / 2 - ball_at_center_range / 2 + ball_at_center_range
+    ball_at_center_right_limit = W_View_size / 2 + ball_at_center_range / 2 + ball_at_center_range
     ball_at_center_top_limit = H_View_size / 2 - ball_at_center_range / 2 + ball_at_center_range
     ball_at_center_bottom_limit = H_View_size / 2 + ball_at_center_range / 2 + ball_at_center_range
 
@@ -567,7 +567,9 @@ if __name__ == '__main__':
                 
             elif status == 1:      # Walking towards the Ball
                 cv2.line(frame, (0, bottom_region_limit), (W_View_size, bottom_region_limit), 5)
-                head_status = 29
+                if head_status != 29:
+                    head_status = 29
+                    TX_data(serial_port, 29)
 
                 if cx <= left_region_limit:
                     TX_data(serial_port, 1)
@@ -581,6 +583,7 @@ if __name__ == '__main__':
                         status = 2
                 
             elif status == 2:      # Ball at center
+                TX_data(serial_port, 31)
                 cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
                 head_status = 31
                 if cx <= ball_at_center_left_limit:
@@ -600,10 +603,6 @@ if __name__ == '__main__':
                 pass
             elif status == 5:      # Hitting the Ball
                 pass
-
-            if head_status != previous_head_status:
-                TX_data(serial_port, head_status)
-
                       
                       
             #------mouse pixel hsv -------------------------------
@@ -645,6 +644,7 @@ if __name__ == '__main__':
         key = 0xFF & cv2.waitKey(1)
         
         if key == 27:  # ESC  Key
+            TX_data(serial_port, 0)
             break
         elif key == ord(' '):  # spacebar Key
             if View_select == 0:
