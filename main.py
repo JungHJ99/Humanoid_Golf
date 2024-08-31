@@ -42,7 +42,7 @@ s_min =     [ 100,140,150, 51,133]
 v_max =     [ 255,151,239,156,255]
 v_min =     [ 180,95,104, 61,104]
     
-min_area =  [  28, 50, 50, 10, 10]
+min_area =  [  10, 50, 50, 10, 10]
 
 now_color = 0
 serial_use = 1
@@ -422,8 +422,34 @@ if __name__ == '__main__':
 
     bottom_region_width = 200
     bottom_region_limit = H_View_size - bottom_region_width
+
+    ball_at_center_range = 80
+    ball_at_center_left_limit = W_View_size / 2 - ball_at_center_range / 2 + ball_at_center_range * 2
+    ball_at_center_right_limit = W_View_size / 2 + ball_at_center_range / 2 + ball_at_center_range * 2
+    ball_at_center_top_limit = H_View_size / 2 - ball_at_center_range / 2 + ball_at_center_range
+    ball_at_center_bottom_limit = H_View_size / 2 + ball_at_center_range / 2 + ball_at_center_range
+
+
+
+    status = 0
+    # 0: Finding Ball
+    # 1: Walking toward the Ball
+    # 2: Ball at center
+    # 3: Finding Hole
+    # 4: Turning toward the Hole
+    # 5: Hitting the Ball
+
+    head_status = 29
+    # 29: middle down
+    # 31: extreme down
+
+    TX_data(serial_port, head_status)
+
     # -------- Main Loop Start --------
     while True:
+
+        if status == 0:
+            now_color = 0
 
         # grab the current frame
         (grabbed, frame) = camera.read()
@@ -451,8 +477,6 @@ if __name__ == '__main__':
         #mask = cv2.GaussianBlur(mask, (3, 3), 2)  # softly
 
         cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
-
-        cv2.line(frame, (0, bottom_region_limit), (W_View_size, bottom_region_limit), 3)
         
         '''
         cnts0 = cv2.findContours(mask0.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
@@ -524,24 +548,63 @@ if __name__ == '__main__':
                 if msg_one_view > 10:
                     msg_one_view = 0                
                                 
-            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, Area: %.1d' % (X_255_point, Y_255_point, Area))
+            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, Area: %.1d, status: %.1d, object_detected: %.1d' % (X_255_point, Y_255_point, Area, status, object_detected))
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
-                      
-            # Haejin 20240810
-            if object_detected: # dectecting object
+
+            if not object_detected:
+                status = 0
+            
+            previous_head_status = head_status
+
+            # Action by Status
+            if status == 0:        # Finding Ball
+                now_color = 0
+                if object_detected:
+                    status = 1
+                else:
+                    TX_data(serial_port, 1)
+                
+            elif status == 1:      # Walking towards the Ball
+                cv2.line(frame, (0, bottom_region_limit), (W_View_size, bottom_region_limit), 5)
+                head_status = 29
+
                 if cx <= left_region_limit:
                     TX_data(serial_port, 1)
                 if cx >= right_region_limit:
                     TX_data(serial_port, 3)
                 else:
-                    if cy < bottom_region_limit:
+                    if cy < bottom_region_limit:    # ball is not close enough
                         TX_data(serial_port, 11)
-                    else:
+                    else:                           # ball is close enough
                         TX_data(serial_port, 0)
+                        status = 2
+                
+            elif status == 2:      # Ball at center
+                cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
+                head_status = 31
+                if cx <= ball_at_center_left_limit:
+                    TX_data(serial_port, 14)
+                if cx >= ball_at_center_right_limit:
+                    TX_data(serial_port, 13)
+                if cy <= ball_at_center_top_limit:
+                    TX_data(serial_port, 11)
+                    TX_data(serial_port, 0)
+                if cy >= ball_at_center_bottom_limit:
+                    TX_data(serial_port, 12)
+                    TX_data(serial_port, 0)
 
-            else: # failed to detect object
-                TX_data(serial_port, 0)
+            elif status == 3:      # Finding Hole
+                pass
+            elif status == 4:      # Turning towards the Hole
+                pass
+            elif status == 5:      # Hitting the Ball
+                pass
+
+            if head_status != previous_head_status:
+                print('aaaa')
+                TX_data(serial_port, head_status)
+
                       
                       
             #------mouse pixel hsv -------------------------------
