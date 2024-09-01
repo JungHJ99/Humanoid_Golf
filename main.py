@@ -36,13 +36,13 @@ color_num = [   0,  1,  2,  3,  4]
 h_max =     [ 179, 65,196,111,110]
 h_min =     [  86,  0,158, 59, 74]
     
-s_max =     [ 121,200,223,110,255]
+s_max =     [ 140,200,223,110,255]
 s_min =     [ 100,140,150, 51,133]
     
 v_max =     [ 255,151,239,156,255]
 v_min =     [ 180,95,104, 61,104]
     
-min_area =  [  10, 50, 50, 10, 10]
+min_area =  [  10, 255, 50, 10, 10]
 
 now_color = 0
 serial_use = 1
@@ -148,8 +148,10 @@ def Color_num_change(a):
     hsv_Upper = (h_max[now_color], s_max[now_color], v_max[now_color])
 #----------------------------------------------- 
 def TX_data(ser, one_byte):  # one_byte= 0~255
+    time.sleep(0.1)
     #ser.write(chr(int(one_byte)))          #python2.7
     ser.write(serial.to_bytes([one_byte]))  #python3
+
 #-----------------------------------------------
 def RX_data(serial):
     global Temp_count
@@ -413,7 +415,9 @@ if __name__ == '__main__':
     View_select = 0
     msg_one_view = 0
     
-    object_detected = False
+    ball_detected = False
+    hole_detected = False
+
 
         # Byoungseo 20240823
     center_region_width = 200
@@ -424,10 +428,10 @@ if __name__ == '__main__':
     bottom_region_limit = H_View_size - bottom_region_width
 
     ball_at_center_range = 80
-    ball_at_center_left_limit = W_View_size / 2 - ball_at_center_range / 2 + ball_at_center_range
-    ball_at_center_right_limit = W_View_size / 2 + ball_at_center_range / 2 + ball_at_center_range
-    ball_at_center_top_limit = H_View_size / 2 - ball_at_center_range / 2 + ball_at_center_range
-    ball_at_center_bottom_limit = H_View_size / 2 + ball_at_center_range / 2 + ball_at_center_range
+    ball_at_center_left_limit = W_View_size / 2 - ball_at_center_range / 2
+    ball_at_center_right_limit = W_View_size / 2 + ball_at_center_range / 2
+    ball_at_center_top_limit = H_View_size / 2 - ball_at_center_range / 2
+    ball_at_center_bottom_limit = H_View_size / 2 + ball_at_center_range / 2
 
 
 
@@ -439,15 +443,18 @@ if __name__ == '__main__':
     # 4: Turning toward the Hole
     # 5: Hitting the Ball
 
-    head_status = 29
+    TX_num = 29
+    previous_TX_num = 0
     # 29: middle down
     # 31: extreme down
 
-    TX_data(serial_port, head_status)
+    TX_data(serial_port, TX_num)
+
+    delay = 0
+    
 
     # -------- Main Loop Start --------
     while True:
-
         if status == 0:
             now_color = 0
 
@@ -513,10 +520,15 @@ if __name__ == '__main__':
                 Y_Size = int((255.0 / H_View_size) * h4)
                 X_255_point = int((255.0 / W_View_size) * X)
                 Y_255_point = int((255.0 / H_View_size) * Y)
-                object_detected = True
+                if now_color == 0:
+                    ball_detected = True
+                elif now_color == 1:
+                    hole_detected = True
             
             else:
-                object_detected = False
+                ball_detected = False
+                hole_detected = False
+
                 
         else:
             x = 0
@@ -534,7 +546,7 @@ if __name__ == '__main__':
         old_time = clock()
            
         if View_select == 0: # Fast operation 
-            print(" " + str(W_View_size) + " x " + str(H_View_size) + " =  %.1f ms" % (Frame_time ))
+            # print(" " + str(W_View_size) + " x " + str(H_View_size) + " =  %.1f ms" % (Frame_time ))
             #temp = Read_RX
             pass
             
@@ -548,61 +560,104 @@ if __name__ == '__main__':
                 if msg_one_view > 10:
                     msg_one_view = 0                
                                 
-            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, Area: %.1d, status: %.1d, object_detected: %.1d' % (X_255_point, Y_255_point, Area, status, object_detected))
+            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, Area: %.1d, status: %.1d, ball_detected: %.1d, TX_num: %.1d, ' % (X_255_point, Y_255_point, Area, status, ball_detected, TX_num))
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
 
-            if not object_detected:
+            if status == 1:
+                cv2.line(frame, (0, bottom_region_limit), (W_View_size, bottom_region_limit), 5)
+
+            if status == 2:
+                cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
+
+
+            if not ball_detected and status <= 1:
                 status = 0
             
-            previous_head_status = head_status
+            if delay == 0:
 
-            # Action by Status
-            if status == 0:        # Finding Ball
-                now_color = 0
-                if object_detected:
-                    status = 1
-                else:
-                    TX_data(serial_port, 1)
+                # Action by Status
+                if status == 0:        # Finding Ball
+                    now_color = 0
+                    if ball_detected:
+                        status = 1
+                        TX_num = 0
+                        delay = 10
+                    else:
+                        TX_num = 1     # left turn
+                    
+                elif status == 1:      # Walking towards the Ball
+                    if TX_num == 0:
+                        TX_num = 29
+                        delay = 10
+
+                    else:
+                        if cx <= left_region_limit:         # ball is at the left side
+                            TX_num = 1
+                        elif cx >= right_region_limit:      # ball is at the right side
+                            TX_num = 3
+                        else:                               # ball is at the middle
+                            if cy < bottom_region_limit:    # ball is not close enough
+                                TX_num = 11
+                            else:                           # ball is close enough
+                                status = 2
+                                TX_num = 0
+                                delay = 10
                 
-            elif status == 1:      # Walking towards the Ball
-                cv2.line(frame, (0, bottom_region_limit), (W_View_size, bottom_region_limit), 5)
-                if head_status != 29:
-                    head_status = 29
-                    TX_data(serial_port, 29)
+                elif status == 2:      # Ball at center
+                    if TX_num == 0:
+                        TX_num = 31
+                        delay = 20
+                    else:
+                        if cx <= ball_at_center_left_limit:
+                            TX_num = 14
+                            delay = 3
+                        elif cx >= ball_at_center_right_limit:
+                            TX_num = 13
+                            delay = 3
+                        elif cy <= ball_at_center_top_limit:
+                            TX_num = 11
+                            delay = 3
+                        elif cy >= ball_at_center_bottom_limit:
+                            TX_num = 12
+                            delay = 3
+                        elif cx > ball_at_center_left_limit and cx < ball_at_center_right_limit and cy > ball_at_center_top_limit and cy < ball_at_center_bottom_limit:
+                            status = 3
+                            TX_num = 0
+                            delay = 10
 
-                if cx <= left_region_limit:
-                    TX_data(serial_port, 1)
-                if cx >= right_region_limit:
-                    TX_data(serial_port, 3)
-                else:
-                    if cy < bottom_region_limit:    # ball is not close enough
-                        TX_data(serial_port, 11)
-                    else:                           # ball is close enough
-                        TX_data(serial_port, 0)
-                        status = 2
-                
-            elif status == 2:      # Ball at center
-                TX_data(serial_port, 31)
-                cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
-                head_status = 31
-                if cx <= ball_at_center_left_limit:
-                    TX_data(serial_port, 14)
-                if cx >= ball_at_center_right_limit:
-                    TX_data(serial_port, 13)
-                if cy <= ball_at_center_top_limit:
-                    TX_data(serial_port, 11)
-                    TX_data(serial_port, 0)
-                if cy >= ball_at_center_bottom_limit:
-                    TX_data(serial_port, 12)
-                    TX_data(serial_port, 0)
+                elif status == 3:      # Finding Hole
+                    now_color = 1
+                    if TX_num == 0:
+                        TX_num = 29
+                        delay = 10
+                    elif TX_num == 29:
+                        TX_num = 17
+                        delay = 10
+                    elif TX_num == 17:
+                        TX_num = 14
+                        delay = 3
+                    elif TX_num == 14:
+                        TX_num = 24
+                        delay = 3
+                    elif TX_num == 24:
+                        TX_num = 14
+                        delay = 3
+                    if hole_detected:
+                        status = 4
+                        TX_num = 0
 
-            elif status == 3:      # Finding Hole
-                pass
-            elif status == 4:      # Turning towards the Hole
-                pass
-            elif status == 5:      # Hitting the Ball
-                pass
+                elif status == 4:      # Turning towards the Hole
+                    pass
+                elif status == 5:      # Hitting the Ball
+                    pass
+
+            else:
+                delay = delay - 1
+
+            TX_data(serial_port, TX_num)
+            print(TX_num)
+
                       
                       
             #------mouse pixel hsv -------------------------------
