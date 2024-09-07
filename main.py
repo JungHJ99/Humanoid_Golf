@@ -573,6 +573,7 @@ if __name__ == '__main__':
 
             if not ball_detected and status <= 1:
                 status = 0
+                
             
             if delay == 0:
 
@@ -602,7 +603,7 @@ if __name__ == '__main__':
                             else:                           # ball is close enough
                                 status = 2
                                 TX_num = 0
-                                delay = 10
+                                delay = 20
                 
                 elif status == 2:      # Ball at center
                     if TX_num == 0:
@@ -611,16 +612,16 @@ if __name__ == '__main__':
                     else:
                         if cx <= ball_at_center_left_limit:
                             TX_num = 14
-                            delay = 3
+                            delay = 10
                         elif cx >= ball_at_center_right_limit:
                             TX_num = 13
-                            delay = 3
+                            delay = 10
                         elif cy <= ball_at_center_top_limit:
                             TX_num = 11
-                            delay = 3
+                            delay = 10
                         elif cy >= ball_at_center_bottom_limit:
                             TX_num = 12
-                            delay = 3
+                            delay = 10
                         elif cx > ball_at_center_left_limit and cx < ball_at_center_right_limit and cy > ball_at_center_top_limit and cy < ball_at_center_bottom_limit:
                             status = 3
                             TX_num = 0
@@ -638,9 +639,9 @@ if __name__ == '__main__':
                         TX_num = 14
                         delay = 3
                     elif TX_num == 14:
-                        TX_num = 24
+                        TX_num = 9
                         delay = 3
-                    elif TX_num == 24:
+                    elif TX_num == 9:
                         TX_num = 14
                         delay = 3
                     if hole_detected:
@@ -651,12 +652,12 @@ if __name__ == '__main__':
                     pass
                 elif status == 5:      # Hitting the Ball
                     pass
-
+                
+                TX_data(serial_port, TX_num)
+                print(TX_num)
             else:
+                TX_data(serial_port, 0)
                 delay = delay - 1
-
-            TX_data(serial_port, TX_num)
-            print(TX_num)
 
                       
                       
