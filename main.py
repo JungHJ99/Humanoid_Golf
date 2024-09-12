@@ -1,4 +1,9 @@
+# 24.09.07
+# 깃대에 끊기더라도 하나의 원으로 인식 (GussianBlur)
+# 홀만을 인식(노란색 안에 검은색 있는 경우) / 크기 상관 없이 벽이나 깃발에 포커싱 뺏기지 않음
+
 # -*- coding: utf-8 -*-
+# status 3 : Finding Hole 구현
 
 import platform
 import numpy as np
@@ -33,18 +38,19 @@ hsv_Upper1 = 0
 #----------- 
 color_num = [   0,  1,  2,  3,  4]
     
-h_max =     [ 179, 65,196,111,110]
-h_min =     [  86,  0,158, 59, 74]
+h_max =     [ 179,240, 100,111,110]
+h_min =     [  86,200,  0, 59, 74]
     
-s_max =     [ 140,200,223,110,255]
-s_min =     [ 100,140,150, 51,133]
+s_max =     [ 121,100,255,110,255]
+s_min =     [ 100, 20,  0, 51,133]
     
-v_max =     [ 255,151,239,156,255]
-v_min =     [ 180,95,104, 61,104]
+v_max =     [ 255,175,255,156,255]
+v_min =     [ 180, 80,  0, 61,104]
     
-min_area =  [  10, 255, 50, 10, 10]
+min_area =  [  10, 30, 50, 10, 10]
 
 now_color = 0
+hole_color_yellow = 1
 serial_use = 1
 serial_port =  None
 Temp_count = 0
@@ -148,10 +154,8 @@ def Color_num_change(a):
     hsv_Upper = (h_max[now_color], s_max[now_color], v_max[now_color])
 #----------------------------------------------- 
 def TX_data(ser, one_byte):  # one_byte= 0~255
-    time.sleep(0.1)
     #ser.write(chr(int(one_byte)))          #python2.7
     ser.write(serial.to_bytes([one_byte]))  #python3
-
 #-----------------------------------------------
 def RX_data(serial):
     global Temp_count
@@ -289,10 +293,119 @@ def hsv_setting_read():
     #    print("hsv_setting_read Error~")
     #    return 0
     
- 
+#************************
+
+# parameter for hole_detecting()
+min_area_hole = 0 # 5000
+max_area_hole = 500000
+min_circularity_hole = 0 # 0.7
+max_aspect_ratio_hole = 10 # 1.5
+
+def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_aspect_ratio):
+
+    # GaussianBlur
+    blurred_image = cv2.GaussianBlur(mask, (5, 5), 0)
+
+    # Morph Close
+    kernel = np.ones((10, 10), np.uint8)
+    closing = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+
+
+    # 일정 크기 이상인 노란색 면적의 윤곽선 반환
+    contours, _ = cv2.findContours(closing.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    hole_detected = False
+    largest_ellipse = None
+    largest_contour = None
+    largest_area = 0
+    cX, cY, cR = 0, 0, 0
+    largest_cX, largest_cY, largest_cR = 0, 0, 0
+    largest_x1, largest_x2, largest_y1, largest_y2, largest_h_mean, largest_s_mean, largest_v_mean = 0, 0, 0, 0, 0, 0, 0
     
-# **************************************************
-# **************************************************
+    W_View_size =  800  #320  #640
+    #H_View_size = int(W_View_size / 1.777)
+    H_View_size = int(W_View_size / 1.333)
+
+    # 필터링을 위한 파라미터 계산
+    for cnt in contours:
+        
+        if len(cnt) >= 5:
+            ellipse = cv2.fitEllipse(cnt)
+            center, axes, angle = ellipse
+            major_axis = max(axes)
+            minor_axis = min(axes)
+
+            if minor_axis >0:
+                aspect_ratio = major_axis / minor_axis
+            else:
+                continue
+
+            contour_area = cv2.contourArea(cnt)
+            arc_length = cv2.arcLength(cnt, True)
+            circularity = 4 * np.pi * (contour_area / (arc_length ** 2))
+            
+            M = cv2.moments(cnt)
+            if M["m00"] != 0:
+                cX = int(M["m10"] / M["m00"])
+                cY = int(M["m01"] / M["m00"])
+                cR = round(math.sqrt(0.1 * contour_area))
+
+            y1 = cY - cR
+            y2 = cY + cR
+            x1 = cX - cR
+            x2 = cX + cR
+            
+            center_region = hsv[y1:y2, x1:x2]
+
+            if center_region.size == 0:
+                print("center_region.size == 0")
+                continue
+            
+            center_region_h, center_region_s, center_region_v = cv2.split(center_region)
+            h_mean = np.mean(center_region_h)
+            s_mean = np.mean(center_region_s)
+            v_mean = np.mean(center_region_v)
+
+            # 필터링 조건
+            if (contour_area >= min_area and
+                contour_area <= max_area and
+                circularity >= min_circularity and
+                aspect_ratio <= max_aspect_ratio and
+                h_min[2] <= h_mean <= h_max[2] and
+                s_min[2] <= s_mean <= s_max[2] and
+                v_min[2] <= v_mean <= v_max[2]):
+
+                # 가장 큰 원(=홀) 찾기
+                if contour_area > largest_area:
+                    largest_area = contour_area
+                    largest_ellipse = ellipse
+                    largest_contour = cnt
+                    hole_detected = True
+                    largest_cX = cX
+                    largest_cY = cY
+                    largest_cR = cR
+
+                    largest_x1 = x1
+                    largest_x2 = x2
+                    largest_y1 = y1
+                    largest_y2 = y2
+                    largest_h_mean = h_mean
+                    largest_s_mean = s_mean
+                    largest_v_mean = v_mean
+
+    print("x1: {}, x2: {}, y1: {}, y2: {}".format(largest_x1, largest_x2, largest_y1, largest_y2))
+
+    print("h_mean: {}".format(largest_h_mean))
+    print("s_mean: {}".format(largest_s_mean))
+    print("v_mean: {}".format(largest_v_mean))
+
+    # 홀의 윤곽선 표시, 중심 좌표 계산
+    if largest_ellipse is not None:
+        cv2.drawContours(frame, [largest_contour], -1, (255, 0, 0), 2)
+
+    # 홀의 면적, 중심 좌표 반환
+    return hole_detected, largest_area, (largest_cX, largest_cY), closing
+    
 # **************************************************
 if __name__ == '__main__':
 
@@ -415,9 +528,7 @@ if __name__ == '__main__':
     View_select = 0
     msg_one_view = 0
     
-    ball_detected = False
-    hole_detected = False
-
+    object_detected = False
 
         # Byoungseo 20240823
     center_region_width = 200
@@ -428,10 +539,10 @@ if __name__ == '__main__':
     bottom_region_limit = H_View_size - bottom_region_width
 
     ball_at_center_range = 80
-    ball_at_center_left_limit = W_View_size / 2 - ball_at_center_range / 2
-    ball_at_center_right_limit = W_View_size / 2 + ball_at_center_range / 2
-    ball_at_center_top_limit = H_View_size / 2 - ball_at_center_range / 2
-    ball_at_center_bottom_limit = H_View_size / 2 + ball_at_center_range / 2
+    ball_at_center_left_limit = W_View_size / 2 - ball_at_center_range / 2 + ball_at_center_range * 2
+    ball_at_center_right_limit = W_View_size / 2 + ball_at_center_range / 2 + ball_at_center_range * 2
+    ball_at_center_top_limit = H_View_size / 2 - ball_at_center_range / 2 + ball_at_center_range
+    ball_at_center_bottom_limit = H_View_size / 2 + ball_at_center_range / 2 + ball_at_center_range
 
 
 
@@ -443,18 +554,15 @@ if __name__ == '__main__':
     # 4: Turning toward the Hole
     # 5: Hitting the Ball
 
-    TX_num = 29
-    previous_TX_num = 0
+    head_status = 29
     # 29: middle down
     # 31: extreme down
 
-    TX_data(serial_port, TX_num)
-
-    delay = 0
-    
+    TX_data(serial_port, head_status)
 
     # -------- Main Loop Start --------
     while True:
+
         if status == 0:
             now_color = 0
 
@@ -470,13 +578,21 @@ if __name__ == '__main__':
         hsv_Lower = (h_min[now_color], s_min[now_color], v_min[now_color])
         hsv_Upper = (h_max[now_color], s_max[now_color], v_max[now_color])
         
-        '''
-        mask0 = cv2.inRange(hsv, (h_min[0], s_min[0], v_min[0]), (h_max[0], s_max[0], v_max[0]))
-        mask1 = cv2.inRange(hsv, (h_min[1], s_min[1], v_min[1]), (h_max[1], s_max[1], v_max[1]))
-        mask2 = cv2.inRange(hsv, (h_min[2], s_min[2], v_min[2]), (h_max[2], s_max[2], v_max[2]))
-        mask3 = cv2.inRange(hsv, (h_min[3], s_min[3], v_min[3]), (h_max[3], s_max[3], v_max[3]))
-        mask4 = cv2.inRange(hsv, (h_min[4], s_min[4], v_min[4]), (h_max[4], s_max[4], v_max[4]))
-        '''
+        
+        # mask0 = cv2.inRange(hsv, (h_min[0], s_min[0], v_min[0]), (h_max[0], s_max[0], v_max[0]))
+        mask1 = cv2.inRange(hsv, (h_min[1], s_min[1], v_min[1]), (h_max[1], s_max[1], v_max[1])) # 1 : hole_colar_yellow
+        # mask2 = cv2.inRange(hsv, (h_min[2], s_min[2], v_min[2]), (h_max[2], s_max[2], v_max[2]))
+        # mask3 = cv2.inRange(hsv, (h_min[3], s_min[3], v_min[3]), (h_max[3], s_max[3], v_max[3]))
+        # mask4 = cv2.inRange(hsv, (h_min[4], s_min[4], v_min[4]), (h_max[4], s_max[4], v_max[4]))
+
+        # hsv_Lower1 = (h_min[1], s_min[1], v_min[1])
+        # hsv_Upper1 = (h_max[1], s_max[1], v_max[1])
+        # hsv_Lower2 = (h_min[2], s_min[2], v_min[2])
+        # hsv_Upper2 = (h_max[2], s_max[2], v_max[2])
+        # hsv_Lower3 = (h_min[3], s_min[3], v_min[3])
+        # hsv_Upper3 = (h_max[3], s_max[3], v_max[3])
+        # hsv_Lower4 = (h_min[4], s_min[4], v_min[4])
+        # hsv_Upper4 = (h_max[4], s_max[4], v_max[4])
         
         
         #mask = cv2.erode(mask, None, iterations=1)
@@ -520,15 +636,10 @@ if __name__ == '__main__':
                 Y_Size = int((255.0 / H_View_size) * h4)
                 X_255_point = int((255.0 / W_View_size) * X)
                 Y_255_point = int((255.0 / H_View_size) * Y)
-                if now_color == 0:
-                    ball_detected = True
-                elif now_color == 1:
-                    hole_detected = True
+                object_detected = True
             
             else:
-                ball_detected = False
-                hole_detected = False
-
+                object_detected = False
                 
         else:
             x = 0
@@ -546,7 +657,7 @@ if __name__ == '__main__':
         old_time = clock()
            
         if View_select == 0: # Fast operation 
-            # print(" " + str(W_View_size) + " x " + str(H_View_size) + " =  %.1f ms" % (Frame_time ))
+            print(" " + str(W_View_size) + " x " + str(H_View_size) + " =  %.1f ms" % (Frame_time ))
             #temp = Read_RX
             pass
             
@@ -560,104 +671,70 @@ if __name__ == '__main__':
                 if msg_one_view > 10:
                     msg_one_view = 0                
                                 
-            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, Area: %.1d, status: %.1d, ball_detected: %.1d, TX_num: %.1d, ' % (X_255_point, Y_255_point, Area, status, ball_detected, TX_num))
+            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, Area: %.1d, status: %.1d, object_detected: %.1d' % (X_255_point, Y_255_point, Area, status, object_detected))
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
 
-            if status == 1:
-                cv2.line(frame, (0, bottom_region_limit), (W_View_size, bottom_region_limit), 5)
-
-            if status == 2:
-                cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
-
-
-            if not ball_detected and status <= 1:
+            if not object_detected:
                 status = 0
-                
             
-            if delay == 0:
+            previous_head_status = head_status
 
-                # Action by Status
-                if status == 0:        # Finding Ball
-                    now_color = 0
-                    if ball_detected:
-                        status = 1
-                        TX_num = 0
-                        delay = 10
-                    else:
-                        TX_num = 1     # left turn
-                    
-                elif status == 1:      # Walking towards the Ball
-                    if TX_num == 0:
-                        TX_num = 29
-                        delay = 10
+            # Action by Status
 
-                    else:
-                        if cx <= left_region_limit:         # ball is at the left side
-                            TX_num = 1
-                        elif cx >= right_region_limit:      # ball is at the right side
-                            TX_num = 3
-                        else:                               # ball is at the middle
-                            if cy < bottom_region_limit:    # ball is not close enough
-                                TX_num = 11
-                            else:                           # ball is close enough
-                                status = 2
-                                TX_num = 0
-                                delay = 20
+            status = 3 # Test : Finding Hole
+
+            if status == 0:        # Finding Ball
+                now_color = 0
+                if object_detected:
+                    status = 1
+                else:
+                    TX_data(serial_port, 1)
                 
-                elif status == 2:      # Ball at center
-                    if TX_num == 0:
-                        TX_num = 31
-                        delay = 20
-                    else:
-                        if cx <= ball_at_center_left_limit:
-                            TX_num = 14
-                            delay = 10
-                        elif cx >= ball_at_center_right_limit:
-                            TX_num = 13
-                            delay = 10
-                        elif cy <= ball_at_center_top_limit:
-                            TX_num = 11
-                            delay = 10
-                        elif cy >= ball_at_center_bottom_limit:
-                            TX_num = 12
-                            delay = 10
-                        elif cx > ball_at_center_left_limit and cx < ball_at_center_right_limit and cy > ball_at_center_top_limit and cy < ball_at_center_bottom_limit:
-                            status = 3
-                            TX_num = 0
-                            delay = 10
+            elif status == 1:      # Walking towards the Ball
+                cv2.line(frame, (0, bottom_region_limit), (W_View_size, bottom_region_limit), 5)
+                head_status = 29
 
-                elif status == 3:      # Finding Hole
-                    now_color = 1
-                    if TX_num == 0:
-                        TX_num = 29
-                        delay = 10
-                    elif TX_num == 29:
-                        TX_num = 17
-                        delay = 10
-                    elif TX_num == 17:
-                        TX_num = 14
-                        delay = 3
-                    elif TX_num == 14:
-                        TX_num = 9
-                        delay = 3
-                    elif TX_num == 9:
-                        TX_num = 14
-                        delay = 3
-                    if hole_detected:
-                        status = 4
-                        TX_num = 0
-
-                elif status == 4:      # Turning towards the Hole
-                    pass
-                elif status == 5:      # Hitting the Ball
-                    pass
+                if cx <= left_region_limit:
+                    TX_data(serial_port, 1)
+                if cx >= right_region_limit:
+                    TX_data(serial_port, 3)
+                else:
+                    if cy < bottom_region_limit:    # ball is not close enough
+                        TX_data(serial_port, 11)
+                    else:                           # ball is close enough
+                        TX_data(serial_port, 0)
+                        status = 2
                 
-                TX_data(serial_port, TX_num)
-                print(TX_num)
-            else:
-                TX_data(serial_port, 0)
-                delay = delay - 1
+            elif status == 2:      # Ball at center
+                cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
+                head_status = 31
+                if cx <= ball_at_center_left_limit:
+                    TX_data(serial_port, 14)
+                if cx >= ball_at_center_right_limit:
+                    TX_data(serial_port, 13)
+                if cy <= ball_at_center_top_limit:
+                    TX_data(serial_port, 11)
+                    TX_data(serial_port, 0)
+                if cy >= ball_at_center_bottom_limit:
+                    TX_data(serial_port, 12)
+                    TX_data(serial_port, 0)
+
+
+            elif status == 3:      # Finding Hole
+                hole_detected, hole_area, (cX_hole, cY_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
+
+                print("hole_detected: {}".format(hole_detected))
+                print("hole_area: {}".format(hole_area))
+                print("(cX_hole,cY_hole): ({}, {})".format(cX_hole, cY_hole))
+                
+            elif status == 4:      # Turning towards the Hole
+                pass
+            elif status == 5:      # Hitting the Ball
+                pass
+
+            if head_status != previous_head_status:
+                TX_data(serial_port, head_status)
 
                       
                       
@@ -696,11 +773,11 @@ if __name__ == '__main__':
             
             cv2.imshow('mini CTS5 - Video', frame )
             cv2.imshow('mini CTS5 - Mask', mask)
+            cv2.imshow('mini CTS5 - Closing', closing)
 
         key = 0xFF & cv2.waitKey(1)
         
         if key == 27:  # ESC  Key
-            TX_data(serial_port, 0)
             break
         elif key == ord(' '):  # spacebar Key
             if View_select == 0:
