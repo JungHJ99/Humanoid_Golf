@@ -288,7 +288,120 @@ def hsv_setting_read():
     #except:
     #    print("hsv_setting_read Error~")
     #    return 0
+
+
+# parameter for hole_detecting()
+
+min_area_hole = 0 # 5000
+max_area_hole = 500000
+min_circularity_hole = 0 # 0.7
+max_aspect_ratio_hole = 10 # 1.5
+
+def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_aspect_ratio):
+
+    # GaussianBlur
+    blurred_image = cv2.GaussianBlur(mask, (5, 5), 0)
+
+    # Morph Close
+    kernel = np.ones((10, 10), np.uint8)
+    closing = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+
+
+    # 일정 크기 이상인 노란색 면적의 윤곽선 반환
+    contours, _ = cv2.findContours(closing.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    hole_detected = False
+    largest_ellipse = None
+    largest_contour = None
+    largest_area = 0
+    cX, cY, cR = 0, 0, 0
+    largest_cX, largest_cY, largest_cR = 0, 0, 0
+    largest_x1, largest_x2, largest_y1, largest_y2, largest_h_mean, largest_s_mean, largest_v_mean = 0, 0, 0, 0, 0, 0, 0
     
+    W_View_size =  800  #320  #640
+    #H_View_size = int(W_View_size / 1.777)
+    H_View_size = int(W_View_size / 1.333)
+
+    # 필터링을 위한 파라미터 계산
+    for cnt in contours:
+        
+        if len(cnt) >= 5:
+            ellipse = cv2.fitEllipse(cnt)
+            center, axes, angle = ellipse
+            major_axis = max(axes)
+            minor_axis = min(axes)
+
+            if minor_axis >0:
+                aspect_ratio = major_axis / minor_axis
+            else:
+                continue
+
+            contour_area = cv2.contourArea(cnt)
+            arc_length = cv2.arcLength(cnt, True)
+            circularity = 4 * np.pi * (contour_area / (arc_length ** 2))
+            
+            M = cv2.moments(cnt)
+            if M["m00"] != 0:
+                cX = int(M["m10"] / M["m00"])
+                cY = int(M["m01"] / M["m00"])
+                cR = round(math.sqrt(0.1 * contour_area))
+
+            y1 = cY - cR
+            y2 = cY + cR
+            x1 = cX - cR
+            x2 = cX + cR
+            
+            center_region = hsv[y1:y2, x1:x2]
+
+            if center_region.size == 0:
+                print("center_region.size == 0")
+                continue
+            
+            center_region_h, center_region_s, center_region_v = cv2.split(center_region)
+            h_mean = np.mean(center_region_h)
+            s_mean = np.mean(center_region_s)
+            v_mean = np.mean(center_region_v)
+
+            # 필터링 조건
+            if (contour_area >= min_area and
+                contour_area <= max_area and
+                circularity >= min_circularity and
+                aspect_ratio <= max_aspect_ratio and
+                h_min[2] <= h_mean <= h_max[2] and
+                s_min[2] <= s_mean <= s_max[2] and
+                v_min[2] <= v_mean <= v_max[2]):
+
+                # 가장 큰 원(=홀) 찾기
+                if contour_area > largest_area:
+                    largest_area = contour_area
+                    largest_ellipse = ellipse
+                    largest_contour = cnt
+                    hole_detected = True
+                    largest_cX = cX
+                    largest_cY = cY
+                    largest_cR = cR
+
+                    largest_x1 = x1
+                    largest_x2 = x2
+                    largest_y1 = y1
+                    largest_y2 = y2
+                    largest_h_mean = h_mean
+                    largest_s_mean = s_mean
+                    largest_v_mean = v_mean
+
+    print("x1: {}, x2: {}, y1: {}, y2: {}".format(largest_x1, largest_x2, largest_y1, largest_y2))
+
+    print("h_mean: {}".format(largest_h_mean))
+    print("s_mean: {}".format(largest_s_mean))
+    print("v_mean: {}".format(largest_v_mean))
+
+    # 홀의 윤곽선 표시, 중심 좌표 계산
+    if largest_ellipse is not None:
+        cv2.drawContours(frame, [largest_contour], -1, (255, 0, 0), 2)
+
+    # 홀의 면적, 중심 좌표 반환
+    return hole_detected, largest_area, (largest_cX, largest_cY), closing
+
 def ball_at_center(cx, cy, limits):
     if cx <= limits[0]:
         TX_num = 14
@@ -330,7 +443,7 @@ if __name__ == '__main__':
 
     BPS =  4800  # 4800,9600,14400, 19200,28800, 57600, 115200
     serial_use = 1
-    now_color = 0
+    now_color = 1
     View_select = 0
     #-------------------------------------
     print(" ---> Camera View: " + str(W_View_size) + " x " + str(H_View_size) )
@@ -452,7 +565,7 @@ if __name__ == '__main__':
 
 
 
-    status = 0
+    status = 1
     # 0: Finding Ball
     # 1: Walking toward the Ball
     # 2: Ball at center
@@ -469,7 +582,7 @@ if __name__ == '__main__':
 
     delay = 0
 
-    only_video = False
+    only_video = True
 
     # -------- Main Loop Start --------
     while True:
@@ -488,9 +601,10 @@ if __name__ == '__main__':
         hsv_Lower = (h_min[now_color], s_min[now_color], v_min[now_color])
         hsv_Upper = (h_max[now_color], s_max[now_color], v_max[now_color])
         
+        mask1 = cv2.inRange(hsv, (h_min[1], s_min[1], v_min[1]), (h_max[1], s_max[1], v_max[1]))
+
         '''
         mask0 = cv2.inRange(hsv, (h_min[0], s_min[0], v_min[0]), (h_max[0], s_max[0], v_max[0]))
-        mask1 = cv2.inRange(hsv, (h_min[1], s_min[1], v_min[1]), (h_max[1], s_max[1], v_max[1]))
         mask2 = cv2.inRange(hsv, (h_min[2], s_min[2], v_min[2]), (h_max[2], s_max[2], v_max[2]))
         mask3 = cv2.inRange(hsv, (h_min[3], s_min[3], v_min[3]), (h_max[3], s_max[3], v_max[3]))
         mask4 = cv2.inRange(hsv, (h_min[4], s_min[4], v_min[4]), (h_max[4], s_max[4], v_max[4]))
@@ -513,8 +627,11 @@ if __name__ == '__main__':
         
         center = None
 
-
-        if len(cnts) > 0:
+        if now_color == 1:
+            hole_detected, hole_area, (cX_hole, cY_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
+            print(hole_detected)
+            print('aaaaa')
+        elif len(cnts) > 0:
             c = max(cnts, key=cv2.contourArea)
             ((X, Y), radius) = cv2.minEnclosingCircle(c)
 
@@ -526,26 +643,18 @@ if __name__ == '__main__':
             if Area > min_area[now_color]:
                 x4, y4, w4, h4 = cv2.boundingRect(c)
                 cv2.rectangle(frame, (x4, y4), (x4 + w4, y4 + h4), (0, 255, 0), 2)
-                #----------------------------------------
-                
-                # center of rectangle
-                cx = x4 + w4 / 2
-                cy = y4 + h4 / 2
-
-                #----------------------------------------
                 
                 X_Size = int((255.0 / W_View_size) * w4)
                 Y_Size = int((255.0 / H_View_size) * h4)
                 X_255_point = int((255.0 / W_View_size) * X)
                 Y_255_point = int((255.0 / H_View_size) * Y)
-                if now_color == 0:
-                    ball_detected = True
-                elif now_color == 1:
-                    hole_detected = False
-            
+                cx_ball = x4 + w4 / 2
+                cy_ball = y4 + h4 / 2
+                ball_detected = True
+
             else:
                 ball_detected = False
-                hole_detected = False
+
 
                 
         else:
@@ -614,12 +723,12 @@ if __name__ == '__main__':
                             delay = 10
 
                         else:
-                            if cx <= left_region_limit:         # ball is at the left side
+                            if cx_ball <= left_region_limit:         # ball is at the left side
                                 TX_num = 1
-                            elif cx >= right_region_limit:      # ball is at the right side
+                            elif cx_ball >= right_region_limit:      # ball is at the right side
                                 TX_num = 3
                             else:                               # ball is at the middle
-                                if cy < bottom_region_limit:    # ball is not close enough
+                                if cy_ball < bottom_region_limit:    # ball is not close enough
                                     TX_num = 11
                                 else:                           # ball is close enough
                                     status = 2
@@ -631,24 +740,8 @@ if __name__ == '__main__':
                             TX_num = 31
                             delay = 10
                         else:
-                            # if cx <= ball_at_center_left_limit:
-                            #     TX_num = 14
-                            #     delay = 10
-                            # elif cx >= ball_at_center_right_limit:
-                            #     TX_num = 13
-                            #     delay = 10
-                            # elif cy <= ball_at_center_top_limit:
-                            #     TX_num = 11
-                            #     delay = 10
-                            # elif cy >= ball_at_center_bottom_limit:
-                            #     TX_num = 12
-                            #     delay = 10
-                            # elif cx > ball_at_center_left_limit and cx < ball_at_center_right_limit and cy > ball_at_center_top_limit and cy < ball_at_center_bottom_limit:
-                            #     status = 3
-                            #     TX_num = 0
-                            #     delay = 10
                             limits = [ball_at_center_left_limit, ball_at_center_right_limit, ball_at_center_top_limit, ball_at_center_bottom_limit]
-                            TX_num = ball_at_center(cx, cy, limits)
+                            TX_num = ball_at_center(cx_ball, cy_ball, limits)
                             delay = 10
                             if TX_num == 0:
                                 status = 3
@@ -682,7 +775,7 @@ if __name__ == '__main__':
                             delay = 10
                         else:
                             limits = [ball_at_point_left_limit, ball_at_point_right_limit, ball_at_point_top_limit, ball_at_point_bottom_limit]
-                            TX_num = ball_at_center(cx, cy, limits)
+                            TX_num = ball_at_center(cx_ball, cy_ball, limits)
                             delay = 10
                             if TX_num == 0:
                                 status = 5
@@ -696,9 +789,9 @@ if __name__ == '__main__':
                             TX_num = 17    # head left
                             delay = 10
                         elif TX_num == 17 or TX_num == 1 or TX_num == 3:
-                            if cx <= left_region_limit:         # hole is at the left side
+                            if cx_ball <= left_region_limit:         # hole is at the left side
                                 TX_num = 1
-                            elif cx >= right_region_limit:      # hole is at the right side
+                            elif cx_ball >= right_region_limit:      # hole is at the right side
                                 TX_num = 3
                             else:
                                 status = 6
