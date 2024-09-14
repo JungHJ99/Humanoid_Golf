@@ -9,9 +9,10 @@ import time
 import sys
 from threading import Thread
 import csv
-
 import math
 
+from picamera import PiCamera
+from picamera.array import PiRGBArray
 
 X_255_point = 0
 Y_255_point = 0
@@ -438,7 +439,7 @@ if __name__ == '__main__':
     #-------------------------------------
     #---- user Setting -------------------
     #-------------------------------------
-    W_View_size =  800  #320  #640
+    W_View_size =  640  #320  #640
     #H_View_size = int(W_View_size / 1.777)
     H_View_size = int(W_View_size / 1.333)
 
@@ -486,24 +487,36 @@ if __name__ == '__main__':
     draw_str2(img, (15, 65), 's, S: Setting File Save')
     draw_str2(img, (15, 85), 'Esc: Program Exit')
     
-    
+
+
     cv2.imshow(Top_name, img)
     #---------------------------
-    if not args.get("video", False):
-        camera = cv2.VideoCapture(0)
-    else:
-        camera = cv2.VideoCapture(args["video"])
+    # if not args.get("video", False):
+    #     camera = cv2.VideoCapture(0)
+    # else:
+    #     camera = cv2.VideoCapture(args["video"])
+    camera = PiCamera()
+    camera.awb_mode = 'sunlight'
     #---------------------------
-    camera.set(3, W_View_size)
-    camera.set(4, H_View_size)
-    camera.set(5, 40)
+    # camera.set(3, W_View_size)
+    # camera.set(4, H_View_size)
+    # camera.set(5, 40)
+    camera.resolution = (W_View_size, H_View_size)
+    camera.framerate = 40
+
     time.sleep(0.5)
     #---------------------------
     
    
     
     #---------------------------
-    (grabbed, frame) = camera.read()
+    # (grabbed, frame) = camera.read()
+    rawCapture = PiRGBArray(camera, size=(W_View_size, H_View_size))
+    camera.capture(rawCapture, format="bgr")
+    frame = rawCapture.array
+    grabbed = frame is not None and frame.size > 0
+    frame = rawCapture.array
+    
     draw_str2(frame, (5, 15), 'X_Center x Y_Center =  Area' )
     draw_str2(frame, (5, H_View_size - 5), 'View: %.1d x %.1d.  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size))
@@ -593,7 +606,11 @@ if __name__ == '__main__':
             now_color = 0
 
         # grab the current frame
-        (grabbed, frame) = camera.read()
+        # (grabbed, frame) = camera.read()
+        rawCapture = PiRGBArray(camera, size=(W_View_size, H_View_size))
+        camera.capture(rawCapture, format="bgr")
+        frame = rawCapture.array
+        grabbed = frame is not None and frame.size > 0
 
         if args.get("video") and not grabbed:
             break
@@ -870,5 +887,5 @@ if __name__ == '__main__':
     receiving_exit = 0
     time.sleep(0.5)
     
-    camera.release()
+    camera.close()
     cv2.destroyAllWindows()
