@@ -298,6 +298,56 @@ max_area_hole = 500000
 min_circularity_hole = 0 # 0.7
 max_aspect_ratio_hole = 10 # 1.5
 
+def ball_detecting(mask):
+
+    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+
+    # initialize parameter
+
+    X_Size = 0
+    Y_Size = 0
+    X_255_point = 0
+    Y_255_point = 0
+    cx_ball = 0
+    cy_ball = 0
+    ball_detected = False
+    Area = 0
+    Angle = 0
+
+    if len(cnts) > 0:
+        c = max(cnts, key=cv2.contourArea)
+        ((X, Y), radius) = cv2.minEnclosingCircle(c)
+
+        Area = cv2.contourArea(c) / min_area[0]
+
+        if Area > 255:
+            Area = 255
+
+        if Area > min_area[0]:
+            x4, y4, w4, h4 = cv2.boundingRect(c)
+            cv2.rectangle(frame, (x4, y4), (x4 + w4, y4 + h4), (0, 255, 0), 2)
+            
+            X_Size = int((255.0 / W_View_size) * w4)
+            Y_Size = int((255.0 / H_View_size) * h4)
+            X_255_point = int((255.0 / W_View_size) * X)
+            Y_255_point = int((255.0 / H_View_size) * Y)
+            cx_ball = x4 + w4 / 2
+            cy_ball = y4 + h4 / 2
+            ball_detected = True
+
+        else:
+            ball_detected = False
+            
+    else:
+        X_255_point = 0
+        Y_255_point = 0
+        X_Size = 0
+        Y_Size = 0
+        Area = 0
+        Angle = 0
+
+    return X_Size, Y_Size, X_255_point, Y_255_point, cx_ball, cy_ball, ball_detected, Area, Angle
+
 def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_aspect_ratio):
 
     # GaussianBlur
@@ -524,7 +574,7 @@ if __name__ == '__main__':
     draw_str_height(frame, (5, int(H_View_size/2)), 'Fast operation...', 3.0 )
     mask = frame.copy()
     cv2.imshow('mini CTS5 - Video', frame )
-    cv2.imshow('mini CTS5 - Mask', mask)
+    # cv2.imshow('mini CTS5 - Mask', mask)
     cv2.moveWindow('mini CTS5 - Mask',322 + W_View_size,36)
     cv2.moveWindow('mini CTS5 - Video',322,36)
     cv2.setMouseCallback('mini CTS5 - Video', mouse_move)
@@ -587,8 +637,9 @@ if __name__ == '__main__':
     # 1: Walking toward the Ball
     # 2: Ball at center
     # 3: Finding Hole
-    # 4: Turning toward the Hole
-    # 5: Hitting the Ball
+    # 4: Hole at hit point
+    # 5: Ball at hit point
+    # 6: Hitting the Ball
 
     TX_num = 29
     previous_TX_num = 0
@@ -616,27 +667,21 @@ if __name__ == '__main__':
         if args.get("video") and not grabbed:
             break
 
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)  # HSV => YUV
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)    # HSV => YUV
         mask = cv2.inRange(hsv, hsv_Lower, hsv_Upper)
         
         hsv_Lower = (h_min[now_color], s_min[now_color], v_min[now_color])
         hsv_Upper = (h_max[now_color], s_max[now_color], v_max[now_color])
-        
-        mask1 = cv2.inRange(hsv, (h_min[1], s_min[1], v_min[1]), (h_max[1], s_max[1], v_max[1]))
 
-        '''
         mask0 = cv2.inRange(hsv, (h_min[0], s_min[0], v_min[0]), (h_max[0], s_max[0], v_max[0]))
+        mask1 = cv2.inRange(hsv, (h_min[1], s_min[1], v_min[1]), (h_max[1], s_max[1], v_max[1]))
         mask2 = cv2.inRange(hsv, (h_min[2], s_min[2], v_min[2]), (h_max[2], s_max[2], v_max[2]))
         mask3 = cv2.inRange(hsv, (h_min[3], s_min[3], v_min[3]), (h_max[3], s_max[3], v_max[3]))
         mask4 = cv2.inRange(hsv, (h_min[4], s_min[4], v_min[4]), (h_max[4], s_max[4], v_max[4]))
-        '''
-        
         
         #mask = cv2.erode(mask, None, iterations=1)
         #mask = cv2.dilate(mask, None, iterations=1)
         #mask = cv2.GaussianBlur(mask, (3, 3), 2)  # softly
-
-        cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
         
         '''
         cnts0 = cv2.findContours(mask0.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
@@ -648,55 +693,19 @@ if __name__ == '__main__':
         
         center = None
 
-        if now_color == 1:
-            hole_detected, hole_area, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
-        elif len(cnts) > 0:
-            c = max(cnts, key=cv2.contourArea)
-            ((X, Y), radius) = cv2.minEnclosingCircle(c)
+        hole_detected, hole_area, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
+        
+        X_Size, Y_Size, X_255_point, Y_255_point, cx_ball, cy_ball, ball_detected, Area, Angle = ball_detecting(mask0)
 
-            Area = cv2.contourArea(c) / min_area[now_color]
-
-            if Area > 255:
-                Area = 255
-
-            if Area > min_area[now_color]:
-                x4, y4, w4, h4 = cv2.boundingRect(c)
-                cv2.rectangle(frame, (x4, y4), (x4 + w4, y4 + h4), (0, 255, 0), 2)
-                
-                X_Size = int((255.0 / W_View_size) * w4)
-                Y_Size = int((255.0 / H_View_size) * h4)
-                X_255_point = int((255.0 / W_View_size) * X)
-                Y_255_point = int((255.0 / H_View_size) * Y)
-                cx_ball = x4 + w4 / 2
-                cy_ball = y4 + h4 / 2
-                ball_detected = True
-
-            else:
-                ball_detected = False
-
-
-                
-        else:
-            x = 0
-            y = 0
-            X_255_point = 0
-            Y_255_point = 0
-            X_Size = 0
-            Y_Size = 0
-            Area = 0
-            Angle = 0
-            
-
-       
         Frame_time = (clock() - old_time) * 1000.
         old_time = clock()
            
-        if View_select == 0: # Fast operation 
+        if View_select == 0:    # Fast operation 
             # print(" " + str(W_View_size) + " x " + str(H_View_size) + " =  %.1f ms" % (Frame_time ))
             #temp = Read_RX
             pass
             
-        elif View_select == 1: # Debug
+        elif View_select == 1:  # Debug
             
             if msg_one_view > 0:
                 msg_one_view = msg_one_view + 1
@@ -710,7 +719,7 @@ if __name__ == '__main__':
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
 
-            if not only_video: # for hsv select
+            if not only_video:  # for hsv select
 
                 if status == 1:
                     cv2.line(frame, (0, bottom_region_limit), (W_View_size, bottom_region_limit), 5)
@@ -727,36 +736,36 @@ if __name__ == '__main__':
                 if delay == 0:
 
                     # Action by Status
-                    if status == 0:        # Finding Ball
-                        now_color = 0
+                    if status == 0:         # 0: Finding Ball
+                        # now_color = 0
                         if ball_detected:
                             status = 1
                             TX_num = 0
                             delay = 5
                         else:
-                            TX_num = 1     # left turn
+                            TX_num = 1      # turn left
                         
-                    elif status == 1:      # Walking towards the Ball
+                    elif status == 1:                               # 1: Walking towards the Ball
                         if TX_num == 0:
-                            TX_num = 29
+                            TX_num = 29     
                             delay = 5
 
                         else:
-                            if cx_ball <= left_region_limit:         # ball is at the left side
-                                TX_num = 1
-                            elif cx_ball >= right_region_limit:      # ball is at the right side
-                                TX_num = 3
-                            else:                               # ball is at the middle
-                                if cy_ball < bottom_region_limit:    # ball is not close enough
-                                    TX_num = 11
-                                else:                           # ball is close enough
+                            if cx_ball <= left_region_limit:        # ball is at the left side
+                                TX_num = 1                          # turn left
+                            elif cx_ball >= right_region_limit:     # ball is at the right side
+                                TX_num = 3                          # turn right
+                            else:                                   # ball is at the middle
+                                if cy_ball < bottom_region_limit:   # ball is not close enough
+                                    TX_num = 11                     # step forward
+                                else:                               # ball is close enough
                                     status = 2
                                     TX_num = 0
                                     delay = 10
                     
-                    elif status == 2:      # Ball at center
+                    elif status == 2:       # 2: Ball at center
                         if TX_num == 0:
-                            TX_num = 31
+                            TX_num = 31     # step backward
                             delay = 5
                         else:
                             limits = [ball_at_center_left_limit, ball_at_center_right_limit, ball_at_center_top_limit, ball_at_center_bottom_limit]
@@ -765,52 +774,52 @@ if __name__ == '__main__':
                             if TX_num == 0:
                                 status = 3
 
-                    elif status == 3:      # Finding Hole
+                    elif status == 3:       # 3: Finding Hole
                         if TX_num == 0:    
-                            TX_num = 33    # head up
+                            TX_num = 33     # head up
                             delay = 5
                         elif TX_num == 33: 
-                            TX_num = 17    # head left
+                            TX_num = 17     # head left
                             delay = 5
                         elif TX_num == 17 or TX_num == 9:
-                            now_color = 1
-                            TX_num = 14    # step left
+                            # now_color = 1
+                            TX_num = 14     # step left
                             delay = 2
                         elif TX_num == 14: 
-                            TX_num = 9     # turn left
+                            TX_num = 9      # turn right
                             delay = 2
                         if hole_detected and TX_num != 33:
                             status = 4
                             TX_num = 0
                             delay = 10
 
-                    elif status == 4:      # Hole at hit point
-                        if cx_hole <= hole_left_region_limit:         # hole is at the left side
-                            TX_num = 1                                # turn right
-                        elif cx_hole >= hole_right_region_limit:      # hole is at the right side
-                            TX_num = 3                                # turn left
+                    elif status == 4:                               # 4: Hole at hit point
+                        if cx_hole <= hole_left_region_limit:       # hole is at the left side
+                            TX_num = 1                              # turn left
+                        elif cx_hole >= hole_right_region_limit:    # hole is at the right side
+                            TX_num = 3                              # turn right
                         else:
                             status = 5
                             TX_num = 0
                             delay = 5
                                 
-                    elif status == 5:      # Ball at hit point
+                    elif status == 5:       # 5: Ball at hit point
                         if TX_num == 0:
-                            TX_num = 31    # head down
+                            TX_num = 31     # head down
                             delay = 5
                         elif TX_num == 31:
-                            TX_num = 21    # head front
+                            TX_num = 21     # head front
                             delay = 5
                         else:
-                            now_color = 0
+                            # now_color = 0
                             limits = [ball_at_point_left_limit, ball_at_point_right_limit, ball_at_point_top_limit, ball_at_point_bottom_limit]
                             TX_num = ball_at_center(cx_ball, cy_ball, limits)
                             delay = 5
                             if TX_num == 0:
                                 status = 6
                     
-                    elif status == 6:
-                        TX_num = 2
+                    elif status == 6:       # 6: Hitting the Ball
+                        TX_num = 2          # shot left
                         status = 0
                         delay = 15
                         
@@ -857,7 +866,17 @@ if __name__ == '__main__':
             #----------------------------------------------
             
             cv2.imshow('mini CTS5 - Video', frame )
-            cv2.imshow('mini CTS5 - Mask', mask)
+            # cv2.imshow('mini CTS5 - Mask', mask)
+            cv2.imshow('mini CTS5 - Mask0', mask0)
+            cv2.imshow('mini CTS5 - Mask1', mask1)
+            cv2.imshow('mini CTS5 - Mask2', mask2)
+            # cv2.imshow('mini CTS5 - Mask3', mask3)
+            # cv2.imshow('mini CTS5 - Mask4', mask4)
+
+
+
+
+            
 
         key = 0xFF & cv2.waitKey(1)
         
