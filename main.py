@@ -366,6 +366,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
     largest_contour = None
     largest_area = 0
     cX, cY, cR = 0, 0, 0
+    x1, x2, y1, y2 = 0, 0, 0, 0
     largest_cX, largest_cY, largest_cR = 0, 0, 0
     largest_x1, largest_x2, largest_y1, largest_y2, largest_h_mean, largest_s_mean, largest_v_mean = 0, 0, 0, 0, 0, 0, 0
     
@@ -391,18 +392,24 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
             arc_length = cv2.arcLength(cnt, True)
             circularity = 4 * np.pi * (contour_area / (arc_length ** 2))
             
-            M = cv2.moments(cnt)
-            if M["m00"] != 0:
-                cX = int(M["m10"] / M["m00"])
-                cY = int(M["m01"] / M["m00"])
-                cR = round(math.sqrt(0.1 * contour_area))
+            try:
+                M = cv2.moments(cnt)
+                if M["m00"] != 0:
+                    cX = int(M["m10"] / M["m00"])
+                    cY = int(M["m01"] / M["m00"])
+                    cR = int(round(math.sqrt(0.1 * contour_area)))
 
-            y1 = cY - cR
-            y2 = cY + cR
-            x1 = cX - cR
-            x2 = cX + cR
+                y1 = cY - cR
+                y2 = cY + cR
+                x1 = cX - cR
+                x2 = cX + cR
             
-            center_region = hsv[y1:y2, x1:x2]
+                center_region = hsv[y1:y2, x1:x2]
+
+            except:     #240921 error
+                print([y1, y2, x1, x2, cX, cY, cR])
+                raise 
+                
 
             if center_region.size == 0:
                 print("center_region.size == 0")
