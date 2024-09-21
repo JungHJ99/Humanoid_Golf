@@ -627,8 +627,8 @@ if __name__ == '__main__':
     ball_at_point_top_limit = H_View_size / 2 - ball_at_point_range / 2
     ball_at_point_bottom_limit = H_View_size / 2 + ball_at_point_range / 2
 
-    hole_left_region_limit = W_View_size / 2 - center_region_width / 2 + 150
-    hole_right_region_limit = W_View_size / 2 + center_region_width / 2 + 150
+    hole_left_region_limit = W_View_size / 2 - center_region_width / 3 + 40
+    hole_right_region_limit = W_View_size / 2 + center_region_width / 3 + 40
 
 
 
@@ -645,6 +645,9 @@ if __name__ == '__main__':
     previous_TX_num = 0
     # 29: middle down
     # 31: extreme down
+
+    hole_success = False
+    ball_success = False
 
     TX_data(serial_port, TX_num)
 
@@ -715,7 +718,8 @@ if __name__ == '__main__':
                 if msg_one_view > 10:
                     msg_one_view = 0                
                                 
-            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, Area: %.1d, status: %.1d, ball_detected: %.1d, hole_detected: %.1d, TX_num: %.1d, ' % (X_255_point, Y_255_point, Area, status, ball_detected, hole_detected, TX_num))
+            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, Area: %.1d, status: %.1d, ball_detected: %.1d, hole_detected: %.1d, TX_num: %.1d, hole_success: %.1d, ball_success: %.1d' 
+                      % (X_255_point, Y_255_point, Area, status, ball_detected, hole_detected, TX_num, hole_success, ball_success))
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
 
@@ -781,9 +785,9 @@ if __name__ == '__main__':
                         elif TX_num == 33: 
                             TX_num = 17     # head left
                             delay = 5
+                            now_color = 1
                         elif TX_num == 17 or TX_num == 9:
-                            # now_color = 1
-                            TX_num = 14     # step left
+                            TX_num = 14    # step left
                             delay = 2
                         elif TX_num == 14: 
                             TX_num = 9      # turn right
@@ -793,15 +797,26 @@ if __name__ == '__main__':
                             TX_num = 0
                             delay = 10
 
-                    elif status == 4:                               # 4: Hole at hit point
-                        if cx_hole <= hole_left_region_limit:       # hole is at the left side
-                            TX_num = 1                              # turn left
-                        elif cx_hole >= hole_right_region_limit:    # hole is at the right side
-                            TX_num = 3                              # turn right
-                        else:
-                            status = 5
-                            TX_num = 0
+                    elif status == 4:      # Hole at hit point
+                        if TX_num == 0:    
+                            TX_num = 33    # head up
                             delay = 5
+                        elif TX_num == 33: 
+                            TX_num = 17    # head left
+                            delay = 5
+                            now_color = 1
+                        else:
+                            if cx_hole <= hole_left_region_limit:         # hole is at the left side
+                                TX_num = 1                                # turn right
+                                ball_success = False
+                            elif cx_hole >= hole_right_region_limit:      # hole is at the right side
+                                TX_num = 3                                # turn left
+                                ball_success = False
+                            else:
+                                hole_success = True
+                                status = 5
+                                TX_num = 0
+                                delay = 5
                                 
                     elif status == 5:       # 5: Ball at hit point
                         if TX_num == 0:
@@ -815,14 +830,26 @@ if __name__ == '__main__':
                             limits = [ball_at_point_left_limit, ball_at_point_right_limit, ball_at_point_top_limit, ball_at_point_bottom_limit]
                             TX_num = ball_at_center(cx_ball, cy_ball, limits)
                             delay = 5
-                            if TX_num == 0:
+                            if TX_num == 0 and (not hole_success or not ball_success):
+                                ball_success = True
+                                status = 4
+                            elif TX_num == 0 and (hole_success and ball_success):
                                 status = 6
+                            else:
+                                ball_success = False
+                                hole_success = False
                     
-                    elif status == 6:       # 6: Hitting the Ball
-                        TX_num = 2          # shot left
-                        status = 0
-                        delay = 15
-                        
+                    elif status == 6:
+                        if TX_num == 0:
+                            TX_num = 2     # hit the ball
+                            delay = 30
+                        elif TX_num == 2:
+                            TX_num = 33
+                            delay = 5
+                        else:
+                            TX_num = 0
+                            delay = 5
+                            status = 0
                     
                     TX_data(serial_port, TX_num)
                     print(TX_num)
