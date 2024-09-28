@@ -1,4 +1,4 @@
- '******** 2ì¡± ë³´í–‰ë¡œë´‡ ì´ˆê¸° ì˜ì  í”„ë¡œê·¸ëž¨ ********
+ '******** 2Á· º¸Çà·Îº¿ ÃÊ±â ¿µÁ¡ ÇÁ·Î±×·¥ ********
 
 DIM I AS BYTE
 DIM J AS BYTE
@@ -7,25 +7,25 @@ DIM A AS BYTE
 DIM A_old AS BYTE
 DIM B AS BYTE
 DIM C AS BYTE
-DIM ë³´í–‰ì†ë„ AS BYTE
-DIM ì¢Œìš°ì†ë„ AS BYTE
-DIM ì¢Œìš°ì†ë„2 AS BYTE
-DIM ë³´í–‰ìˆœì„œ AS BYTE
-DIM í˜„ìž¬ì „ì•• AS BYTE
-DIM ë°˜ì „ì²´í¬ AS BYTE
-DIM ëª¨í„°ONOFF AS BYTE
-DIM ìžì´ë¡œONOFF AS BYTE
-DIM ê¸°ìš¸ê¸°ì•žë’¤ AS INTEGER
-DIM ê¸°ìš¸ê¸°ì¢Œìš° AS INTEGER
+DIM º¸Çà¼Óµµ AS BYTE
+DIM ÁÂ¿ì¼Óµµ AS BYTE
+DIM ÁÂ¿ì¼Óµµ2 AS BYTE
+DIM º¸Çà¼ø¼­ AS BYTE
+DIM ÇöÀçÀü¾Ð AS BYTE
+DIM ¹ÝÀüÃ¼Å© AS BYTE
+DIM ¸ðÅÍONOFF AS BYTE
+DIM ÀÚÀÌ·ÎONOFF AS BYTE
+DIM ±â¿ï±â¾ÕµÚ AS INTEGER
+DIM ±â¿ï±âÁÂ¿ì AS INTEGER
 
-DIM ê³¡ì„ ë°©í–¥ AS BYTE
+DIM °î¼±¹æÇâ AS BYTE
 
-DIM ë„˜ì–´ì§„í™•ì¸ AS BYTE
-DIM ê¸°ìš¸ê¸°í™•ì¸íšŸìˆ˜ AS BYTE
-DIM ë³´í–‰íšŸìˆ˜ AS BYTE
-DIM ë³´í–‰COUNT AS BYTE
+DIM ³Ñ¾îÁøÈ®ÀÎ AS BYTE
+DIM ±â¿ï±âÈ®ÀÎÈ½¼ö AS BYTE
+DIM º¸ÇàÈ½¼ö AS BYTE
+DIM º¸ÇàCOUNT AS BYTE
 
-DIM ì ì™¸ì„ ê±°ë¦¬ê°’  AS BYTE
+DIM Àû¿Ü¼±°Å¸®°ª  AS BYTE
 
 DIM S11  AS BYTE
 DIM S16  AS BYTE
@@ -42,44 +42,44 @@ DIM BUTTON_NO AS INTEGER
 DIM SOUND_BUSY AS BYTE
 DIM TEMP_INTEGER AS INTEGER
 
-'**** ê¸°ìš¸ê¸°ì„¼ì„œí¬íŠ¸ ì„¤ì • ****
-CONST ì•žë’¤ê¸°ìš¸ê¸°ADí¬íŠ¸ = 0
-CONST ì¢Œìš°ê¸°ìš¸ê¸°ADí¬íŠ¸ = 1
-CONST ê¸°ìš¸ê¸°í™•ì¸ì‹œê°„ = 20  'ms
+'**** ±â¿ï±â¼¾¼­Æ÷Æ® ¼³Á¤ ****
+CONST ¾ÕµÚ±â¿ï±âADÆ÷Æ® = 0
+CONST ÁÂ¿ì±â¿ï±âADÆ÷Æ® = 1
+CONST ±â¿ï±âÈ®ÀÎ½Ã°£ = 20  'ms
 
-CONST ì ì™¸ì„ ADí¬íŠ¸  = 4
+CONST Àû¿Ü¼±ADÆ÷Æ®  = 4
 
 
-CONST min = 61	'ë’¤ë¡œë„˜ì–´ì¡Œì„ë•Œ
-CONST max = 107	'ì•žìœ¼ë¡œë„˜ì–´ì¡Œì„ë•Œ
+CONST min = 61	'µÚ·Î³Ñ¾îÁ³À»¶§
+CONST max = 107	'¾ÕÀ¸·Î³Ñ¾îÁ³À»¶§
 CONST COUNT_MAX = 3
 
 
-CONST ë¨¸ë¦¬ì´ë™ì†ë„ = 10
+CONST ¸Ó¸®ÀÌµ¿¼Óµµ = 10
 '************************************************
 
 
 
-PTP SETON 				'ë‹¨ìœ„ê·¸ë£¹ë³„ ì ëŒ€ì ë™ìž‘ ì„¤ì •
-PTP ALLON				'ì „ì²´ëª¨í„° ì ëŒ€ì  ë™ìž‘ ì„¤ì •
+PTP SETON 				'´ÜÀ§±×·ìº° Á¡´ëÁ¡µ¿ÀÛ ¼³Á¤
+PTP ALLON				'ÀüÃ¼¸ðÅÍ Á¡´ëÁ¡ µ¿ÀÛ ¼³Á¤
 
-DIR G6A,1,0,0,1,0,0		'ëª¨í„°0~5ë²ˆ
-DIR G6D,0,1,1,0,1,1		'ëª¨í„°18~23ë²ˆ
-DIR G6B,1,1,1,1,1,1		'ëª¨í„°6~11ë²ˆ
-DIR G6C,0,0,0,1,1,0		'ëª¨í„°12~17ë²ˆ
+DIR G6A,1,0,0,1,0,0		'¸ðÅÍ0~5¹ø
+DIR G6D,0,1,1,0,1,1		'¸ðÅÍ18~23¹ø
+DIR G6B,1,1,1,1,1,1		'¸ðÅÍ6~11¹ø
+DIR G6C,0,0,0,1,1,0		'¸ðÅÍ12~17¹ø
 
 '************************************************
 
-OUT 52,0	'ë¨¸ë¦¬ LED ì¼œê¸°
-'***** ì´ˆê¸°ì„ ì–¸ '************************************************
+OUT 52,0	'¸Ó¸® LED ÄÑ±â
+'***** ÃÊ±â¼±¾ð '************************************************
 
-ë³´í–‰ìˆœì„œ = 0
-ë°˜ì „ì²´í¬ = 0
-ê¸°ìš¸ê¸°í™•ì¸íšŸìˆ˜ = 0
-ë³´í–‰íšŸìˆ˜ = 1
-ëª¨í„°ONOFF = 0
+º¸Çà¼ø¼­ = 0
+¹ÝÀüÃ¼Å© = 0
+±â¿ï±âÈ®ÀÎÈ½¼ö = 0
+º¸ÇàÈ½¼ö = 1
+¸ðÅÍONOFF = 0
 
-'****ì´ˆê¸°ìœ„ì¹˜ í”¼ë“œë°±*****************************
+'****ÃÊ±âÀ§Ä¡ ÇÇµå¹é*****************************
 
 
 TEMPO 230
@@ -99,18 +99,18 @@ SERVO 16, S16
 SERVO 16, 100
 
 
-GOSUB ì „ì›ì´ˆê¸°ìžì„¸
-GOSUB ê¸°ë³¸ìžì„¸
+GOSUB Àü¿øÃÊ±âÀÚ¼¼
+GOSUB ±âº»ÀÚ¼¼
 
 
-GOSUB ìžì´ë¡œINIT
-GOSUB ìžì´ë¡œMID
-GOSUB ìžì´ë¡œON
+GOSUB ÀÚÀÌ·ÎINIT
+GOSUB ÀÚÀÌ·ÎMID
+GOSUB ÀÚÀÌ·ÎON
 
 
 
 PRINT "VOLUME 200 !"
-PRINT "SOUND 12 !" 'ì•ˆë…•í•˜ì„¸ìš”
+PRINT "SOUND 12 !" '¾È³çÇÏ¼¼¿ä
 
 GOSUB All_motor_mode3
 
@@ -118,7 +118,7 @@ GOSUB All_motor_mode3
 
 
 
-GOTO MAIN	'ì‹œë¦¬ì–¼ ìˆ˜ì‹  ë£¨í‹´ìœ¼ë¡œ ê°€ê¸°
+GOTO MAIN	'½Ã¸®¾ó ¼ö½Å ·çÆ¾À¸·Î °¡±â
 
 '************************************************
 
@@ -130,23 +130,23 @@ GOTO MAIN	'ì‹œë¦¬ì–¼ ìˆ˜ì‹  ë£¨í‹´ìœ¼ë¡œ ê°€ê¸°
 ' Infrared_Distance = 10 ' About 95cm
 '*********************************************
 '************************************************
-ì‹œìž‘ìŒ:
+½ÃÀÛÀ½:
     TEMPO 220
     MUSIC "O23EAB7EA>3#C"
     RETURN
     '************************************************
-ì¢…ë£ŒìŒ:
+Á¾·áÀ½:
     TEMPO 220
     MUSIC "O38GD<BGD<BG"
     RETURN
     '************************************************
-ì—ëŸ¬ìŒ:
+¿¡·¯À½:
     TEMPO 250
     MUSIC "FFF"
     RETURN
     '************************************************
     '************************************************
-MOTOR_ON: 'ì „í¬íŠ¸ì„œë³´ëª¨í„°ì‚¬ìš©ì„¤ì •
+MOTOR_ON: 'ÀüÆ÷Æ®¼­º¸¸ðÅÍ»ç¿ë¼³Á¤
 
     GOSUB MOTOR_GET
 
@@ -158,24 +158,24 @@ MOTOR_ON: 'ì „í¬íŠ¸ì„œë³´ëª¨í„°ì‚¬ìš©ì„¤ì •
     DELAY 50
     MOTOR G6D
 
-    ëª¨í„°ONOFF = 0
-    GOSUB ì‹œìž‘ìŒ			
+    ¸ðÅÍONOFF = 0
+    GOSUB ½ÃÀÛÀ½			
     RETURN
 
     '************************************************
-    'ì „í¬íŠ¸ì„œë³´ëª¨í„°ì‚¬ìš©ì„¤ì •
+    'ÀüÆ÷Æ®¼­º¸¸ðÅÍ»ç¿ë¼³Á¤
 MOTOR_OFF:
 
     MOTOROFF G6B
     MOTOROFF G6C
     MOTOROFF G6A
     MOTOROFF G6D
-    ëª¨í„°ONOFF = 1	
+    ¸ðÅÍONOFF = 1	
     GOSUB MOTOR_GET	
-    GOSUB ì¢…ë£ŒìŒ	
+    GOSUB Á¾·áÀ½	
     RETURN
     '************************************************
-    'ìœ„ì¹˜ê°’í”¼ë“œë°±
+    'À§Ä¡°ªÇÇµå¹é
 MOTOR_GET:
     GETMOTORSET G6A,1,1,1,1,1,0
     GETMOTORSET G6B,1,1,1,0,0,1
@@ -184,7 +184,7 @@ MOTOR_GET:
     RETURN
 
     '************************************************
-    'ìœ„ì¹˜ê°’í”¼ë“œë°±
+    'À§Ä¡°ªÇÇµå¹é
 MOTOR_SET:
     GETMOTORSET G6A,1,1,1,1,1,0
     GETMOTORSET G6B,1,1,1,0,0,1
@@ -263,7 +263,7 @@ Arm_motor_mode3:
     RETURN
     '************************************************
 
-ì „ì›ì´ˆê¸°ìžì„¸:
+Àü¿øÃÊ±âÀÚ¼¼:
     MOVE G6A,100,  76, 145,  93, 100, 100
     MOVE G6D,100,  76, 145,  93, 100, 100
     MOVE G6B,100,  35,  90,
@@ -272,7 +272,7 @@ Arm_motor_mode3:
     mode = 0
     RETURN
     '************************************************
-ì•ˆì •í™”ìžì„¸:
+¾ÈÁ¤È­ÀÚ¼¼:
     MOVE G6A,98,  76, 145,  93, 101, 100
     MOVE G6D,98,  76, 145,  93, 101, 100
     MOVE G6B,100,  35,  90,
@@ -285,7 +285,7 @@ Arm_motor_mode3:
 
 
     '************************************************
-ê¸°ë³¸ìžì„¸:
+±âº»ÀÚ¼¼:
 
 
     MOVE G6A,100,  76, 145,  93, 100, 100
@@ -297,7 +297,7 @@ Arm_motor_mode3:
 
     RETURN
     '******************************************	
-ê¸°ë³¸ìžì„¸2:
+±âº»ÀÚ¼¼2:
     MOVE G6A,100,  76, 145,  93, 100, 100
     MOVE G6D,100,  76, 145,  93, 100, 100
     MOVE G6B,100,  30,  80,
@@ -307,7 +307,7 @@ Arm_motor_mode3:
     mode = 0
     RETURN
     '******************************************	
-ì°¨ë ·ìžì„¸:
+Â÷·ÇÀÚ¼¼:
     MOVE G6A,100, 56, 182, 76, 100, 100
     MOVE G6D,100, 56, 182, 76, 100, 100
     MOVE G6B,100,  30,  80,
@@ -316,8 +316,8 @@ Arm_motor_mode3:
     mode = 2
     RETURN
     '******************************************
-ì•‰ì€ìžì„¸:
-    GOSUB ìžì´ë¡œOFF
+¾ÉÀºÀÚ¼¼:
+    GOSUB ÀÚÀÌ·ÎOFF
     MOVE G6A,100, 145,  28, 145, 100, 100
     MOVE G6D,100, 145,  28, 145, 100, 100
     MOVE G6B,100,  30,  80,
@@ -329,8 +329,8 @@ Arm_motor_mode3:
     '******************************************
     '***********************************************
     '***********************************************
-    '**** ìžì´ë¡œê°ë„ ì„¤ì • ****
-ìžì´ë¡œINIT:
+    '**** ÀÚÀÌ·Î°¨µµ ¼³Á¤ ****
+ÀÚÀÌ·ÎINIT:
 
     GYRODIR G6A, 0, 0, 1, 0,0
     GYRODIR G6D, 1, 0, 1, 0,0
@@ -340,43 +340,43 @@ Arm_motor_mode3:
 
     RETURN
     '***********************************************
-    '**** ìžì´ë¡œê°ë„ ì„¤ì • ****
-ìžì´ë¡œMAX:
+    '**** ÀÚÀÌ·Î°¨µµ ¼³Á¤ ****
+ÀÚÀÌ·ÎMAX:
 
     GYROSENSE G6A,250,180,30,180,0
     GYROSENSE G6D,250,180,30,180,0
 
     RETURN
     '***********************************************
-ìžì´ë¡œMID:
+ÀÚÀÌ·ÎMID:
 
     GYROSENSE G6A,200,150,30,150,0
     GYROSENSE G6D,200,150,30,150,0
 
     RETURN
     '***********************************************
-ìžì´ë¡œMIN:
+ÀÚÀÌ·ÎMIN:
 
     GYROSENSE G6A,200,100,30,100,0
     GYROSENSE G6D,200,100,30,100,0
     RETURN
     '***********************************************
-ìžì´ë¡œON:
+ÀÚÀÌ·ÎON:
 
     GYROSET G6A, 4, 3, 3, 3, 0
     GYROSET G6D, 4, 3, 3, 3, 0
 
-    ìžì´ë¡œONOFF = 1
+    ÀÚÀÌ·ÎONOFF = 1
 
     RETURN
     '***********************************************
-ìžì´ë¡œOFF:
+ÀÚÀÌ·ÎOFF:
 
     GYROSET G6A, 0, 0, 0, 0, 0
     GYROSET G6D, 0, 0, 0, 0, 0
 
 
-    ìžì´ë¡œONOFF = 0
+    ÀÚÀÌ·ÎONOFF = 0
     RETURN
 
     '************************************************
@@ -401,16 +401,16 @@ GOSUB_RX_EXIT2:
     '**********************************************
     '**********************************************
 
-ì—°ì†ì „ì§„_ê³¨í”„:
-    ë³´í–‰COUNT = 0
-    ë³´í–‰ì†ë„ = 13
-    ì¢Œìš°ì†ë„ = 4
-    ë„˜ì–´ì§„í™•ì¸ = 0
+¿¬¼ÓÀüÁø_°ñÇÁ:
+    º¸ÇàCOUNT = 0
+    º¸Çà¼Óµµ = 13
+    ÁÂ¿ì¼Óµµ = 4
+    ³Ñ¾îÁøÈ®ÀÎ = 0
 
     GOSUB Leg_motor_mode3
 
-    IF ë³´í–‰ìˆœì„œ = 0 THEN
-        ë³´í–‰ìˆœì„œ = 1
+    IF º¸Çà¼ø¼­ = 0 THEN
+        º¸Çà¼ø¼­ = 1
 
         SPEED 4
 
@@ -429,9 +429,9 @@ GOSUB_RX_EXIT2:
         WAIT
 
 
-        GOTO ì—°ì†ì „ì§„_ê³¨í”„_1	
+        GOTO ¿¬¼ÓÀüÁø_°ñÇÁ_1	
     ELSE
-        ë³´í–‰ìˆœì„œ = 0
+        º¸Çà¼ø¼­ = 0
 
         SPEED 4
 
@@ -450,7 +450,7 @@ GOSUB_RX_EXIT2:
         WAIT
 
 
-        GOTO ì—°ì†ì „ì§„_ê³¨í”„_2	
+        GOTO ¿¬¼ÓÀüÁø_°ñÇÁ_2	
 
     ENDIF
 
@@ -458,17 +458,17 @@ GOSUB_RX_EXIT2:
     '*******************************
 
 
-ì—°ì†ì „ì§„_ê³¨í”„_1:
+¿¬¼ÓÀüÁø_°ñÇÁ_1:
 
-    ETX 4800,11 'ì§„í–‰ì½”ë“œë¥¼ ë³´ëƒ„
-    SPEED ë³´í–‰ì†ë„
+    ETX 4800,11 'ÁøÇàÄÚµå¸¦ º¸³¿
+    SPEED º¸Çà¼Óµµ
 
     MOVE G6A, 86,  56, 145, 115, 110
     MOVE G6D,108,  76, 147,  93,  96
     WAIT
 
 
-    SPEED ì¢Œìš°ì†ë„
+    SPEED ÁÂ¿ì¼Óµµ
     GOSUB Leg_motor_mode3
 
     MOVE G6A,110,  76, 147, 93,  96
@@ -476,17 +476,17 @@ GOSUB_RX_EXIT2:
     WAIT
 
 
-    SPEED ë³´í–‰ì†ë„
+    SPEED º¸Çà¼Óµµ
 
-    GOSUB ì•žë’¤ê¸°ìš¸ê¸°ì¸¡ì •
-    IF ë„˜ì–´ì§„í™•ì¸ = 1 THEN
-        ë„˜ì–´ì§„í™•ì¸ = 0
+    GOSUB ¾ÕµÚ±â¿ï±âÃøÁ¤
+    IF ³Ñ¾îÁøÈ®ÀÎ = 1 THEN
+        ³Ñ¾îÁøÈ®ÀÎ = 0
         GOTO MAIN
     ENDIF
 
-    ERX 4800,A, ì—°ì†ì „ì§„_ê³¨í”„_2
+    ERX 4800,A, ¿¬¼ÓÀüÁø_°ñÇÁ_2
     IF A = 11 THEN
-        GOTO ì—°ì†ì „ì§„_ê³¨í”„_2
+        GOTO ¿¬¼ÓÀüÁø_°ñÇÁ_2
     ELSE
         ' GOSUB Leg_motor_mode3
 
@@ -505,13 +505,13 @@ GOSUB_RX_EXIT2:
         WAIT	
 
         SPEED 2
-        GOSUB ê¸°ë³¸ìžì„¸2
+        GOSUB ±âº»ÀÚ¼¼2
 
         GOTO RX_EXIT
     ENDIF
     '**********
 
-ì—°ì†ì „ì§„_ê³¨í”„_2:
+¿¬¼ÓÀüÁø_°ñÇÁ_2:
 
     MOVE G6A,110,  76, 147,  93, 96,100
     MOVE G6D,90, 90, 120, 105, 110,100
@@ -519,31 +519,31 @@ GOSUB_RX_EXIT2:
     MOVE G6C,90
     WAIT
 
-ì—°ì†ì „ì§„_ê³¨í”„_3:
-    ETX 4800,11 'ì§„í–‰ì½”ë“œë¥¼ ë³´ëƒ„
+¿¬¼ÓÀüÁø_°ñÇÁ_3:
+    ETX 4800,11 'ÁøÇàÄÚµå¸¦ º¸³¿
 
-    SPEED ë³´í–‰ì†ë„
+    SPEED º¸Çà¼Óµµ
 
     MOVE G6D, 86,  56, 145, 115, 110
     MOVE G6A,108,  76, 147,  93,  96
     WAIT
 
-    SPEED ì¢Œìš°ì†ë„
+    SPEED ÁÂ¿ì¼Óµµ
     MOVE G6D,110,  76, 147, 93,  96
     MOVE G6A,86, 100, 145,  69, 110
     WAIT
 
-    SPEED ë³´í–‰ì†ë„
+    SPEED º¸Çà¼Óµµ
 
-    GOSUB ì•žë’¤ê¸°ìš¸ê¸°ì¸¡ì •
-    IF ë„˜ì–´ì§„í™•ì¸ = 1 THEN
-        ë„˜ì–´ì§„í™•ì¸ = 0
+    GOSUB ¾ÕµÚ±â¿ï±âÃøÁ¤
+    IF ³Ñ¾îÁøÈ®ÀÎ = 1 THEN
+        ³Ñ¾îÁøÈ®ÀÎ = 0
         GOTO MAIN
     ENDIF
 
-    ERX 4800,A, ì—°ì†ì „ì§„_ê³¨í”„_4
+    ERX 4800,A, ¿¬¼ÓÀüÁø_°ñÇÁ_4
     IF A = 11 THEN
-        GOTO ì—°ì†ì „ì§„_ê³¨í”„_4
+        GOTO ¿¬¼ÓÀüÁø_°ñÇÁ_4
     ELSE
 
         MOVE G6A, 90, 100, 100, 115, 110,100
@@ -560,33 +560,33 @@ GOSUB_RX_EXIT2:
         MOVE G6B, 100
         WAIT	
         SPEED 2
-        GOSUB ê¸°ë³¸ìžì„¸2
+        GOSUB ±âº»ÀÚ¼¼2
 
         GOTO RX_EXIT
     ENDIF
 
-ì—°ì†ì „ì§„_ê³¨í”„_4:
-    'ì™¼ë°œë“¤ê¸°10
+¿¬¼ÓÀüÁø_°ñÇÁ_4:
+    '¿Þ¹ßµé±â10
     MOVE G6A,90, 90, 120, 105, 110,100
     MOVE G6D,110,  76, 146,  93,  96,100
     MOVE G6B, 90
     MOVE G6C,110
     WAIT
 
-    GOTO ì—°ì†ì „ì§„_ê³¨í”„_1
+    GOTO ¿¬¼ÓÀüÁø_°ñÇÁ_1
     '*******************************
 
     '************************************************
-ì—°ì†í›„ì§„_ê³¨í”„:
-    ë„˜ì–´ì§„í™•ì¸ = 0
-    ë³´í–‰ì†ë„ = 12
-    ì¢Œìš°ì†ë„ = 4
+¿¬¼ÓÈÄÁø_°ñÇÁ:
+    ³Ñ¾îÁøÈ®ÀÎ = 0
+    º¸Çà¼Óµµ = 12
+    ÁÂ¿ì¼Óµµ = 4
     GOSUB Leg_motor_mode3
 
 
 
-    IF ë³´í–‰ìˆœì„œ = 0 THEN
-        ë³´í–‰ìˆœì„œ = 1
+    IF º¸Çà¼ø¼­ = 0 THEN
+        º¸Çà¼ø¼­ = 1
 
         SPEED 4
         MOVE G6A, 88,  71, 152,  91, 110
@@ -602,9 +602,9 @@ GOSUB_RX_EXIT2:
         MOVE G6C,110
         WAIT
 
-        GOTO ì—°ì†í›„ì§„_ê³¨í”„_1	
+        GOTO ¿¬¼ÓÈÄÁø_°ñÇÁ_1	
     ELSE
-        ë³´í–‰ìˆœì„œ = 0
+        º¸Çà¼ø¼­ = 0
 
         SPEED 4
         MOVE G6D,  85,  71, 152,  91, 110
@@ -621,28 +621,28 @@ GOSUB_RX_EXIT2:
         WAIT
 
 
-        GOTO ì—°ì†í›„ì§„_ê³¨í”„_2
+        GOTO ¿¬¼ÓÈÄÁø_°ñÇÁ_2
 
     ENDIF
 
     '*************************************
-ì—°ì†í›„ì§„_ê³¨í”„_1:
-    ETX 4800,12 'ì§„í–‰ì½”ë“œë¥¼ ë³´ëƒ„
-    SPEED ë³´í–‰ì†ë„
+¿¬¼ÓÈÄÁø_°ñÇÁ_1:
+    ETX 4800,12 'ÁøÇàÄÚµå¸¦ º¸³¿
+    SPEED º¸Çà¼Óµµ
 
     MOVE G6D,110,  76, 146, 93,  96
     MOVE G6A,90, 98, 146,  69, 110
     WAIT
 
-    SPEED ì¢Œìš°ì†ë„
+    SPEED ÁÂ¿ì¼Óµµ
     MOVE G6D, 90,  60, 137, 120, 110
     MOVE G6A,107,  85, 137,  93,  96
     WAIT
 
 
-    GOSUB ì•žë’¤ê¸°ìš¸ê¸°ì¸¡ì •
-    IF ë„˜ì–´ì§„í™•ì¸ = 1 THEN
-        ë„˜ì–´ì§„í™•ì¸ = 0
+    GOSUB ¾ÕµÚ±â¿ï±âÃøÁ¤
+    IF ³Ñ¾îÁøÈ®ÀÎ = 1 THEN
+        ³Ñ¾îÁøÈ®ÀÎ = 0
         GOTO RX_EXIT
     ENDIF
 
@@ -655,9 +655,9 @@ GOSUB_RX_EXIT2:
     MOVE G6C,90
     WAIT
 
-    ERX 4800,A, ì—°ì†í›„ì§„_ê³¨í”„_2
+    ERX 4800,A, ¿¬¼ÓÈÄÁø_°ñÇÁ_2
     IF A <> A_old THEN
-ì—°ì†í›„ì§„_ê³¨í”„_1_EXIT:
+¿¬¼ÓÈÄÁø_°ñÇÁ_1_EXIT:
         HIGHSPEED SETOFF
         SPEED 5
 
@@ -668,28 +668,28 @@ GOSUB_RX_EXIT2:
         WAIT	
 
         SPEED 3
-        GOSUB ê¸°ë³¸ìžì„¸2
+        GOSUB ±âº»ÀÚ¼¼2
         GOTO RX_EXIT
     ENDIF
     '**********
 
-ì—°ì†í›„ì§„_ê³¨í”„_2:
-    ETX 4800,12 'ì§„í–‰ì½”ë“œë¥¼ ë³´ëƒ„
-    SPEED ë³´í–‰ì†ë„
+¿¬¼ÓÈÄÁø_°ñÇÁ_2:
+    ETX 4800,12 'ÁøÇàÄÚµå¸¦ º¸³¿
+    SPEED º¸Çà¼Óµµ
     MOVE G6A,112,  76, 146, 93,  96
     MOVE G6D,90, 98, 146,  69, 110
     WAIT
 
 
-    SPEED ì¢Œìš°ì†ë„
+    SPEED ÁÂ¿ì¼Óµµ
     MOVE G6A, 90,  60, 137, 120, 110
     MOVE G6D,107  85, 137,  93,  96
     WAIT
 
 
-    GOSUB ì•žë’¤ê¸°ìš¸ê¸°ì¸¡ì •
-    IF ë„˜ì–´ì§„í™•ì¸ = 1 THEN
-        ë„˜ì–´ì§„í™•ì¸ = 0
+    GOSUB ¾ÕµÚ±â¿ï±âÃøÁ¤
+    IF ³Ñ¾îÁøÈ®ÀÎ = 1 THEN
+        ³Ñ¾îÁøÈ®ÀÎ = 0
         GOTO RX_EXIT
     ENDIF
 
@@ -702,9 +702,9 @@ GOSUB_RX_EXIT2:
     WAIT
 
 
-    ERX 4800,A, ì—°ì†í›„ì§„_ê³¨í”„_1
+    ERX 4800,A, ¿¬¼ÓÈÄÁø_°ñÇÁ_1
     IF A <> A_old THEN
-ì—°ì†í›„ì§„_ê³¨í”„_2_EXIT:
+¿¬¼ÓÈÄÁø_°ñÇÁ_2_EXIT:
         HIGHSPEED SETOFF
         SPEED 5
 
@@ -715,48 +715,48 @@ GOSUB_RX_EXIT2:
         WAIT	
 
         SPEED 3
-        GOSUB ê¸°ë³¸ìžì„¸2
+        GOSUB ±âº»ÀÚ¼¼2
         GOTO RX_EXIT
     ENDIF  	
 
-    GOTO ì—°ì†í›„ì§„_ê³¨í”„_1
+    GOTO ¿¬¼ÓÈÄÁø_°ñÇÁ_1
     '**********************************************
 
 
     '******************************************
 
     '******************************************
-ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„:
+ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ:
     GOSUB All_motor_mode3
-    ë³´í–‰COUNT = 0
+    º¸ÇàCOUNT = 0
     SPEED 7
     HIGHSPEED SETON
 
 
-    IF ë³´í–‰ìˆœì„œ = 0 THEN
-        ë³´í–‰ìˆœì„œ = 1
+    IF º¸Çà¼ø¼­ = 0 THEN
+        º¸Çà¼ø¼­ = 1
         MOVE G6A,95,  76, 147,  93, 101
         MOVE G6D,101,  76, 147,  93, 98
         MOVE G6B,100
         MOVE G6C,100
         WAIT
 
-        GOTO ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_1
+        GOTO ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_1
     ELSE
-        ë³´í–‰ìˆœì„œ = 0
+        º¸Çà¼ø¼­ = 0
         MOVE G6D,93,  76, 147,  93, 101
         MOVE G6A,104,  76, 147,  93, 98
         MOVE G6B,100
         MOVE G6C,100
         WAIT
 
-        GOTO ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_4
+        GOTO ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_4
     ENDIF
 
 
     '**********************
 
-ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_1:
+ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_1:
     MOVE G6A,95,  90, 125, 100, 104
     MOVE G6D,103,  76, 146,  93,  102
     MOVE G6B, 90
@@ -764,25 +764,25 @@ GOSUB_RX_EXIT2:
     WAIT
 
 
-ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_2:
+ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_2:
 
     MOVE G6A,107,   73, 140, 103,  100
     MOVE G6D, 90,  83, 146,  85, 102
     WAIT
 
-    GOSUB ì•žë’¤ê¸°ìš¸ê¸°ì¸¡ì •
-    IF ë„˜ì–´ì§„í™•ì¸ = 1 THEN
-        ë„˜ì–´ì§„í™•ì¸ = 0
+    GOSUB ¾ÕµÚ±â¿ï±âÃøÁ¤
+    IF ³Ñ¾îÁøÈ®ÀÎ = 1 THEN
+        ³Ñ¾îÁøÈ®ÀÎ = 0
 
         GOTO RX_EXIT
     ENDIF
 
-    ' ë³´í–‰COUNT = ë³´í–‰COUNT + 1
-    'IF ë³´í–‰COUNT > ë³´í–‰íšŸìˆ˜ THEN  GOTO ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_2_stop
+    ' º¸ÇàCOUNT = º¸ÇàCOUNT + 1
+    'IF º¸ÇàCOUNT > º¸ÇàÈ½¼ö THEN  GOTO ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_2_stop
 
-    ERX 4800,A, ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_4
+    ERX 4800,A, ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_4
     IF A <> A_old THEN
-ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_2_stop:
+ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_2_stop:
         MOVE G6D,93,  90, 125, 95, 104
         MOVE G6A,107,  76, 145,  91,  102
         MOVE G6C, 100
@@ -790,9 +790,9 @@ GOSUB_RX_EXIT2:
         WAIT
         HIGHSPEED SETOFF
         SPEED 15
-        GOSUB ì•ˆì •í™”ìžì„¸
+        GOSUB ¾ÈÁ¤È­ÀÚ¼¼
         SPEED 5
-        GOSUB ê¸°ë³¸ìžì„¸2
+        GOSUB ±âº»ÀÚ¼¼2
 
         'DELAY 400
         GOTO RX_EXIT
@@ -800,7 +800,7 @@ GOSUB_RX_EXIT2:
 
     '*********************************
 
-ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_4:
+ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_4:
     MOVE G6D,95,  88, 125, 103, 104
     MOVE G6A,107,  76, 146,  93,  102
     MOVE G6C, 85
@@ -808,24 +808,24 @@ GOSUB_RX_EXIT2:
     WAIT
 
 
-ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_5:
+ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_5:
     MOVE G6D,102,    74, 140, 103,  100
     MOVE G6A, 97,  83, 146,  85, 102
     WAIT
     'DELAY 10
 
-    GOSUB ì•žë’¤ê¸°ìš¸ê¸°ì¸¡ì •
-    IF ë„˜ì–´ì§„í™•ì¸ = 1 THEN
-        ë„˜ì–´ì§„í™•ì¸ = 0
+    GOSUB ¾ÕµÚ±â¿ï±âÃøÁ¤
+    IF ³Ñ¾îÁøÈ®ÀÎ = 1 THEN
+        ³Ñ¾îÁøÈ®ÀÎ = 0
         GOTO RX_EXIT
     ENDIF
 
-    ' ë³´í–‰COUNT = ë³´í–‰COUNT + 1
-    ' IF ë³´í–‰COUNT > ë³´í–‰íšŸìˆ˜ THEN  GOTO ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_5_stop
+    ' º¸ÇàCOUNT = º¸ÇàCOUNT + 1
+    ' IF º¸ÇàCOUNT > º¸ÇàÈ½¼ö THEN  GOTO ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_5_stop
 
-    ERX 4800,A, ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_1
+    ERX 4800,A, ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_1
     IF A <> A_old THEN
-ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_5_stop:
+ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_5_stop:
         MOVE G6A,95,  90, 125, 95, 104
         MOVE G6D,104,  76, 145,  91,  102
         MOVE G6B, 100
@@ -833,9 +833,9 @@ GOSUB_RX_EXIT2:
         WAIT
         HIGHSPEED SETOFF
         SPEED 15
-        GOSUB ì•ˆì •í™”ìžì„¸
+        GOSUB ¾ÈÁ¤È­ÀÚ¼¼
         SPEED 5
-        GOSUB ê¸°ë³¸ìžì„¸2
+        GOSUB ±âº»ÀÚ¼¼2
 
         'DELAY 400
         GOTO RX_EXIT
@@ -845,43 +845,43 @@ GOSUB_RX_EXIT2:
 
     '*********************************
 
-    GOTO ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_1
+    GOTO ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_1
 
     '******************************************
     '******************************************
     '******************************************
-í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„:
+ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ:
     GOSUB All_motor_mode3
-    ë„˜ì–´ì§„í™•ì¸ = 0
-    ë³´í–‰COUNT = 0
+    ³Ñ¾îÁøÈ®ÀÎ = 0
+    º¸ÇàCOUNT = 0
     SPEED 7
     HIGHSPEED SETON
 
 
-    IF ë³´í–‰ìˆœì„œ = 0 THEN
-        ë³´í–‰ìˆœì„œ = 1
+    IF º¸Çà¼ø¼­ = 0 THEN
+        º¸Çà¼ø¼­ = 1
         MOVE G6A,95,  76, 145,  93, 101
         MOVE G6D,101,  76, 145,  93, 98
         MOVE G6B,100
         MOVE G6C,100
         WAIT
 
-        GOTO í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_1
+        GOTO ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_1
     ELSE
-        ë³´í–‰ìˆœì„œ = 0
+        º¸Çà¼ø¼­ = 0
         MOVE G6D,95,  76, 145,  93, 101
         MOVE G6A,101,  76, 145,  93, 98
         MOVE G6B,100
         MOVE G6C,100
         WAIT
 
-        GOTO í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_4
+        GOTO ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_4
     ENDIF
 
 
     '**********************
 
-í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_1:
+ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_1:
     MOVE G6D,104,  76, 147,  93,  102
     MOVE G6A,95,  95, 120, 95, 104
     MOVE G6B,115
@@ -890,22 +890,22 @@ GOSUB_RX_EXIT2:
 
 
 
-í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_3:
+ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_3:
     MOVE G6A, 103,  79, 147,  89, 100
     MOVE G6D,95,   65, 147, 103,  102
     WAIT
 
-    GOSUB ì•žë’¤ê¸°ìš¸ê¸°ì¸¡ì •
-    IF ë„˜ì–´ì§„í™•ì¸ = 1 THEN
-        ë„˜ì–´ì§„í™•ì¸ = 0
+    GOSUB ¾ÕµÚ±â¿ï±âÃøÁ¤
+    IF ³Ñ¾îÁøÈ®ÀÎ = 1 THEN
+        ³Ñ¾îÁøÈ®ÀÎ = 0
         GOTO RX_EXIT
     ENDIF
-    ' ë³´í–‰COUNT = ë³´í–‰COUNT + 1
-    ' IF ë³´í–‰COUNT > ë³´í–‰íšŸìˆ˜ THEN  GOTO í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_3_stop
+    ' º¸ÇàCOUNT = º¸ÇàCOUNT + 1
+    ' IF º¸ÇàCOUNT > º¸ÇàÈ½¼ö THEN  GOTO ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_3_stop
 
-    ERX 4800,A, í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_4
+    ERX 4800,A, ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_4
     IF A <> A_old THEN
-í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_3_stop:
+ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_3_stop:
         MOVE G6D,95,  85, 130, 100, 104
         MOVE G6A,104,  77, 146,  93,  102
         MOVE G6C, 100
@@ -913,17 +913,17 @@ GOSUB_RX_EXIT2:
         WAIT
 
         'SPEED 15
-        GOSUB ì•ˆì •í™”ìžì„¸
+        GOSUB ¾ÈÁ¤È­ÀÚ¼¼
         HIGHSPEED SETOFF
         SPEED 5
-        GOSUB ê¸°ë³¸ìžì„¸2
+        GOSUB ±âº»ÀÚ¼¼2
 
         'DELAY 400
         GOTO RX_EXIT
     ENDIF
     '*********************************
 
-í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_4:
+ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_4:
     MOVE G6A,104,  76, 147,  93,  102
     MOVE G6D,95,  95, 120, 95, 104
     MOVE G6C,115
@@ -931,22 +931,22 @@ GOSUB_RX_EXIT2:
     WAIT
 
 
-í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_6:
+ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_6:
     MOVE G6D, 103,  79, 147,  89, 100
     MOVE G6A,95,   65, 147, 103,  102
     WAIT
-    GOSUB ì•žë’¤ê¸°ìš¸ê¸°ì¸¡ì •
-    IF ë„˜ì–´ì§„í™•ì¸ = 1 THEN
-        ë„˜ì–´ì§„í™•ì¸ = 0
+    GOSUB ¾ÕµÚ±â¿ï±âÃøÁ¤
+    IF ³Ñ¾îÁøÈ®ÀÎ = 1 THEN
+        ³Ñ¾îÁøÈ®ÀÎ = 0
         GOTO RX_EXIT
     ENDIF
 
-    ' ë³´í–‰COUNT = ë³´í–‰COUNT + 1
-    'IF ë³´í–‰COUNT > ë³´í–‰íšŸìˆ˜ THEN  GOTO í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_6_stop
+    ' º¸ÇàCOUNT = º¸ÇàCOUNT + 1
+    'IF º¸ÇàCOUNT > º¸ÇàÈ½¼ö THEN  GOTO ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_6_stop
 
-    ERX 4800,A, í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_1
-    IF A <> A_old THEN  'GOTO í›„ì§„ì¢…ì¢…ê±¸ìŒ_ë©ˆì¶¤
-í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_6_stop:
+    ERX 4800,A, ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_1
+    IF A <> A_old THEN  'GOTO ÈÄÁøÁ¾Á¾°ÉÀ½_¸ØÃã
+ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_6_stop:
         MOVE G6A,95,  85, 130, 100, 104
         MOVE G6D,104,  77, 146,  93,  102
         MOVE G6B, 100
@@ -954,16 +954,16 @@ GOSUB_RX_EXIT2:
         WAIT
 
         'SPEED 15
-        GOSUB ì•ˆì •í™”ìžì„¸
+        GOSUB ¾ÈÁ¤È­ÀÚ¼¼
         HIGHSPEED SETOFF
         SPEED 5
-        GOSUB ê¸°ë³¸ìžì„¸2
+        GOSUB ±âº»ÀÚ¼¼2
 
         'DELAY 400
         GOTO RX_EXIT
     ENDIF
 
-    GOTO í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„_1
+    GOTO ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ_1
 
 
 
@@ -973,7 +973,7 @@ GOSUB_RX_EXIT2:
 
 
     '************************************************
-ì˜¤ë¥¸ìª½ì˜†ìœ¼ë¡œ20_ê³¨í”„: '****
+¿À¸¥ÂÊ¿·À¸·Î20_°ñÇÁ: '****
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
 
@@ -993,12 +993,12 @@ GOSUB_RX_EXIT2:
     WAIT
 
     SPEED 3
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
 
     GOTO RX_EXIT
     '************************************************
 
-ì™¼ìª½ì˜†ìœ¼ë¡œ20_ê³¨í”„: '****
+¿ÞÂÊ¿·À¸·Î20_°ñÇÁ: '****
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
 
@@ -1018,17 +1018,17 @@ GOSUB_RX_EXIT2:
     WAIT
 
     SPEED 3
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
 
     GOTO RX_EXIT
 
     '**********************************************
     '******************************************
-ì˜¤ë¥¸ìª½ì˜†ìœ¼ë¡œ70ì—°ì†_ê³¨í”„:
+¿À¸¥ÂÊ¿·À¸·Î70¿¬¼Ó_°ñÇÁ:
     MOTORMODE G6A,3,3,2,3,2
     MOTORMODE G6D,3,3,2,3,2
 
-ì˜¤ë¥¸ìª½ì˜†ìœ¼ë¡œ70ì—°ì†_ê³¨í”„_loop:
+¿À¸¥ÂÊ¿·À¸·Î70¿¬¼Ó_°ñÇÁ_loop:
     DELAY  10
 
     SPEED 10
@@ -1053,15 +1053,15 @@ GOSUB_RX_EXIT2:
 
 
     SPEED 3
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
 
     GOTO RX_EXIT
     '**********************************************
 
-ì™¼ìª½ì˜†ìœ¼ë¡œ70ì—°ì†_ê³¨í”„:
+¿ÞÂÊ¿·À¸·Î70¿¬¼Ó_°ñÇÁ:
     MOTORMODE G6A,3,3,2,3,2
     MOTORMODE G6D,3,3,2,3,2
-ì™¼ìª½ì˜†ìœ¼ë¡œ70ì—°ì†_ê³¨í”„_loop:
+¿ÞÂÊ¿·À¸·Î70¿¬¼Ó_°ñÇÁ_loop:
     DELAY  10
 
     SPEED 10
@@ -1086,7 +1086,7 @@ GOSUB_RX_EXIT2:
 
 
     SPEED 3
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
 
     GOTO RX_EXIT
 
@@ -1094,13 +1094,13 @@ GOSUB_RX_EXIT2:
     '************************************************
     '*********************************************
 
-ì™¼ìª½í„´3:
+¿ÞÂÊÅÏ3:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
-ì™¼ìª½í„´3_LOOP:
+¿ÞÂÊÅÏ3_LOOP:
 
-    IF ë³´í–‰ìˆœì„œ = 0 THEN
-        ë³´í–‰ìˆœì„œ = 1
+    IF º¸Çà¼ø¼­ = 0 THEN
+        º¸Çà¼ø¼­ = 1
         SPEED 15
         MOVE G6D,100,  73, 145,  93, 100, 100
         MOVE G6A,100,  79, 145,  93, 100, 100
@@ -1123,7 +1123,7 @@ GOSUB_RX_EXIT2:
 
 
     ELSE
-        ë³´í–‰ìˆœì„œ = 0
+        º¸Çà¼ø¼­ = 0
         SPEED 15
         MOVE G6D,100,  73, 145,  93, 100, 100
         MOVE G6A,100,  79, 145,  93, 100, 100
@@ -1150,20 +1150,20 @@ GOSUB_RX_EXIT2:
     ENDIF
 
     SPEED 12
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
 
 
     GOTO RX_EXIT
 
     '**********************************************
-ì˜¤ë¥¸ìª½í„´3:
+¿À¸¥ÂÊÅÏ3:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
 
-ì˜¤ë¥¸ìª½í„´3_LOOP:
+¿À¸¥ÂÊÅÏ3_LOOP:
 
-    IF ë³´í–‰ìˆœì„œ = 0 THEN
-        ë³´í–‰ìˆœì„œ = 1
+    IF º¸Çà¼ø¼­ = 0 THEN
+        º¸Çà¼ø¼­ = 1
         SPEED 15
         MOVE G6A,100,  73, 145,  93, 100, 100
         MOVE G6D,100,  79, 145,  93, 100, 100
@@ -1187,7 +1187,7 @@ GOSUB_RX_EXIT2:
 
 
     ELSE
-        ë³´í–‰ìˆœì„œ = 0
+        º¸Çà¼ø¼­ = 0
         SPEED 15
         MOVE G6A,100,  73, 145,  93, 100, 100
         MOVE G6D,100,  79, 145,  93, 100, 100
@@ -1211,13 +1211,13 @@ GOSUB_RX_EXIT2:
 
     ENDIF
     SPEED 12
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
 
     GOTO RX_EXIT
 
     '******************************************************
     '**********************************************
-ì™¼ìª½í„´5_ê³¨í”„:
+¿ÞÂÊÅÏ5_°ñÇÁ:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
     SPEED 5
@@ -1235,10 +1235,10 @@ GOSUB_RX_EXIT2:
     MOVE G6D,101,  76, 146,  93, 98, 100
     WAIT
 
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
     GOTO RX_EXIT
     '**********************************************
-ì˜¤ë¥¸ìª½í„´5_ê³¨í”„:
+¿À¸¥ÂÊÅÏ5_°ñÇÁ:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
     SPEED 5
@@ -1255,13 +1255,13 @@ GOSUB_RX_EXIT2:
     MOVE G6D,101,  76, 146,  93, 98, 100
     WAIT
 
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
 
     GOTO RX_EXIT
     '**********************************************
 
     '**********************************************
-ì™¼ìª½í„´10_ê³¨í”„:
+¿ÞÂÊÅÏ10_°ñÇÁ:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
     SPEED 5
@@ -1279,10 +1279,10 @@ GOSUB_RX_EXIT2:
     MOVE G6D,101,  76, 146,  93, 98, 100
     WAIT
 
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
     GOTO RX_EXIT
     '**********************************************
-ì˜¤ë¥¸ìª½í„´10_ê³¨í”„:
+¿À¸¥ÂÊÅÏ10_°ñÇÁ:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
     SPEED 5
@@ -1299,12 +1299,12 @@ GOSUB_RX_EXIT2:
     MOVE G6D,101,  76, 146,  93, 98, 100
     WAIT
 
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
 
     GOTO RX_EXIT
     '**********************************************
     '**********************************************
-ì™¼ìª½í„´20_ê³¨í”„:
+¿ÞÂÊÅÏ20_°ñÇÁ:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
     SPEED 8
@@ -1321,11 +1321,11 @@ GOSUB_RX_EXIT2:
     MOVE G6D,101,  76, 146,  93, 98, 100
     WAIT
 
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
 
     GOTO RX_EXIT
     '**********************************************
-ì˜¤ë¥¸ìª½í„´20_ê³¨í”„:
+¿À¸¥ÂÊÅÏ20_°ñÇÁ:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
     SPEED 8
@@ -1344,7 +1344,7 @@ GOSUB_RX_EXIT2:
 
     WAIT
 
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
 
     GOTO RX_EXIT
     '**********************************************
@@ -1353,7 +1353,7 @@ GOSUB_RX_EXIT2:
 
 
     '**********************************************
-ì™¼ìª½í„´45_ê³¨í”„:
+¿ÞÂÊÅÏ45_°ñÇÁ:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
 
@@ -1369,13 +1369,13 @@ GOSUB_RX_EXIT2:
     WAIT
 
     SPEED 8
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
 
     '
     GOTO RX_EXIT
 
     '**********************************************
-ì˜¤ë¥¸ìª½í„´45_ê³¨í”„:
+¿À¸¥ÂÊÅÏ45_°ñÇÁ:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
 
@@ -1391,11 +1391,11 @@ GOSUB_RX_EXIT2:
     WAIT
 
     SPEED 8
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
 
     GOTO RX_EXIT
     '**********************************************
-ì™¼ìª½í„´60_ê³¨í”„:
+¿ÞÂÊÅÏ60_°ñÇÁ:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
 
@@ -1411,12 +1411,12 @@ GOSUB_RX_EXIT2:
     WAIT
 
     SPEED 10
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
 
     GOTO RX_EXIT
 
     '**********************************************
-ì˜¤ë¥¸ìª½í„´60_ê³¨í”„:
+¿À¸¥ÂÊÅÏ60_°ñÇÁ:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
 
@@ -1432,7 +1432,7 @@ GOSUB_RX_EXIT2:
     WAIT
 
     SPEED 10
-    GOSUB ê¸°ë³¸ìžì„¸2
+    GOSUB ±âº»ÀÚ¼¼2
 
     GOTO RX_EXIT
     '****************************************
@@ -1445,18 +1445,18 @@ GOSUB_RX_EXIT2:
     ''************************************************
     '************************************************
     '************************************************
-ë’¤ë¡œì¼ì–´ë‚˜ê¸°:
+µÚ·ÎÀÏ¾î³ª±â:
 
     HIGHSPEED SETOFF
     PTP SETON 				
     PTP ALLON		
 
-    GOSUB ìžì´ë¡œOFF
+    GOSUB ÀÚÀÌ·ÎOFF
 
     GOSUB All_motor_Reset
 
     SPEED 15
-    GOSUB ê¸°ë³¸ìžì„¸
+    GOSUB ±âº»ÀÚ¼¼
 
     MOVE G6A,90, 130, 120,  80, 110, 100
     MOVE G6D,90, 130, 120,  80, 110, 100
@@ -1516,25 +1516,25 @@ GOSUB_RX_EXIT2:
     MOVE G6D,100, 150,  33, 140, 100, 100
     WAIT
     SPEED 10
-    GOSUB ê¸°ë³¸ìžì„¸
+    GOSUB ±âº»ÀÚ¼¼
 
-    ë„˜ì–´ì§„í™•ì¸ = 1
+    ³Ñ¾îÁøÈ®ÀÎ = 1
 
     DELAY 200
-    GOSUB ìžì´ë¡œON
+    GOSUB ÀÚÀÌ·ÎON
 
     RETURN
 
 
     '**********************************************
-ì•žìœ¼ë¡œì¼ì–´ë‚˜ê¸°:
+¾ÕÀ¸·ÎÀÏ¾î³ª±â:
 
 
     HIGHSPEED SETOFF
     PTP SETON 				
     PTP ALLON
 
-    GOSUB ìžì´ë¡œOFF
+    GOSUB ÀÚÀÌ·ÎOFF
 
     HIGHSPEED SETOFF
 
@@ -1597,12 +1597,12 @@ GOSUB_RX_EXIT2:
 
     SPEED 8
     GOSUB All_motor_mode2
-    GOSUB ê¸°ë³¸ìžì„¸
-    ë„˜ì–´ì§„í™•ì¸ = 1
+    GOSUB ±âº»ÀÚ¼¼
+    ³Ñ¾îÁøÈ®ÀÎ = 1
 
     '******************************
     DELAY 200
-    GOSUB ìžì´ë¡œON
+    GOSUB ÀÚÀÌ·ÎON
     RETURN
 
     '******************************************
@@ -1614,60 +1614,60 @@ GOSUB_RX_EXIT2:
     '******************************************	
     '**********************************************
 
-ë¨¸ë¦¬ì™¼ìª½30ë„:
-    SPEED ë¨¸ë¦¬ì´ë™ì†ë„
+¸Ó¸®¿ÞÂÊ30µµ:
+    SPEED ¸Ó¸®ÀÌµ¿¼Óµµ
     SERVO 11,70
     GOTO RX_EXIT
 
-ë¨¸ë¦¬ì™¼ìª½45ë„:
-    SPEED ë¨¸ë¦¬ì´ë™ì†ë„
+¸Ó¸®¿ÞÂÊ45µµ:
+    SPEED ¸Ó¸®ÀÌµ¿¼Óµµ
     SERVO 11,55
     GOTO RX_EXIT
 
-ë¨¸ë¦¬ì™¼ìª½60ë„:
-    SPEED ë¨¸ë¦¬ì´ë™ì†ë„
+¸Ó¸®¿ÞÂÊ60µµ:
+    SPEED ¸Ó¸®ÀÌµ¿¼Óµµ
     SERVO 11,40
     GOTO RX_EXIT
 
-ë¨¸ë¦¬ì™¼ìª½90ë„:
-    SPEED ë¨¸ë¦¬ì´ë™ì†ë„
+¸Ó¸®¿ÞÂÊ90µµ:
+    SPEED ¸Ó¸®ÀÌµ¿¼Óµµ
     SERVO 11,10
     GOTO RX_EXIT
 
-ë¨¸ë¦¬ì˜¤ë¥¸ìª½30ë„:
-    SPEED ë¨¸ë¦¬ì´ë™ì†ë„
+¸Ó¸®¿À¸¥ÂÊ30µµ:
+    SPEED ¸Ó¸®ÀÌµ¿¼Óµµ
     SERVO 11,130
     GOTO RX_EXIT
 
-ë¨¸ë¦¬ì˜¤ë¥¸ìª½45ë„:
-    SPEED ë¨¸ë¦¬ì´ë™ì†ë„
+¸Ó¸®¿À¸¥ÂÊ45µµ:
+    SPEED ¸Ó¸®ÀÌµ¿¼Óµµ
     SERVO 11,145
     GOTO RX_EXIT	
 
-ë¨¸ë¦¬ì˜¤ë¥¸ìª½60ë„:
-    SPEED ë¨¸ë¦¬ì´ë™ì†ë„
+¸Ó¸®¿À¸¥ÂÊ60µµ:
+    SPEED ¸Ó¸®ÀÌµ¿¼Óµµ
     SERVO 11,160
     GOTO RX_EXIT
 
-ë¨¸ë¦¬ì˜¤ë¥¸ìª½90ë„:
-    SPEED ë¨¸ë¦¬ì´ë™ì†ë„
+¸Ó¸®¿À¸¥ÂÊ90µµ:
+    SPEED ¸Ó¸®ÀÌµ¿¼Óµµ
     SERVO 11,190
     GOTO RX_EXIT
 
-ë¨¸ë¦¬ì¢Œìš°ì¤‘ì•™:
-    SPEED ë¨¸ë¦¬ì´ë™ì†ë„
+¸Ó¸®ÁÂ¿ìÁß¾Ó:
+    SPEED ¸Ó¸®ÀÌµ¿¼Óµµ
     SERVO 11,100
     GOTO RX_EXIT
 
-ë¨¸ë¦¬ìƒí•˜ì •ë©´:
-    SPEED ë¨¸ë¦¬ì´ë™ì†ë„
+¸Ó¸®»óÇÏÁ¤¸é:
+    SPEED ¸Ó¸®ÀÌµ¿¼Óµµ
     SERVO 11,100	
     SPEED 5
-    GOSUB ê¸°ë³¸ìžì„¸
+    GOSUB ±âº»ÀÚ¼¼
     GOTO RX_EXIT
 
     '******************************************
-ì „ë°©í•˜í–¥80ë„:
+Àü¹æÇÏÇâ80µµ:
 
     SPEED 3
     SERVO 16, 80
@@ -1675,7 +1675,7 @@ GOSUB_RX_EXIT2:
     ETX 4800,35
     GOTO RX_EXIT
     '******************************************
-ì „ë°©í•˜í–¥60ë„:
+Àü¹æÇÏÇâ60µµ:
 
     SPEED 3
     SERVO 16, 65
@@ -1685,47 +1685,47 @@ GOSUB_RX_EXIT2:
 
     '******************************************
     '******************************************
-ì•žë’¤ê¸°ìš¸ê¸°ì¸¡ì •:
+¾ÕµÚ±â¿ï±âÃøÁ¤:
     FOR i = 0 TO COUNT_MAX
-        A = AD(ì•žë’¤ê¸°ìš¸ê¸°ADí¬íŠ¸)	'ê¸°ìš¸ê¸° ì•žë’¤
+        A = AD(¾ÕµÚ±â¿ï±âADÆ÷Æ®)	'±â¿ï±â ¾ÕµÚ
         IF A > 250 OR A < 5 THEN RETURN
         IF A > MIN AND A < MAX THEN RETURN
-        DELAY ê¸°ìš¸ê¸°í™•ì¸ì‹œê°„
+        DELAY ±â¿ï±âÈ®ÀÎ½Ã°£
     NEXT i
 
     IF A < MIN THEN
-        GOSUB ê¸°ìš¸ê¸°ì•ž
+        GOSUB ±â¿ï±â¾Õ
     ELSEIF A > MAX THEN
-        GOSUB ê¸°ìš¸ê¸°ë’¤
+        GOSUB ±â¿ï±âµÚ
     ENDIF
 
     RETURN
     '**************************************************
-ê¸°ìš¸ê¸°ì•ž:
-    A = AD(ì•žë’¤ê¸°ìš¸ê¸°ADí¬íŠ¸)
-    'IF A < MIN THEN GOSUB ì•žìœ¼ë¡œì¼ì–´ë‚˜ê¸°
+±â¿ï±â¾Õ:
+    A = AD(¾ÕµÚ±â¿ï±âADÆ÷Æ®)
+    'IF A < MIN THEN GOSUB ¾ÕÀ¸·ÎÀÏ¾î³ª±â
     IF A < MIN THEN
         ETX  4800,16
-        GOSUB ë’¤ë¡œì¼ì–´ë‚˜ê¸°
+        GOSUB µÚ·ÎÀÏ¾î³ª±â
 
     ENDIF
     RETURN
 
-ê¸°ìš¸ê¸°ë’¤:
-    A = AD(ì•žë’¤ê¸°ìš¸ê¸°ADí¬íŠ¸)
-    'IF A > MAX THEN GOSUB ë’¤ë¡œì¼ì–´ë‚˜ê¸°
+±â¿ï±âµÚ:
+    A = AD(¾ÕµÚ±â¿ï±âADÆ÷Æ®)
+    'IF A > MAX THEN GOSUB µÚ·ÎÀÏ¾î³ª±â
     IF A > MAX THEN
         ETX  4800,15
-        GOSUB ì•žìœ¼ë¡œì¼ì–´ë‚˜ê¸°
+        GOSUB ¾ÕÀ¸·ÎÀÏ¾î³ª±â
     ENDIF
     RETURN
     '**************************************************
-ì¢Œìš°ê¸°ìš¸ê¸°ì¸¡ì •:
+ÁÂ¿ì±â¿ï±âÃøÁ¤:
     FOR i = 0 TO COUNT_MAX
-        B = AD(ì¢Œìš°ê¸°ìš¸ê¸°ADí¬íŠ¸)	'ê¸°ìš¸ê¸° ì¢Œìš°
+        B = AD(ÁÂ¿ì±â¿ï±âADÆ÷Æ®)	'±â¿ï±â ÁÂ¿ì
         IF B > 250 OR B < 5 THEN RETURN
         IF B > MIN AND B < MAX THEN RETURN
-        DELAY ê¸°ìš¸ê¸°í™•ì¸ì‹œê°„
+        DELAY ±â¿ï±âÈ®ÀÎ½Ã°£
     NEXT i
 
     IF B < MIN OR B > MAX THEN
@@ -1733,7 +1733,7 @@ GOSUB_RX_EXIT2:
         MOVE G6B,140,  40,  80
         MOVE G6C,140,  40,  80
         WAIT
-        GOSUB ê¸°ë³¸ìžì„¸	
+        GOSUB ±âº»ÀÚ¼¼	
     ENDIF
     RETURN
     '******************************************
@@ -1792,7 +1792,7 @@ NUM_TO_ARR:
 
     RETURN
     '************************************************
-Number_Play: '  BUTTON_NO = ìˆ«ìžëŒ€ìž…
+Number_Play: '  BUTTON_NO = ¼ýÀÚ´ëÀÔ
 
 
     GOSUB NUM_TO_ARR
@@ -1830,11 +1830,11 @@ Number_Play: '  BUTTON_NO = ìˆ«ìžëŒ€ìž…
     '******************************************
 
     ' ************************************************
-ì ì™¸ì„ ê±°ë¦¬ì„¼ì„œí™•ì¸:
+Àû¿Ü¼±°Å¸®¼¾¼­È®ÀÎ:
 
-    ì ì™¸ì„ ê±°ë¦¬ê°’ = AD(ì ì™¸ì„ ADí¬íŠ¸)
+    Àû¿Ü¼±°Å¸®°ª = AD(Àû¿Ü¼±ADÆ÷Æ®)
 
-    IF ì ì™¸ì„ ê±°ë¦¬ê°’ > 50 THEN '50 = ì ì™¸ì„ ê±°ë¦¬ê°’ = 25cm
+    IF Àû¿Ü¼±°Å¸®°ª > 50 THEN '50 = Àû¿Ü¼±°Å¸®°ª = 25cm
         MUSIC "C"
         DELAY 200
     ENDIF
@@ -1843,9 +1843,9 @@ Number_Play: '  BUTTON_NO = ìˆ«ìžëŒ€ìž…
     RETURN
 
     '******************************************
-ë³€ìˆ˜ê°’_ìŒì„±ê°’ì¶œë ¥:
+º¯¼ö°ª_À½¼º°ªÃâ·Â:
 
-    J = AD(ì ì™¸ì„ ADí¬íŠ¸)	'ì ì™¸ì„ ê±°ë¦¬ê°’ ì½ê¸°
+    J = AD(Àû¿Ü¼±ADÆ÷Æ®)	'Àû¿Ü¼±°Å¸®°ª ÀÐ±â
     BUTTON_NO = J
     GOSUB Number_Play
     GOSUB SOUND_PLAY_CHK
@@ -1855,9 +1855,9 @@ Number_Play: '  BUTTON_NO = ìˆ«ìžëŒ€ìž…
     RETURN
 
     '************************************************
-ê³¨í”„_ì™¼ìª½ìœ¼ë¡œ_ìƒ·1:
+°ñÇÁ_¿ÞÂÊÀ¸·Î_¼¦1:
 
-    CONST ê³¨í”„ì±„ë†’ì´ = 135
+    CONST °ñÇÁÃ¤³ôÀÌ = 135
 
     SPEED 8
     MOVE G6A,97,  76, 145,  93, 100, 100
@@ -1875,7 +1875,7 @@ Number_Play: '  BUTTON_NO = ìˆ«ìžëŒ€ìž…
     MOVE G6C,135,  40,  90, 10
     WAIT
 
-    '**** ê³¨í”„ _ì™¼ìª½ìœ¼ë¡œ_ìƒ· ìŠ¤í”¼ë“œ *******
+    '**** °ñÇÁ _¿ÞÂÊÀ¸·Î_¼¦ ½ºÇÇµå *******
     'HIGHSPEED SETON
     SPEED 8
     MOVE G6C,135,  10,  70, 10
@@ -1892,12 +1892,12 @@ Number_Play: '  BUTTON_NO = ìˆ«ìžëŒ€ìž…
     MOVE G6C,135,  50,  60, 190
     WAIT
 
-    GOSUB ê¸°ë³¸ìžì„¸
+    GOSUB ±âº»ÀÚ¼¼
 
     RETURN
     '******************************************
 
-ê³¨í”„_ì™¼ìª½ìœ¼ë¡œ_ì–´ë“œë ˆìŠ¤1:
+°ñÇÁ_¿ÞÂÊÀ¸·Î_¾îµå·¹½º1:
     GOSUB All_motor_mode3
 
     SPEED 8
@@ -1915,7 +1915,7 @@ Number_Play: '  BUTTON_NO = ìˆ«ìžëŒ€ìž…
     '******************************************
 
     '************************************************
-ê³¨í”„_ì˜¤ë¥¸ìª½ìœ¼ë¡œ_ìƒ·1:
+°ñÇÁ_¿À¸¥ÂÊÀ¸·Î_¼¦1:
 
     SPEED 8
     MOVE G6A,97,  76, 145,  93, 100, 100
@@ -1944,7 +1944,7 @@ Number_Play: '  BUTTON_NO = ìˆ«ìžëŒ€ìž…
     WAIT
 
 
-    '**** ê³¨í”„ _ì˜¤ë¥¸ìª½ìœ¼ë¡œ_ìƒ· ìŠ¤í”¼ë“œ *******
+    '**** °ñÇÁ _¿À¸¥ÂÊÀ¸·Î_¼¦ ½ºÇÇµå *******
     'HIGHSPEED SETON
     SPEED 3
 
@@ -1959,13 +1959,13 @@ Number_Play: '  BUTTON_NO = ìˆ«ìžëŒ€ìž…
     MOVE G6C,135,  50,  60, 190
     WAIT
 
-    GOSUB ê¸°ë³¸ìžì„¸
+    GOSUB ±âº»ÀÚ¼¼
 
     RETURN
     '******************************************
 
 
-ê³¨í”„_ì˜¤ë¥¸ìª½ìœ¼ë¡œ_ì–´ë“œë ˆìŠ¤1:
+°ñÇÁ_¿À¸¥ÂÊÀ¸·Î_¾îµå·¹½º1:
     GOSUB All_motor_mode3
 
     SPEED 8
@@ -1986,23 +1986,23 @@ Number_Play: '  BUTTON_NO = ìˆ«ìžëŒ€ìž…
     RETURN
     '******************************************
     '******************************************	
-MAIN: 'ë¼ë²¨ì„¤ì •
+MAIN: '¶óº§¼³Á¤
 
-    ETX 4800, 38 ' ë™ìž‘ ë©ˆì¶¤ í™•ì¸ ì†¡ì‹  ê°’
+    ETX 4800, 38 ' µ¿ÀÛ ¸ØÃã È®ÀÎ ¼Û½Å °ª
 
 MAIN_2:
 
-    GOSUB ì•žë’¤ê¸°ìš¸ê¸°ì¸¡ì •
-    GOSUB ì¢Œìš°ê¸°ìš¸ê¸°ì¸¡ì •
-    GOSUB ì ì™¸ì„ ê±°ë¦¬ì„¼ì„œí™•ì¸
+    GOSUB ¾ÕµÚ±â¿ï±âÃøÁ¤
+    GOSUB ÁÂ¿ì±â¿ï±âÃøÁ¤
+    GOSUB Àû¿Ü¼±°Å¸®¼¾¼­È®ÀÎ
 
 
     ERX 4800,A,MAIN_2	
 
     A_old = A
 
-    '**** ìž…ë ¥ëœ Aê°’ì´ 0 ì´ë©´ MAIN ë¼ë²¨ë¡œ ê°€ê³ 
-    '**** 1ì´ë©´ KEY1 ë¼ë²¨, 2ì´ë©´ key2ë¡œ... ê°€ëŠ”ë¬¸
+    '**** ÀÔ·ÂµÈ A°ªÀÌ 0 ÀÌ¸é MAIN ¶óº§·Î °¡°í
+    '**** 1ÀÌ¸é KEY1 ¶óº§, 2ÀÌ¸é key2·Î... °¡´Â¹®
     ON A GOTO MAIN,KEY1,KEY2,KEY3,KEY4,KEY5,KEY6,KEY7,KEY8,KEY9,KEY10,KEY11,KEY12,KEY13,KEY14,KEY15,KEY16,KEY17,KEY18 ,KEY19,KEY20,KEY21,KEY22,KEY23,KEY24,KEY25,KEY26,KEY27,KEY28 ,KEY29,KEY30,KEY31,KEY32
 
     IF A > 100 AND A < 110 THEN
@@ -2022,19 +2022,19 @@ MAIN_2:
         WAIT
         DELAY 500
         SPEED 6
-        GOSUB ê¸°ë³¸ìžì„¸
+        GOSUB ±âº»ÀÚ¼¼
 
     ENDIF
 
 
     GOTO MAIN	
     '*******************************************
-    '		MAIN ë¼ë²¨ë¡œ ê°€ê¸°
+    '		MAIN ¶óº§·Î °¡±â
     '*******************************************
 
 KEY1:
     ETX  4800,1
-    GOTO ì™¼ìª½í„´5_ê³¨í”„
+    GOTO ¿ÞÂÊÅÏ5_°ñÇÁ
 
 
     GOTO RX_EXIT
@@ -2043,7 +2043,7 @@ KEY2:
     ETX  4800,2
 
 
-    GOSUB ê³¨í”„_ì™¼ìª½ìœ¼ë¡œ_ìƒ·1
+    GOSUB °ñÇÁ_¿ÞÂÊÀ¸·Î_¼¦1
 
 
     GOTO RX_EXIT
@@ -2051,21 +2051,21 @@ KEY2:
 KEY3:
     ETX  4800,3
 
-    GOTO ì˜¤ë¥¸ìª½í„´5_ê³¨í”„
+    GOTO ¿À¸¥ÂÊÅÏ5_°ñÇÁ
 
     GOTO RX_EXIT
     '***************
 KEY4:
     ETX  4800,4
 
-    GOTO ì™¼ìª½í„´10_ê³¨í”„
+    GOTO ¿ÞÂÊÅÏ10_°ñÇÁ
 
     GOTO RX_EXIT
     '***************
 KEY5:
     ETX  4800,5
 
-    GOSUB ê³¨í”„_ì˜¤ë¥¸ìª½ìœ¼ë¡œ_ìƒ·1
+    GOSUB °ñÇÁ_¿À¸¥ÂÊÀ¸·Î_¼¦1
 
 
 
@@ -2074,14 +2074,14 @@ KEY5:
 KEY6:
     ETX  4800,6
 
-    GOTO ì˜¤ë¥¸ìª½í„´10_ê³¨í”„
+    GOTO ¿À¸¥ÂÊÅÏ10_°ñÇÁ
 
 
     GOTO RX_EXIT
     '***************
 KEY7:
     ETX  4800,7
-    GOTO ì™¼ìª½í„´20_ê³¨í”„
+    GOTO ¿ÞÂÊÅÏ20_°ñÇÁ
 
     GOTO RX_EXIT
     '***************
@@ -2093,47 +2093,47 @@ KEY8:
     '***************
 KEY9:
     ETX  4800,9
-    GOTO ì˜¤ë¥¸ìª½í„´20_ê³¨í”„
+    GOTO ¿À¸¥ÂÊÅÏ20_°ñÇÁ
 
 
     GOTO RX_EXIT
     '***************
 KEY10: '0
     ETX  4800,10
-    GOTO ì „ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„
+    GOTO ÀüÁøÁ¾Á¾°ÉÀ½_°ñÇÁ
 
     GOTO RX_EXIT
     '***************
-KEY11: ' â–²
+KEY11: ' ¡ã
     ETX  4800,11
 
-    GOTO ì—°ì†ì „ì§„_ê³¨í”„
+    GOTO ¿¬¼ÓÀüÁø_°ñÇÁ
 
     GOTO RX_EXIT
     '***************
-KEY12: ' â–¼
+KEY12: ' ¡å
     ETX  4800,12
-    GOTO ì—°ì†í›„ì§„_ê³¨í”„
+    GOTO ¿¬¼ÓÈÄÁø_°ñÇÁ
 
     GOTO RX_EXIT
     '***************
-KEY13: 'â–¶
+KEY13: '¢º
     ETX  4800,13
-    GOTO ì˜¤ë¥¸ìª½ì˜†ìœ¼ë¡œ70ì—°ì†_ê³¨í”„
+    GOTO ¿À¸¥ÂÊ¿·À¸·Î70¿¬¼Ó_°ñÇÁ
 
 
     GOTO RX_EXIT
     '***************
-KEY14: ' â—€
+KEY14: ' ¢¸
     ETX  4800,14
-    GOTO ì™¼ìª½ì˜†ìœ¼ë¡œ70ì—°ì†_ê³¨í”„
+    GOTO ¿ÞÂÊ¿·À¸·Î70¿¬¼Ó_°ñÇÁ
 
 
     GOTO RX_EXIT
     '***************
 KEY15: ' A
     ETX  4800,15
-    GOTO ì™¼ìª½ì˜†ìœ¼ë¡œ20_ê³¨í”„
+    GOTO ¿ÞÂÊ¿·À¸·Î20_°ñÇÁ
 
 
     GOTO RX_EXIT
@@ -2149,8 +2149,8 @@ KEY16: ' POWER
         WAIT
     ENDIF
     SPEED 4
-    GOSUB ì•‰ì€ìžì„¸	
-    GOSUB ì¢…ë£ŒìŒ
+    GOSUB ¾ÉÀºÀÚ¼¼	
+    GOSUB Á¾·áÀ½
 
     GOSUB MOTOR_GET
     GOSUB MOTOR_OFF
@@ -2159,7 +2159,7 @@ KEY16: ' POWER
     GOSUB GOSUB_RX_EXIT
 KEY16_1:
 
-    IF ëª¨í„°ONOFF = 1  THEN
+    IF ¸ðÅÍONOFF = 1  THEN
         OUT 52,1
         DELAY 200
         OUT 52,0
@@ -2174,15 +2174,15 @@ KEY16_1:
     GOSUB SOUND_PLAY_CHK
 
 
-    IF  A = 16 THEN 	'ë‹¤ì‹œ íŒŒì›Œë²„íŠ¼ì„ ëˆŒëŸ¬ì•¼ë§Œ ë³µê·€
+    IF  A = 16 THEN 	'´Ù½Ã ÆÄ¿ö¹öÆ°À» ´­·¯¾ß¸¸ º¹±Í
         GOSUB MOTOR_ON
         SPEED 10
         MOVE G6A,100, 140,  37, 145, 100, 100
         MOVE G6D,100, 140,  37, 145, 100, 100
         WAIT
 
-        GOSUB ê¸°ë³¸ìžì„¸2
-        GOSUB ìžì´ë¡œON
+        GOSUB ±âº»ÀÚ¼¼2
+        GOSUB ÀÚÀÌ·ÎON
         GOSUB All_motor_mode3
         GOTO RX_EXIT
     ENDIF
@@ -2196,7 +2196,7 @@ KEY16_1:
     '***************
 KEY17: ' C
     ETX  4800,17
-    GOTO ë¨¸ë¦¬ì™¼ìª½90ë„
+    GOTO ¸Ó¸®¿ÞÂÊ90µµ
 
 
     GOTO RX_EXIT
@@ -2205,15 +2205,15 @@ KEY18: ' E
     ETX  4800,18	
 
 
-    GOSUB ìžì´ë¡œOFF
-    GOSUB ì—ëŸ¬ìŒ
+    GOSUB ÀÚÀÌ·ÎOFF
+    GOSUB ¿¡·¯À½
 KEY18_wait:
 
     ERX 4800,A,KEY18_wait	
 
     IF  A = 26 THEN
-        GOSUB ì‹œìž‘ìŒ
-        GOSUB ìžì´ë¡œON
+        GOSUB ½ÃÀÛÀ½
+        GOSUB ÀÚÀÌ·ÎON
         GOTO RX_EXIT
     ENDIF
 
@@ -2224,26 +2224,26 @@ KEY18_wait:
     '***************
 KEY19: ' P2
     ETX  4800,19
-    GOTO ì˜¤ë¥¸ìª½í„´60_ê³¨í”„
+    GOTO ¿À¸¥ÂÊÅÏ60_°ñÇÁ
 
     GOTO RX_EXIT
     '***************
 KEY20: ' B	
     ETX  4800,20
-    GOTO ì˜¤ë¥¸ìª½ì˜†ìœ¼ë¡œ20_ê³¨í”„
+    GOTO ¿À¸¥ÂÊ¿·À¸·Î20_°ñÇÁ
 
 
     GOTO RX_EXIT
     '***************
-KEY21: ' â–³
+KEY21: ' ¡â
     ETX  4800,21
-    GOTO ë¨¸ë¦¬ì¢Œìš°ì¤‘ì•™
+    GOTO ¸Ó¸®ÁÂ¿ìÁß¾Ó
 
     GOTO RX_EXIT
     '***************
 KEY22: ' *	
     ETX  4800,22
-    GOTO ì™¼ìª½í„´45_ê³¨í”„
+    GOTO ¿ÞÂÊÅÏ45_°ñÇÁ
 
     GOTO RX_EXIT
     '***************
@@ -2257,56 +2257,56 @@ KEY23: ' G
     '***************
 KEY24: ' #
     ETX  4800,24
-    GOTO ì˜¤ë¥¸ìª½í„´45_ê³¨í”„
+    GOTO ¿À¸¥ÂÊÅÏ45_°ñÇÁ
 
     GOTO RX_EXIT
     '***************
 KEY25: ' P1
     ETX  4800,25
-    GOTO ì™¼ìª½í„´60_ê³¨í”„
+    GOTO ¿ÞÂÊÅÏ60_°ñÇÁ
 
     GOTO RX_EXIT
     '***************
-KEY26: ' â– 
+KEY26: ' ¡á
     ETX  4800,26
 
     SPEED 5
-    GOSUB ê¸°ë³¸ìžì„¸2	
+    GOSUB ±âº»ÀÚ¼¼2	
     TEMPO 220
     MUSIC "ff"
-    GOSUB ê¸°ë³¸ìžì„¸
+    GOSUB ±âº»ÀÚ¼¼
     GOTO RX_EXIT
     '***************
 KEY27: ' D
     ETX  4800,27
-    GOTO ë¨¸ë¦¬ì˜¤ë¥¸ìª½90ë„
+    GOTO ¸Ó¸®¿À¸¥ÂÊ90µµ
 
 
     GOTO RX_EXIT
     '***************
-KEY28: ' â—
+KEY28: ' ¢·
     ETX  4800,28
-    GOTO ë¨¸ë¦¬ì™¼ìª½45ë„
+    GOTO ¸Ó¸®¿ÞÂÊ45µµ
 
 
     GOTO RX_EXIT
     '***************
-KEY29: ' â–¡
+KEY29: ' ¡à
     ETX  4800,29
 
-    GOTO ì „ë°©í•˜í–¥80ë„
+    GOTO Àü¹æÇÏÇâ80µµ
 
     GOTO RX_EXIT
     '***************
-KEY30: ' â–·
+KEY30: ' ¢¹
     ETX  4800,30
-    GOTO ë¨¸ë¦¬ì˜¤ë¥¸ìª½45ë„
+    GOTO ¸Ó¸®¿À¸¥ÂÊ45µµ
 
     GOTO RX_EXIT
     '***************
-KEY31: ' â–½
+KEY31: ' ¡ä
     ETX  4800,31
-    GOTO ì „ë°©í•˜í–¥60ë„
+    GOTO Àü¹æÇÏÇâ60µµ
 
 
 
@@ -2318,6 +2318,6 @@ KEY31: ' â–½
 
 KEY32: ' F
     ETX  4800,32
-    GOTO í›„ì§„ì¢…ì¢…ê±¸ìŒ_ê³¨í”„
+    GOTO ÈÄÁøÁ¾Á¾°ÉÀ½_°ñÇÁ
     GOTO RX_EXIT
     '***************
