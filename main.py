@@ -474,6 +474,10 @@ def ball_at_center(cx, cy, limits):
     else:
         TX_num = 0
     return TX_num
+
+def get_hole_distance(cy, head_status):
+    hole_distance = H_View_size - cy
+    return hole_distance
     
 # **************************************************
 # **************************************************
@@ -616,26 +620,26 @@ if __name__ == '__main__':
 
         # Byoungseo 20240823
     center_region_width = 200
-    left_region_limit = W_View_size / 2 - center_region_width / 2
-    right_region_limit = W_View_size / 2 + center_region_width / 2
+    left_region_limit = int(W_View_size / 2 - center_region_width / 2)
+    right_region_limit = int(W_View_size / 2 + center_region_width / 2)
 
     bottom_region_width = 160
     bottom_region_limit = H_View_size - bottom_region_width
 
     ball_at_center_range = 80
-    ball_at_center_left_limit = W_View_size / 2 - ball_at_center_range / 2
-    ball_at_center_right_limit = W_View_size / 2 + ball_at_center_range / 2
-    ball_at_center_top_limit = H_View_size / 2 - ball_at_center_range / 2
-    ball_at_center_bottom_limit = H_View_size / 2 + ball_at_center_range / 2
+    ball_at_center_left_limit = int(W_View_size / 2 - ball_at_center_range / 2)
+    ball_at_center_right_limit = int(W_View_size / 2 + ball_at_center_range / 2)
+    ball_at_center_top_limit = int(H_View_size / 2 - ball_at_center_range / 2)
+    ball_at_center_bottom_limit = int(H_View_size / 2 + ball_at_center_range / 2)
 
     ball_at_point_range = 80
-    ball_at_point_left_limit = W_View_size / 2 - ball_at_point_range / 2 + 80
-    ball_at_point_right_limit = W_View_size / 2 + ball_at_point_range / 2 + 80
-    ball_at_point_top_limit = H_View_size / 2 - ball_at_point_range / 2
-    ball_at_point_bottom_limit = H_View_size / 2 + ball_at_point_range / 2
+    ball_at_point_left_limit = int(W_View_size / 2 - ball_at_point_range / 2 + 80)
+    ball_at_point_right_limit = int(W_View_size / 2 + ball_at_point_range / 2 + 80)
+    ball_at_point_top_limit = int(H_View_size / 2 - ball_at_point_range / 2)
+    ball_at_point_bottom_limit = int(H_View_size / 2 + ball_at_point_range / 2)
 
-    hole_left_region_limit = W_View_size / 2 - center_region_width / 3 + 40
-    hole_right_region_limit = W_View_size / 2 + center_region_width / 3 + 40
+    hole_left_region_limit = int(W_View_size / 2 - center_region_width / 3 + 40)
+    hole_right_region_limit = int(W_View_size / 2 + center_region_width / 3 + 40)
 
 
 
@@ -648,13 +652,15 @@ if __name__ == '__main__':
     # 5: Ball at hit point
     # 6: Hitting the Ball
 
-    TX_num = 29
+    TX_num = 0
     previous_TX_num = 0
     # 29: middle down
     # 31: extreme down
 
     hole_success = False
     ball_success = False
+
+    hole_distance = 0
 
     TX_data(serial_port, TX_num)
 
@@ -722,8 +728,8 @@ if __name__ == '__main__':
                 if msg_one_view > 10:
                     msg_one_view = 0                
                                 
-            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, Area: %.1d, status: %.1d, ball_detected: %.1d, hole_detected: %.1d, TX_num: %.1d, hole_success: %.1d, ball_success: %.1d' 
-                      % (X_255_point, Y_255_point, Area, status, ball_detected, hole_detected, TX_num, hole_success, ball_success))
+            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, Area: %.1d, status: %.1d, ball_detected: %.1d, hole_detected: %.1d, TX_num: %.1d' 
+                      % (X_255_point, Y_255_point, Area, status, ball_detected, hole_detected, TX_num))
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
 
@@ -733,8 +739,18 @@ if __name__ == '__main__':
                     cv2.line(frame, (0, bottom_region_limit), (W_View_size, bottom_region_limit), 5)
 
                 if status == 2:
-                    print(ball_at_center_left_limit, ball_at_center_top_limit, ball_at_center_right_limit, ball_at_center_bottom_limit)
-                    # cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
+                    cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
+
+                if status == 4:
+                    cv2.line(frame, (hole_left_region_limit, 0), (hole_left_region_limit, H_View_size), 5)
+                    cv2.line(frame, (hole_right_region_limit, 0), (hole_right_region_limit, H_View_size), 5)
+
+                if status == 5:
+                    cv2.rectangle(frame, (ball_at_point_left_limit, ball_at_point_top_limit), (ball_at_point_right_limit, ball_at_point_bottom_limit), (255, 255, 255), 2)
+
+                if status == 6:
+                    draw_str2(frame, (3, 30), 'hole_distance: %.1d' % (hole_distance))
+
 
 
                 if not ball_detected and status <= 1:
@@ -745,19 +761,21 @@ if __name__ == '__main__':
 
                     # Action by Status
                     if status == 0:         # 0: Finding Ball
+                        if TX_num == 0:
+                            TX_num = 29
+                            delay = 5
                         # now_color = 0
                         if ball_detected:
                             status = 1
                             TX_num = 0
                             delay = 5
                         else:
-                            TX_num = 1      # turn left
+                            TX_num = 22      # turn left
                         
                     elif status == 1:                               # 1: Walking towards the Ball
                         if TX_num == 0:
                             TX_num = 29     
                             delay = 5
-
                         else:
                             if cx_ball <= left_region_limit:        # ball is at the left side
                                 TX_num = 1                          # turn left
@@ -808,7 +826,11 @@ if __name__ == '__main__':
                             TX_num = 17    # head left
                             delay = 5
                         else:
-                            if cx_hole <= hole_left_region_limit:         # hole is at the left side
+                            if not hole_detected:
+                                TX_num = 0
+                                status = 3
+                                delay = 5
+                            elif cx_hole <= hole_left_region_limit:         # hole is at the left side
                                 TX_num = 1                                # turn right
                                 ball_success = False
                             elif cx_hole >= hole_right_region_limit:      # hole is at the right side
@@ -816,6 +838,7 @@ if __name__ == '__main__':
                                 ball_success = False
                             else:
                                 hole_success = True
+                                hole_distance = get_hole_distance(cy_hole, 'up')
                                 status = 5
                                 TX_num = 0
                                 delay = 5
@@ -842,15 +865,15 @@ if __name__ == '__main__':
                                 hole_success = False
                     
                     elif status == 6:
-                        if TX_num == 0:
+                        if hole_distance > 300:
                             TX_num = 2     # hit the ball
-                            delay = 30
-                        elif TX_num == 2:
-                            TX_num = 33
-                            delay = 5
+                        elif hole_distance > 100:
+                            TX_num = 34
                         else:
-                            TX_num = 0
-                            delay = 5
+                            TX_num = 35
+                        delay = 30
+
+                        if TX_num != 0:
                             status = 0
                     
                     TX_data(serial_port, TX_num)

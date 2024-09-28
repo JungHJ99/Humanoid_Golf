@@ -1861,7 +1861,6 @@ Number_Play: '  BUTTON_NO = ¼ýÀÚ´ëÀÔ
 
     RETURN
 
-    '************************************************
 °ñÇÁ_¿ÞÂÊÀ¸·Î_¼¦1:
 
     CONST °ñÇÁÃ¤³ôÀÌ = 135
@@ -1901,6 +1900,86 @@ Number_Play: '  BUTTON_NO = ¼ýÀÚ´ëÀÔ
 
     GOSUB ±âº»ÀÚ¼¼
 
+    RETURN
+    '******************************************
+    
+°ñÇÁ_¿ÞÂÊÀ¸·Î_¼¦2:
+	
+    SPEED 8
+    MOVE G6A,97,  76, 145,  93, 100, 100
+    MOVE G6D,97,  76, 145,  93, 100, 100
+    MOVE G6B,100,  35,  90,
+    MOVE G6C,150,  100,  10, 10
+    WAIT
+
+    MOVE G6C,135,  20,  90, 10
+    WAIT
+
+    DELAY 400
+
+
+    MOVE G6C,135,  40,  90, 10
+    WAIT
+
+    '**** °ñÇÁ _¿ÞÂÊÀ¸·Î_¼¦ ½ºÇÇµå *******
+    'HIGHSPEED SETON
+    SPEED 5
+    MOVE G6C,135,  10,  70, 10
+    WAIT
+    DELAY 1000
+    ' HIGHSPEED SETOFF
+
+    '************
+
+    SPEED 8
+    MOVE G6C,135,  100,  10, 10
+    WAIT
+
+    MOVE G6C,135,  50,  60, 190
+    WAIT
+
+    GOSUB ±âº»ÀÚ¼¼
+    
+    RETURN
+    '******************************************
+    
+°ñÇÁ_¿ÞÂÊÀ¸·Î_¼¦3:
+	
+    SPEED 8
+    MOVE G6A,97,  76, 145,  93, 100, 100
+    MOVE G6D,97,  76, 145,  93, 100, 100
+    MOVE G6B,100,  35,  90,
+    MOVE G6C,150,  100,  10, 10
+    WAIT
+
+    MOVE G6C,135,  20,  90, 10
+    WAIT
+
+    DELAY 400
+
+
+    MOVE G6C,135,  40,  90, 10
+    WAIT
+
+    '**** °ñÇÁ _¿ÞÂÊÀ¸·Î_¼¦ ½ºÇÇµå *******
+    'HIGHSPEED SETON
+    SPEED 3
+    MOVE G6C,135,  10,  70, 10
+    WAIT
+    DELAY 1000
+    ' HIGHSPEED SETOFF
+
+    '************
+
+    SPEED 8
+    MOVE G6C,135,  100,  10, 10
+    WAIT
+
+    MOVE G6C,135,  50,  60, 190
+    WAIT
+
+    GOSUB ±âº»ÀÚ¼¼
+    
     RETURN
     '******************************************
 
@@ -2010,7 +2089,7 @@ MAIN_2:
 
     '**** ÀÔ·ÂµÈ A°ªÀÌ 0 ÀÌ¸é MAIN ¶óº§·Î °¡°í
     '**** 1ÀÌ¸é KEY1 ¶óº§, 2ÀÌ¸é key2·Î... °¡´Â¹®
-    ON A GOTO MAIN,KEY1,KEY2,KEY3,KEY4,KEY5,KEY6,KEY7,KEY8,KEY9,KEY10,KEY11,KEY12,KEY13,KEY14,KEY15,KEY16,KEY17,KEY18 ,KEY19,KEY20,KEY21,KEY22,KEY23,KEY24,KEY25,KEY26,KEY27,KEY28,KEY29,KEY30,KEY31,KEY32,KEY33
+    ON A GOTO MAIN,KEY1,KEY2,KEY3,KEY4,KEY5,KEY6,KEY7,KEY8,KEY9,KEY10,KEY11,KEY12,KEY13,KEY14,KEY15,KEY16,KEY17,KEY18 ,KEY19,KEY20,KEY21,KEY22,KEY23,KEY24,KEY25,KEY26,KEY27,KEY28,KEY29,KEY30,KEY31,KEY32,KEY33,KEY34,KEY35
 
     IF A > 100 AND A < 110 THEN
         BUTTON_NO = A - 100
@@ -2327,5 +2406,17 @@ KEY32: ' F
 KEY33: ' X
     ETX  4800,33
     GOTO Àü¹æÇÏÇâ90µµ
+    GOTO RX_EXIT
+    '***************
+
+KEY34:
+    ETX  4800,34
+    GOSUB °ñÇÁ_¿ÞÂÊÀ¸·Î_¼¦2
+    GOTO RX_EXIT
+    '***************
+    
+KEY35:
+    ETX  4800,35
+    GOSUB °ñÇÁ_¿ÞÂÊÀ¸·Î_¼¦3
     GOTO RX_EXIT
     '***************
