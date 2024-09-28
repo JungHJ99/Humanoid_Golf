@@ -462,57 +462,6 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
     # 홀의 면적, 중심 좌표 반환
     return hole_detected, largest_area, (largest_cX, largest_cY), closing
 
-def border_detecting(mask):
-
-    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
-
-    # initialize parameter
-
-    X_Size = 0
-    Y_Size = 0
-    X_255_point = 0
-    Y_255_point = 0
-    cx_ball = 0
-    cy_ball = 0
-    border_detected = False
-    Area = 0
-    Angle = 0
-
-    if len(cnts) > 0:
-        c = max(cnts, key=cv2.contourArea)
-        ((X, Y), radius) = cv2.minEnclosingCircle(c)
-
-        Area = cv2.contourArea(c) / min_area[0]
-
-        if Area > 255:
-            Area = 255
-
-        if Area > min_area[0]:
-            x4, y4, w4, h4 = cv2.boundingRect(c)
-            cv2.rectangle(frame, (x4, y4), (x4 + w4, y4 + h4), (0, 255, 0), 2)
-            
-            X_Size = int((255.0 / W_View_size) * w4)
-            Y_Size = int((255.0 / H_View_size) * h4)
-            X_255_point = int((255.0 / W_View_size) * X)
-            Y_255_point = int((255.0 / H_View_size) * Y)
-            cx_ball = x4 + w4 / 2
-            cy_ball = y4 + h4 / 2
-            ball_detected = True
-
-        else:
-            ball_detected = False
-            
-    else:
-        X_255_point = 0
-        Y_255_point = 0
-        X_Size = 0
-        Y_Size = 0
-        Area = 0
-        Angle = 0
-
-    return X_Size, Y_Size, X_255_point, Y_255_point, cx_ball, cy_ball, ball_detected, Area, Angle
-
-
 def ball_at_center(cx, cy, limits):
     if cx <= limits[0]:
         TX_num = 14
@@ -663,7 +612,7 @@ if __name__ == '__main__':
     
     ball_detected = False
     hole_detected = False
-    border_detected = False
+
 
         # Byoungseo 20240823
     center_region_width = 200
@@ -952,6 +901,11 @@ if __name__ == '__main__':
             cv2.imshow('mini CTS5 - Mask2', mask2)
             # cv2.imshow('mini CTS5 - Mask3', mask3)
             # cv2.imshow('mini CTS5 - Mask4', mask4)
+
+
+
+
+            
 
         key = 0xFF & cv2.waitKey(1)
         
