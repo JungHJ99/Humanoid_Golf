@@ -1661,16 +1661,23 @@ GOSUB_RX_EXIT2:
 
 머리상하정면:
     SPEED 머리이동속도
+    SERVO 16, 100
     SERVO 11,100	
     SPEED 5
     GOSUB 기본자세
     GOTO RX_EXIT
 
     '******************************************
+전방하향90도:
+    SPEED 3
+    SERVO 16, 85
+    SERVO 11, 100
+    GOTO RX_EXIT
+    '******************************************
 전방하향80도:
 
     SPEED 3
-    SERVO 16, 80
+    SERVO 16, 65
     SERVO 11, 100
     ETX 4800,35
     GOTO RX_EXIT
@@ -1678,7 +1685,7 @@ GOSUB_RX_EXIT2:
 전방하향60도:
 
     SPEED 3
-    SERVO 16, 65
+    SERVO 16, 40
     SERVO 11, 100
     ETX 4800,36
     GOTO RX_EXIT
@@ -2003,7 +2010,7 @@ MAIN_2:
 
     '**** 입력된 A값이 0 이면 MAIN 라벨로 가고
     '**** 1이면 KEY1 라벨, 2이면 key2로... 가는문
-    ON A GOTO MAIN,KEY1,KEY2,KEY3,KEY4,KEY5,KEY6,KEY7,KEY8,KEY9,KEY10,KEY11,KEY12,KEY13,KEY14,KEY15,KEY16,KEY17,KEY18 ,KEY19,KEY20,KEY21,KEY22,KEY23,KEY24,KEY25,KEY26,KEY27,KEY28 ,KEY29,KEY30,KEY31,KEY32
+    ON A GOTO MAIN,KEY1,KEY2,KEY3,KEY4,KEY5,KEY6,KEY7,KEY8,KEY9,KEY10,KEY11,KEY12,KEY13,KEY14,KEY15,KEY16,KEY17,KEY18 ,KEY19,KEY20,KEY21,KEY22,KEY23,KEY24,KEY25,KEY26,KEY27,KEY28,KEY29,KEY30,KEY31,KEY32,KEY33
 
     IF A > 100 AND A < 110 THEN
         BUTTON_NO = A - 100
@@ -2307,17 +2314,18 @@ KEY30: ' ▷
 KEY31: ' ▽
     ETX  4800,31
     GOTO 전방하향60도
-
-
-
-
-
-
+    
     GOTO RX_EXIT
     '***************
 
 KEY32: ' F
     ETX  4800,32
     GOTO 후진종종걸음_골프
+    GOTO RX_EXIT
+    '***************
+    
+KEY33: ' X
+    ETX  4800,33
+    GOTO 전방하향90도
     GOTO RX_EXIT
     '***************
