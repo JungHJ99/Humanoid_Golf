@@ -664,9 +664,6 @@ if __name__ == '__main__':
 
     # -------- Main Loop Start --------
     while True:
-        if status == 0:
-            now_color = 0
-
         # grab the current frame
         # (grabbed, frame) = camera.read()
         rawCapture = PiRGBArray(camera, size=(W_View_size, H_View_size))
@@ -792,14 +789,13 @@ if __name__ == '__main__':
                         elif TX_num == 33: 
                             TX_num = 17     # head left
                             delay = 5
-                            now_color = 1
                         elif TX_num == 17 or TX_num == 9:
                             TX_num = 14    # step left
                             delay = 2
                         elif TX_num == 14: 
                             TX_num = 9      # turn right
                             delay = 2
-                        if hole_detected and TX_num != 33:
+                        if hole_detected and TX_num in [9, 14]:
                             status = 4
                             TX_num = 0
                             delay = 10
@@ -811,7 +807,6 @@ if __name__ == '__main__':
                         elif TX_num == 33: 
                             TX_num = 17    # head left
                             delay = 5
-                            now_color = 1
                         else:
                             if cx_hole <= hole_left_region_limit:         # hole is at the left side
                                 TX_num = 1                                # turn right
