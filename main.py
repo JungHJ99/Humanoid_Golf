@@ -37,7 +37,7 @@ color_num = [   0,  1,  2,  3,  4]
 h_max =     [ 179,240, 140,100,110]
 h_min =     [  86,0,  0, 30, 74]
     
-s_max =     [ 121,80,130,140,255]
+s_max =     [ 121,70,130,140,255]
 s_min =     [ 100, 0,85, 100,133]
     
 v_max =     [ 255,175,180,100,255]
@@ -716,14 +716,15 @@ if __name__ == '__main__':
     ball_at_center_top_limit = int(H_View_size / 2 - ball_at_center_range / 2)
     ball_at_center_bottom_limit = int(H_View_size / 2 + ball_at_center_range / 2)
 
-    ball_at_point_range = 80
+    ball_at_point_range = 60
     ball_at_point_left_limit = int(W_View_size / 2 - ball_at_point_range / 2 + 80)
     ball_at_point_right_limit = int(W_View_size / 2 + ball_at_point_range / 2 + 80)
     ball_at_point_top_limit = int(H_View_size / 2 - ball_at_point_range / 2)
     ball_at_point_bottom_limit = int(H_View_size / 2 + ball_at_point_range / 2)
 
-    hole_left_region_limit = int(W_View_size / 2 - center_region_width / 3 + 40)
-    hole_right_region_limit = int(W_View_size / 2 + center_region_width / 3 + 40)
+    hole_center_region_width = 100
+    hole_left_region_limit = int(W_View_size / 2 - hole_center_region_width / 3)
+    hole_right_region_limit = int(W_View_size / 2 + hole_center_region_width / 3)
 
 
 
@@ -751,6 +752,8 @@ if __name__ == '__main__':
     delay = 0
 
     only_video = False
+
+    hit_cnt = 1
 
     # -------- Main Loop Start --------
     while True:
@@ -828,8 +831,8 @@ if __name__ == '__main__':
                     cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
 
                 if status == 4:
-                    cv2.line(frame, (hole_left_region_limit, 0), (hole_left_region_limit, H_View_size), (0, 0, 255), 3)
-                    cv2.line(frame, (hole_right_region_limit, 0), (hole_right_region_limit, H_View_size), (0, 0, 255), 3)
+                    cv2.line(frame, (hole_left_region_limit + int(cy_hole * 0.7), 0), (hole_left_region_limit + int(cy_hole * 0.7), H_View_size), (0, 0, 255), 3)
+                    cv2.line(frame, (hole_right_region_limit + int(cy_hole * 0.7), 0), (hole_right_region_limit + int(cy_hole * 0.7), H_View_size), (0, 0, 255), 3)
                     cv2.line(frame, (0, H_View_size - 100), (W_View_size, H_View_size - 100), (155, 155, 0), 3)
                     cv2.line(frame, (0, H_View_size - 200), (W_View_size, H_View_size - 200), (255, 255, 0), 3)
 
@@ -896,7 +899,7 @@ if __name__ == '__main__':
 
                     elif status == 3:       # 3: Finding Hole
                         if TX_num == 0:
-                            head_angle = (90, -0)
+                            head_angle = (90, -0 if hit_cnt == 0 else -30)
                             TX_num = motion_dict[head_angle]            # head left up
                             delay = 5
                         elif TX_num == motion_dict[head_angle] or TX_num == 9:
@@ -912,7 +915,7 @@ if __name__ == '__main__':
 
                     elif status == 4:      # Hole at hit point
                         if TX_num == 0:    
-                            head_angle = (90, -0)
+                            head_angle = (90, -0 if hit_cnt == 0 else -30)
                             TX_num = motion_dict[head_angle]             # head left up
                             delay = 5
                         else:
@@ -920,10 +923,10 @@ if __name__ == '__main__':
                                 TX_num = 0
                                 status = 3
                                 delay = 5
-                            elif cx_hole <= hole_left_region_limit:       # hole is at the left side
+                            elif cx_hole <= hole_left_region_limit + int(cy_hole * 0.7):       # hole is at the left side
                                 TX_num = 1                                # turn right
                                 ball_success = False
-                            elif cx_hole >= hole_right_region_limit:      # hole is at the right side
+                            elif cx_hole >= hole_right_region_limit + int(cy_hole * 0.7):      # hole is at the right side
                                 TX_num = 3                                # turn left
                                 ball_success = False
                             else:
@@ -964,6 +967,7 @@ if __name__ == '__main__':
                                 # TX_num = 35
                             delay = 30
                         else:
+                            hit_cnt += 1
                             TX_num = 0
                             delay = 5
                             status = 7
