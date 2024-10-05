@@ -695,7 +695,7 @@ if __name__ == '__main__':
     ball_detected = False
     hole_detected = False
     border_before_hole_detected = False
-    head_angle = -0
+    head_angle = -15
 
         # Byoungseo 20240823
     center_region_width = 200
@@ -810,8 +810,8 @@ if __name__ == '__main__':
                 if msg_one_view > 10:
                     msg_one_view = 0                
                                 
-            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, Area: %.1d, status: %.1d, ball_detected: %.1d, hole_detected: %.1d, TX_num: %.1d' 
-                      % (X_255_point, Y_255_point, Area, status, ball_detected, hole_detected, TX_num))
+            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, status: %.1d, ball_detected: %.1d, hole_detected: %.1d, TX_num: %.1d, head_angle: %.1d' 
+                      % (X_255_point, Y_255_point, status, ball_detected, hole_detected, TX_num, head_angle))
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
 
@@ -827,7 +827,7 @@ if __name__ == '__main__':
                     cv2.line(frame, (hole_left_region_limit, 0), (hole_left_region_limit, H_View_size), (0, 0, 255), 3)
                     cv2.line(frame, (hole_right_region_limit, 0), (hole_right_region_limit, H_View_size), (0, 0, 255), 3)
                     cv2.line(frame, (0, H_View_size - 100), (W_View_size, H_View_size - 100), (155, 155, 0), 3)
-                    cv2.line(frame, (0, H_View_size - 300), (W_View_size, H_View_size - 300), (255, 255, 0), 3)
+                    cv2.line(frame, (0, H_View_size - 200), (W_View_size, H_View_size - 200), (255, 255, 0), 3)
 
                 if status == 5:
                     cv2.rectangle(frame, (ball_at_point_left_limit, ball_at_point_top_limit), (ball_at_point_right_limit, ball_at_point_bottom_limit), (255, 255, 255), 2)
@@ -869,7 +869,7 @@ if __name__ == '__main__':
                                 TX_num = 11                     # step forward
                             else:                               # ball is close enough
                                 if head_angle > -45:
-                                    head_angle -= 45
+                                    head_angle -= 15
                                     TX_num = motion_dict[head_angle]
                                     delay = 10
                                 else:
@@ -954,7 +954,7 @@ if __name__ == '__main__':
                 
                     elif status == 6:       # 6: Hitting the Ball
                         if TX_num == 0:
-                            if hole_distance > 300:
+                            if hole_distance > 200:
                                 TX_num = 2     # hit the ball
                             elif hole_distance > 100:
                                 TX_num = 34
@@ -973,7 +973,7 @@ if __name__ == '__main__':
                         if TX_num == 0:
                             head_angle = 1      
                         
-                        if head_angle in [-0, -15, 30, -45]:    # 공의 높이에 높이에 맞추어 정면을 보고 몸을 왼쪽으로 회전함.
+                        if head_angle in [-0, -15, -30, -45]:    # 공의 높이에 높이에 맞추어 정면을 보고 몸을 왼쪽으로 회전함.
                             TX_num = motion_dict[head_angle]            # head_angle에 따라 3개의 동작을 순서대로 실행
                             delay = 5                           
                             status = 0                                         # 공의 높이에 맞추어 정면으로 보고 있는 상태에서 status 1 (Walking toward Ball) 진입
