@@ -753,7 +753,7 @@ if __name__ == '__main__':
 
     only_video = False
 
-    hit_cnt = 1
+    hit_cnt = 0
 
     # -------- Main Loop Start --------
     while True:
@@ -873,8 +873,8 @@ if __name__ == '__main__':
                         elif cx_ball >= right_region_limit:     # ball is at the right side
                             TX_num = 3                          # turn right
                         else:                                   # ball is at the middle
-                            if TX_num in [1, 3]:
-                                delay = 3                       # delay for swing by rotation           
+                            # if TX_num in [1, 3]:
+                            #     delay = 3                       # delay for swing by rotation           
                             if cy_ball < bottom_region_limit:   # ball is not close enough
                                 TX_num = 11                     # step forward
                             else:                               # ball is close enough
@@ -965,7 +965,7 @@ if __name__ == '__main__':
                                 TX_num = 34
                             else:
                                 TX_num = 35
-                            delay = 30
+                            delay = 20
                         else:
                             hit_cnt += 1
                             TX_num = 0
