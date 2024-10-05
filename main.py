@@ -548,7 +548,15 @@ def ball_at_center(cx, cy, limits):
 def get_hole_distance(cy, head_status):
     hole_distance = H_View_size - cy
     return hole_distance
-    
+
+
+motion_dict = {
+    -0: 40,
+    -15: 41, 
+    -30: 42,
+    -45: 43
+}
+
 # **************************************************
 # **************************************************
 # **************************************************
@@ -687,9 +695,7 @@ if __name__ == '__main__':
     ball_detected = False
     hole_detected = False
     border_before_hole_detected = False
-    ball_angle = 1
-    motion_cnt = -1
-
+    head_angle = 1
 
         # Byoungseo 20240823
     center_region_width = 200
@@ -735,8 +741,6 @@ if __name__ == '__main__':
     ball_success = False
 
     hole_distance = 0
-
-    head_status = 'up'
 
     TX_data(serial_port, TX_num)
 
@@ -844,7 +848,6 @@ if __name__ == '__main__':
                     # Action by Status
                     if status == 0:         # 0: Finding Ball
                         if TX_num == 0:
-                            head_status = 'up'
                             TX_num = 33
                             delay = 5
                         else:
@@ -865,9 +868,9 @@ if __name__ == '__main__':
                             if cy_ball < bottom_region_limit:   # ball is not close enough
                                 TX_num = 11                     # step forward
                             else:                               # ball is close enough
-                                if head_status == 'up':
-                                    head_status = 'middle'
-                                    TX_num = 29
+                                if head_angle > -45:
+                                    head_angle -= 15
+                                    TX_num = motion_dict[head_angle]
                                     delay = 10
                                 else:
                                     status = 2
@@ -876,7 +879,6 @@ if __name__ == '__main__':
                     
                     elif status == 2:       # 2: Ball at center
                         if TX_num == 0:
-                            head_status = 'down'
                             TX_num = 31     # head down
                             delay = 5
                         else:
@@ -888,7 +890,6 @@ if __name__ == '__main__':
 
                     elif status == 3:       # 3: Finding Hole
                         if TX_num == 0:
-                            head_status = 'up'
                             TX_num = 33     # head up
                             delay = 5
                         elif TX_num == 33: 
@@ -907,7 +908,6 @@ if __name__ == '__main__':
 
                     elif status == 4:      # Hole at hit point
                         if TX_num == 0:    
-                            head_status = 'up'
                             TX_num = 33    # head up
                             delay = 5
                         elif TX_num == 33: 
@@ -926,18 +926,16 @@ if __name__ == '__main__':
                                 ball_success = False
                             else:
                                 hole_success = True
-                                hole_distance = get_hole_distance(cy_hole, head_status)
+                                hole_distance = get_hole_distance(cy_hole, '')
                                 status = 5
                                 TX_num = 0
                                 delay = 5
                                 
                     elif status == 5:       # 5: Ball at hit point
                         if TX_num == 0:
-                            head_status = 'down'
                             TX_num = 31     # head down
                             delay = 5
                         elif TX_num == 31:
-                            head_status = 'up'
                             TX_num = 21     # head up
                             delay = 5
                         else:
@@ -971,46 +969,41 @@ if __name__ == '__main__':
                             status = 7
 
                     elif status == 7:       # 7: Tracking Ball                  
-                        if ball_angle in [-0, -15, 30, -45] and motion_cnt >= 0:    # 공의 높이에 높이에 맞추어 정면을 보고 몸을 왼쪽으로 회전함.
-                            motion_dict = {
-                                -0: [7, 25, 40],                                    # {key : value}: {얼굴 각도 : [왼쪽으로 몸 30도 회전 <- 왼쪽으로 몸 60도 회전 <- 홀 높이의 정면 보기]}
-                                -15: [7, 25, 41], 
-                                -30: [7, 25, 42],
-                                -45: [7, 25, 43]
-                            }
-                            TX_num = motion_dict[ball_angle][motion_cnt]            # ball_angle에 따라 3개의 동작을 순서대로 실행
-                            delay = 5
-                            motion_cnt += -1
-                            if motion_cnt == -1:
-                                ball_angle = -80
-                                status = 1                                          # 공의 높이에 맞추어 정면으로 보고 있는 상태에서 status 1 (Walking toward Ball) 진입
+                        if head_angle in [-0, -15, 30, -45] # and motion_cnt >= 0:    # 공의 높이에 높이에 맞추어 정면을 보고 몸을 왼쪽으로 회전함.
+                            # motion_dict = {
+                            #     -0: [7, 25, 40],                                    # {key : value}: {얼굴 각도 : [왼쪽으로 몸 30도 회전 <- 왼쪽으로 몸 60도 회전 <- 홀 높이의 정면 보기]}
+                            #     -15: [7, 25, 41], 
+                            #     -30: [7, 25, 42],
+                            #     -45: [7, 25, 43]
+                            # }
+                            # TX_num = motion_dict[head_angle][motion_cnt]            # head_angle에 따라 3개의 동작을 순서대로 실행
+                            # delay = 5
+                            TX_num = motion_dict[head_angle]            # head_angle에 따라 3개의 동작을 순서대로 실행
+                            delay = 5                           
+                            status = 0                                         # 공의 높이에 맞추어 정면으로 보고 있는 상태에서 status 1 (Walking toward Ball) 진입
 
                         else:                           
                             if TX_num == 36:            # 36 : 머리 왼쪽 90도 하향 0도
-                                if hole_detected:
-                                    ball_angle = -0     # 공을 찾음 -> 다음 사이클에서 ball_angle = -0 에 맞추어 3개의 동작 실행
-                                    motion_cnt = 2      
+                                if ball_detected:
+                                    head_angle = -0     # 공을 찾음 -> 다음 사이클에서 head_angle = -0 에 맞추어 3개의 동작 실행
                                 else:
                                     TX_num = 37         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 0도 -> 하향 15도)
                                     delay = 5
                             elif TX_num == 37:          # 37 : 머리 왼쪽 90도 하향 15도
-                                if hole_detected:
-                                    ball_angle = -15    # 공을 찾음 -> 다음 사이클에서 ball_angle = -15 에 맞추어 3개의 동작 실행
-                                    motion_cnt = 2
+                                if ball_detected:
+                                    head_angle = -15    # 공을 찾음 -> 다음 사이클에서 head_angle = -15 에 맞추어 3개의 동작 실행
                                 else:
                                     TX_num = 38         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 15도 -> 하향 35도)
                                     delay = 5
                             elif TX_num == 38:          # 36 : 머리 왼쪽 90도 하향 30도
-                                if hole_detected:
-                                    ball_angle = -30    # 공을 찾음 -> 다음 사이클에서 ball_angle = -30 에 맞추어 3개의 동작 실행
-                                    motion_cnt = 2
+                                if ball_detected:
+                                    head_angle = -30    # 공을 찾음 -> 다음 사이클에서 head_angle = -30 에 맞추어 3개의 동작 실행
                                 else:
                                     TX_num = 39         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 30도 -> 하향 45도)
                                     delay = 5
                             elif TX_num == 39:          # 37 : 머리 왼쪽 90도 하향 45도
-                                if hole_detected:
-                                    ball_angle = -45    # 다음 사이클에서 ball_angle = -45 에 맞추어 3개의 동작 실행
-                                    motion_cnt = 2
+                                if ball_detected:
+                                    head_angle = -45    # 다음 사이클에서 head_angle = -45 에 맞추어 3개의 동작 실행
                                 else:
                                     TX_num = 40         # 머리 중앙 하향 0도
                                     delay = 5
@@ -1019,12 +1012,10 @@ if __name__ == '__main__':
                                 TX_num = 36
                                 delay = 5
 
+
                         elif status == 11:
                             if TX_num == 0:    
-                                TX_num = 33    # head up
-                                delay = 5
-                            elif TX_num == 33: 
-                                TX_num = 17    # head left
+                                TX_num = 36    # head up, left
                                 delay = 5
                             if border_before_hole_detected:
                                 status = 6
