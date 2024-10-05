@@ -37,13 +37,13 @@ color_num = [   0,  1,  2,  3,  4]
 h_max =     [ 179,240, 140,100,110]
 h_min =     [  86,0,  0, 30, 74]
     
-s_max =     [ 121,70,130,140,255]
+s_max =     [ 121,102,130,140,255]
 s_min =     [ 100, 0,85, 100,133]
     
 v_max =     [ 255,175,180,100,255]
 v_min =     [ 180, 0,100, 60,104]
     
-min_area =  [  10, 30, 50, 10, 10]
+min_area =  [  3, 30, 50, 10, 10]
 
 now_color = 0
 serial_use = 1
@@ -957,9 +957,11 @@ if __name__ == '__main__':
                             if hole_distance > 200:
                                 TX_num = 2     # hit the ball
                             elif hole_distance > 100:
-                                TX_num = 34
+                                # TX_num = 34
+                                TX_num = 2
                             else:
-                                TX_num = 35
+                                TX_num = 2
+                                # TX_num = 35
                             delay = 30
                         elif TX_num in [2, 34, 35]:
                             TX_num = 33     # face forward
