@@ -695,7 +695,7 @@ if __name__ == '__main__':
     ball_detected = False
     hole_detected = False
     border_before_hole_detected = False
-    head_angle = 1
+    head_angle = -0
 
         # Byoungseo 20240823
     center_region_width = 200
@@ -722,7 +722,7 @@ if __name__ == '__main__':
 
 
 
-    status = 11
+    status = 0
     # 0: Finding Ball
     # 1: Walking toward the Ball -> 공 높이에 따라 고개 숙이기
     # 2: Ball at center
@@ -746,7 +746,7 @@ if __name__ == '__main__':
 
     delay = 0
 
-    only_video = True
+    only_video = False
 
     # -------- Main Loop Start --------
     while True:
@@ -790,7 +790,7 @@ if __name__ == '__main__':
         
         X_Size, Y_Size, X_255_point, Y_255_point, cx_ball, cy_ball, ball_detected, Area, Angle = ball_detecting(mask0)
 
-        border_before_hole_detected = border_before_hole_detecting(frame, mask3, cx_hole, cy_hole, W_View_size, H_View_size, 400, 10)
+        # border_before_hole_detected = border_before_hole_detecting(frame, mask3, cx_hole, cy_hole, W_View_size, H_View_size, 400, 10)
 
         Frame_time = (clock() - old_time) * 1000.
         old_time = clock()
@@ -869,7 +869,7 @@ if __name__ == '__main__':
                                 TX_num = 11                     # step forward
                             else:                               # ball is close enough
                                 if head_angle > -45:
-                                    head_angle -= 15
+                                    head_angle -= 45
                                     TX_num = motion_dict[head_angle]
                                     delay = 10
                                 else:
@@ -946,7 +946,8 @@ if __name__ == '__main__':
                                 ball_success = True
                                 status = 4
                             elif TX_num == 0 and (hole_success and ball_success):
-                                status = 11
+                                # status = 11
+                                status = 6
                             else:
                                 ball_success = False
                                 hole_success = False
@@ -968,16 +969,11 @@ if __name__ == '__main__':
                             delay = 5
                             status = 7
 
-                    elif status == 7:       # 7: Tracking Ball                  
-                        if head_angle in [-0, -15, 30, -45] # and motion_cnt >= 0:    # 공의 높이에 높이에 맞추어 정면을 보고 몸을 왼쪽으로 회전함.
-                            # motion_dict = {
-                            #     -0: [7, 25, 40],                                    # {key : value}: {얼굴 각도 : [왼쪽으로 몸 30도 회전 <- 왼쪽으로 몸 60도 회전 <- 홀 높이의 정면 보기]}
-                            #     -15: [7, 25, 41], 
-                            #     -30: [7, 25, 42],
-                            #     -45: [7, 25, 43]
-                            # }
-                            # TX_num = motion_dict[head_angle][motion_cnt]            # head_angle에 따라 3개의 동작을 순서대로 실행
-                            # delay = 5
+                    elif status == 7:       # 7: Tracking Ball
+                        if TX_num == 0:
+                            head_angle = 1      
+                        
+                        if head_angle in [-0, -15, 30, -45]:    # 공의 높이에 높이에 맞추어 정면을 보고 몸을 왼쪽으로 회전함.
                             TX_num = motion_dict[head_angle]            # head_angle에 따라 3개의 동작을 순서대로 실행
                             delay = 5                           
                             status = 0                                         # 공의 높이에 맞추어 정면으로 보고 있는 상태에서 status 1 (Walking toward Ball) 진입
@@ -1013,13 +1009,13 @@ if __name__ == '__main__':
                                 delay = 5
 
 
-                        elif status == 11:
-                            if TX_num == 0:    
-                                TX_num = 36    # head up, left
-                                delay = 5
-                            if border_before_hole_detected:
-                                status = 6
-                            print(border_before_hole_detected)
+                    # elif status == 11:
+                    #     if TX_num == 0:    
+                    #         TX_num = 36    # head up, left
+                    #         delay = 5
+                    #     if border_before_hole_detected:
+                    #         status = 6
+                    #     print(border_before_hole_detected)
 
                     print("TX_num: {}".format(TX_num))
                     TX_data(serial_port, TX_num)
