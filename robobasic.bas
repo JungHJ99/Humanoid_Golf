@@ -2519,11 +2519,7 @@ KEY31: ' ▽
 
 KEY32: ' F
     ETX  4800,32
-<<<<<<< HEAD
-    GOTO 후진종종걸음_골프
-=======
     GOTO 머리왼쪽90도
->>>>>>> origin/feature/status7_tracking_ball
     GOTO RX_EXIT
     '***************
     
