@@ -1992,30 +1992,30 @@ Number_Play: '  BUTTON_NO = 숫자대입
     MOVE G6C,150,  100,  10, 10
     WAIT
 
-    MOVE G6C,135,  20,  90, 10
+    MOVE G6C,132,  20,  90, 10
     WAIT
 
     DELAY 400
 
 
-    MOVE G6C,135,  40,  90, 10
+    MOVE G6C,132,  80,  90, 10
     WAIT
 
     '**** 골프 _왼쪽으로_샷 스피드 *******
     'HIGHSPEED SETON
-    SPEED 8
-    MOVE G6C,135,  10,  70, 10
+    SPEED 10
+    MOVE G6C,132,  10,  70, 10
     WAIT
     DELAY 1000
     ' HIGHSPEED SETOFF
 
     '************
 
-    SPEED 8
-    MOVE G6C,135,  100,  10, 10
+    SPEED 10
+    MOVE G6C,132,  100,  10, 10
     WAIT
 
-    MOVE G6C,135,  50,  60, 190
+    MOVE G6C,132,  50,  60, 190
     WAIT
 
     GOSUB 기본자세
