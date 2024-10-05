@@ -1,4 +1,4 @@
- '******** 2�� ����κ� �ʱ� ���� ���α׷� ********
+ '******** 2족 보행로봇 초기 영점 프로그램 ********
 
 DIM I AS BYTE
 DIM J AS BYTE
@@ -7,25 +7,25 @@ DIM A AS BYTE
 DIM A_old AS BYTE
 DIM B AS BYTE
 DIM C AS BYTE
-DIM ����ӵ� AS BYTE
-DIM �¿�ӵ� AS BYTE
-DIM �¿�ӵ�2 AS BYTE
-DIM ������� AS BYTE
-DIM �������� AS BYTE
-DIM ����üũ AS BYTE
-DIM ����ONOFF AS BYTE
-DIM ���̷�ONOFF AS BYTE
-DIM ����յ� AS INTEGER
-DIM �����¿� AS INTEGER
+DIM 보행속도 AS BYTE
+DIM 좌우속도 AS BYTE
+DIM 좌우속도2 AS BYTE
+DIM 보행순서 AS BYTE
+DIM 현재전압 AS BYTE
+DIM 반전체크 AS BYTE
+DIM 모터ONOFF AS BYTE
+DIM 자이로ONOFF AS BYTE
+DIM 기울기앞뒤 AS INTEGER
+DIM 기울기좌우 AS INTEGER
 
-DIM ����� AS BYTE
+DIM 곡선방향 AS BYTE
 
-DIM �Ѿ���Ȯ�� AS BYTE
-DIM ����Ȯ��Ƚ�� AS BYTE
-DIM ����Ƚ�� AS BYTE
-DIM ����COUNT AS BYTE
+DIM 넘어진확인 AS BYTE
+DIM 기울기확인횟수 AS BYTE
+DIM 보행횟수 AS BYTE
+DIM 보행COUNT AS BYTE
 
-DIM ���ܼ��Ÿ���  AS BYTE
+DIM 적외선거리값  AS BYTE
 
 DIM S11  AS BYTE
 DIM S16  AS BYTE
@@ -42,44 +42,44 @@ DIM BUTTON_NO AS INTEGER
 DIM SOUND_BUSY AS BYTE
 DIM TEMP_INTEGER AS INTEGER
 
-'**** ���⼾����Ʈ ���� ****
-CONST �յڱ���AD��Ʈ = 0
-CONST �¿����AD��Ʈ = 1
-CONST ����Ȯ�νð� = 20  'ms
+'**** 기울기센서포트 설정 ****
+CONST 앞뒤기울기AD포트 = 0
+CONST 좌우기울기AD포트 = 1
+CONST 기울기확인시간 = 20  'ms
 
-CONST ���ܼ�AD��Ʈ  = 4
+CONST 적외선AD포트  = 4
 
 
-CONST min = 61	'�ڷγѾ�������
-CONST max = 107	'�����γѾ�������
+CONST min = 61	'뒤로넘어졌을때
+CONST max = 107	'앞으로넘어졌을때
 CONST COUNT_MAX = 3
 
 
-CONST �Ӹ��̵��ӵ� = 10
+CONST 머리이동속도 = 10
 '************************************************
 
 
 
-PTP SETON 				'�����׷캰 ���������� ����
-PTP ALLON				'��ü���� ������ ���� ����
+PTP SETON 				'단위그룹별 점대점동작 설정
+PTP ALLON				'전체모터 점대점 동작 설정
 
-DIR G6A,1,0,0,1,0,0		'����0~5��
-DIR G6D,0,1,1,0,1,1		'����18~23��
-DIR G6B,1,1,1,1,1,1		'����6~11��
-DIR G6C,0,0,0,1,1,0		'����12~17��
+DIR G6A,1,0,0,1,0,0		'모터0~5번
+DIR G6D,0,1,1,0,1,1		'모터18~23번
+DIR G6B,1,1,1,1,1,1		'모터6~11번
+DIR G6C,0,0,0,1,1,0		'모터12~17번
 
 '************************************************
 
-OUT 52,0	'�Ӹ� LED �ѱ�
-'***** �ʱ⼱�� '************************************************
+OUT 52,0	'머리 LED 켜기
+'***** 초기선언 '************************************************
 
-������� = 0
-����üũ = 0
-����Ȯ��Ƚ�� = 0
-����Ƚ�� = 1
-����ONOFF = 0
+보행순서 = 0
+반전체크 = 0
+기울기확인횟수 = 0
+보행횟수 = 1
+모터ONOFF = 0
 
-'****�ʱ���ġ �ǵ��*****************************
+'****초기위치 피드백*****************************
 
 
 TEMPO 230
@@ -99,18 +99,18 @@ SERVO 16, S16
 SERVO 16, 100
 
 
-GOSUB �����ʱ��ڼ�
-GOSUB �⺻�ڼ�
+GOSUB 전원초기자세
+GOSUB 기본자세
 
 
-GOSUB ���̷�INIT
-GOSUB ���̷�MID
-GOSUB ���̷�ON
+GOSUB 자이로INIT
+GOSUB 자이로MID
+GOSUB 자이로ON
 
 
 
 PRINT "VOLUME 200 !"
-PRINT "SOUND 12 !" '�ȳ��ϼ���
+PRINT "SOUND 12 !" '안녕하세요
 
 GOSUB All_motor_mode3
 
@@ -118,7 +118,7 @@ GOSUB All_motor_mode3
 
 
 
-GOTO MAIN	'�ø��� ���� ��ƾ���� ����
+GOTO MAIN	'시리얼 수신 루틴으로 가기
 
 '************************************************
 
@@ -130,23 +130,23 @@ GOTO MAIN	'�ø��� ���� ��ƾ���� ����
 ' Infrared_Distance = 10 ' About 95cm
 '*********************************************
 '************************************************
-������:
+시작음:
     TEMPO 220
     MUSIC "O23EAB7EA>3#C"
     RETURN
     '************************************************
-������:
+종료음:
     TEMPO 220
     MUSIC "O38GD<BGD<BG"
     RETURN
     '************************************************
-������:
+에러음:
     TEMPO 250
     MUSIC "FFF"
     RETURN
     '************************************************
     '************************************************
-MOTOR_ON: '����Ʈ�������ͻ�뼳��
+MOTOR_ON: '전포트서보모터사용설정
 
     GOSUB MOTOR_GET
 
@@ -158,24 +158,24 @@ MOTOR_ON: '����Ʈ�������ͻ�뼳��
     DELAY 50
     MOTOR G6D
 
-    ����ONOFF = 0
-    GOSUB ������			
+    모터ONOFF = 0
+    GOSUB 시작음			
     RETURN
 
     '************************************************
-    '����Ʈ�������ͻ�뼳��
+    '전포트서보모터사용설정
 MOTOR_OFF:
 
     MOTOROFF G6B
     MOTOROFF G6C
     MOTOROFF G6A
     MOTOROFF G6D
-    ����ONOFF = 1	
+    모터ONOFF = 1	
     GOSUB MOTOR_GET	
-    GOSUB ������	
+    GOSUB 종료음	
     RETURN
     '************************************************
-    '��ġ���ǵ��
+    '위치값피드백
 MOTOR_GET:
     GETMOTORSET G6A,1,1,1,1,1,0
     GETMOTORSET G6B,1,1,1,0,0,1
@@ -184,7 +184,7 @@ MOTOR_GET:
     RETURN
 
     '************************************************
-    '��ġ���ǵ��
+    '위치값피드백
 MOTOR_SET:
     GETMOTORSET G6A,1,1,1,1,1,0
     GETMOTORSET G6B,1,1,1,0,0,1
@@ -263,7 +263,7 @@ Arm_motor_mode3:
     RETURN
     '************************************************
 
-�����ʱ��ڼ�:
+전원초기자세:
     MOVE G6A,100,  76, 145,  93, 100, 100
     MOVE G6D,100,  76, 145,  93, 100, 100
     MOVE G6B,100,  35,  90,
@@ -272,7 +272,7 @@ Arm_motor_mode3:
     mode = 0
     RETURN
     '************************************************
-����ȭ�ڼ�:
+안정화자세:
     MOVE G6A,98,  76, 145,  93, 101, 100
     MOVE G6D,98,  76, 145,  93, 101, 100
     MOVE G6B,100,  35,  90,
@@ -285,7 +285,7 @@ Arm_motor_mode3:
 
 
     '************************************************
-�⺻�ڼ�:
+기본자세:
 
 
     MOVE G6A,100,  76, 145,  93, 100, 100
@@ -297,7 +297,7 @@ Arm_motor_mode3:
 
     RETURN
     '******************************************	
-�⺻�ڼ�2:
+기본자세2:
     MOVE G6A,100,  76, 145,  93, 100, 100
     MOVE G6D,100,  76, 145,  93, 100, 100
     MOVE G6B,100,  30,  80,
@@ -307,7 +307,7 @@ Arm_motor_mode3:
     mode = 0
     RETURN
     '******************************************	
-�����ڼ�:
+차렷자세:
     MOVE G6A,100, 56, 182, 76, 100, 100
     MOVE G6D,100, 56, 182, 76, 100, 100
     MOVE G6B,100,  30,  80,
@@ -316,8 +316,8 @@ Arm_motor_mode3:
     mode = 2
     RETURN
     '******************************************
-�����ڼ�:
-    GOSUB ���̷�OFF
+앉은자세:
+    GOSUB 자이로OFF
     MOVE G6A,100, 145,  28, 145, 100, 100
     MOVE G6D,100, 145,  28, 145, 100, 100
     MOVE G6B,100,  30,  80,
@@ -329,8 +329,8 @@ Arm_motor_mode3:
     '******************************************
     '***********************************************
     '***********************************************
-    '**** ���̷ΰ��� ���� ****
-���̷�INIT:
+    '**** 자이로감도 설정 ****
+자이로INIT:
 
     GYRODIR G6A, 0, 0, 1, 0,0
     GYRODIR G6D, 1, 0, 1, 0,0
@@ -340,43 +340,43 @@ Arm_motor_mode3:
 
     RETURN
     '***********************************************
-    '**** ���̷ΰ��� ���� ****
-���̷�MAX:
+    '**** 자이로감도 설정 ****
+자이로MAX:
 
     GYROSENSE G6A,250,180,30,180,0
     GYROSENSE G6D,250,180,30,180,0
 
     RETURN
     '***********************************************
-���̷�MID:
+자이로MID:
 
     GYROSENSE G6A,200,150,30,150,0
     GYROSENSE G6D,200,150,30,150,0
 
     RETURN
     '***********************************************
-���̷�MIN:
+자이로MIN:
 
     GYROSENSE G6A,200,100,30,100,0
     GYROSENSE G6D,200,100,30,100,0
     RETURN
     '***********************************************
-���̷�ON:
+자이로ON:
 
     GYROSET G6A, 4, 3, 3, 3, 0
     GYROSET G6D, 4, 3, 3, 3, 0
 
-    ���̷�ONOFF = 1
+    자이로ONOFF = 1
 
     RETURN
     '***********************************************
-���̷�OFF:
+자이로OFF:
 
     GYROSET G6A, 0, 0, 0, 0, 0
     GYROSET G6D, 0, 0, 0, 0, 0
 
 
-    ���̷�ONOFF = 0
+    자이로ONOFF = 0
     RETURN
 
     '************************************************
@@ -401,16 +401,16 @@ GOSUB_RX_EXIT2:
     '**********************************************
     '**********************************************
 
-��������_����:
-    ����COUNT = 0
-    ����ӵ� = 13
-    �¿�ӵ� = 4
-    �Ѿ���Ȯ�� = 0
+연속전진_골프:
+    보행COUNT = 0
+    보행속도 = 13
+    좌우속도 = 4
+    넘어진확인 = 0
 
     GOSUB Leg_motor_mode3
 
-    IF ������� = 0 THEN
-        ������� = 1
+    IF 보행순서 = 0 THEN
+        보행순서 = 1
 
         SPEED 4
 
@@ -429,9 +429,9 @@ GOSUB_RX_EXIT2:
         WAIT
 
 
-        GOTO ��������_����_1	
+        GOTO 연속전진_골프_1	
     ELSE
-        ������� = 0
+        보행순서 = 0
 
         SPEED 4
 
@@ -450,7 +450,7 @@ GOSUB_RX_EXIT2:
         WAIT
 
 
-        GOTO ��������_����_2	
+        GOTO 연속전진_골프_2	
 
     ENDIF
 
@@ -458,17 +458,17 @@ GOSUB_RX_EXIT2:
     '*******************************
 
 
-��������_����_1:
+연속전진_골프_1:
 
-    ETX 4800,11 '�����ڵ带 ����
-    SPEED ����ӵ�
+    ETX 4800,11 '진행코드를 보냄
+    SPEED 보행속도
 
     MOVE G6A, 86,  56, 145, 115, 110
     MOVE G6D,108,  76, 147,  93,  96
     WAIT
 
 
-    SPEED �¿�ӵ�
+    SPEED 좌우속도
     GOSUB Leg_motor_mode3
 
     MOVE G6A,110,  76, 147, 93,  96
@@ -476,17 +476,17 @@ GOSUB_RX_EXIT2:
     WAIT
 
 
-    SPEED ����ӵ�
+    SPEED 보행속도
 
-    GOSUB �յڱ�������
-    IF �Ѿ���Ȯ�� = 1 THEN
-        �Ѿ���Ȯ�� = 0
+    GOSUB 앞뒤기울기측정
+    IF 넘어진확인 = 1 THEN
+        넘어진확인 = 0
         GOTO MAIN
     ENDIF
 
-    ERX 4800,A, ��������_����_2
+    ERX 4800,A, 연속전진_골프_2
     IF A = 11 THEN
-        GOTO ��������_����_2
+        GOTO 연속전진_골프_2
     ELSE
         ' GOSUB Leg_motor_mode3
 
@@ -505,13 +505,13 @@ GOSUB_RX_EXIT2:
         WAIT	
 
         SPEED 2
-        GOSUB �⺻�ڼ�2
+        GOSUB 기본자세2
 
         GOTO RX_EXIT
     ENDIF
     '**********
 
-��������_����_2:
+연속전진_골프_2:
 
     MOVE G6A,110,  76, 147,  93, 96,100
     MOVE G6D,90, 90, 120, 105, 110,100
@@ -519,31 +519,31 @@ GOSUB_RX_EXIT2:
     MOVE G6C,90
     WAIT
 
-��������_����_3:
-    ETX 4800,11 '�����ڵ带 ����
+연속전진_골프_3:
+    ETX 4800,11 '진행코드를 보냄
 
-    SPEED ����ӵ�
+    SPEED 보행속도
 
     MOVE G6D, 86,  56, 145, 115, 110
     MOVE G6A,108,  76, 147,  93,  96
     WAIT
 
-    SPEED �¿�ӵ�
+    SPEED 좌우속도
     MOVE G6D,110,  76, 147, 93,  96
     MOVE G6A,86, 100, 145,  69, 110
     WAIT
 
-    SPEED ����ӵ�
+    SPEED 보행속도
 
-    GOSUB �յڱ�������
-    IF �Ѿ���Ȯ�� = 1 THEN
-        �Ѿ���Ȯ�� = 0
+    GOSUB 앞뒤기울기측정
+    IF 넘어진확인 = 1 THEN
+        넘어진확인 = 0
         GOTO MAIN
     ENDIF
 
-    ERX 4800,A, ��������_����_4
+    ERX 4800,A, 연속전진_골프_4
     IF A = 11 THEN
-        GOTO ��������_����_4
+        GOTO 연속전진_골프_4
     ELSE
 
         MOVE G6A, 90, 100, 100, 115, 110,100
@@ -560,33 +560,33 @@ GOSUB_RX_EXIT2:
         MOVE G6B, 100
         WAIT	
         SPEED 2
-        GOSUB �⺻�ڼ�2
+        GOSUB 기본자세2
 
         GOTO RX_EXIT
     ENDIF
 
-��������_����_4:
-    '�޹ߵ��10
+연속전진_골프_4:
+    '왼발들기10
     MOVE G6A,90, 90, 120, 105, 110,100
     MOVE G6D,110,  76, 146,  93,  96,100
     MOVE G6B, 90
     MOVE G6C,110
     WAIT
 
-    GOTO ��������_����_1
+    GOTO 연속전진_골프_1
     '*******************************
 
     '************************************************
-��������_����:
-    �Ѿ���Ȯ�� = 0
-    ����ӵ� = 12
-    �¿�ӵ� = 4
+연속후진_골프:
+    넘어진확인 = 0
+    보행속도 = 12
+    좌우속도 = 4
     GOSUB Leg_motor_mode3
 
 
 
-    IF ������� = 0 THEN
-        ������� = 1
+    IF 보행순서 = 0 THEN
+        보행순서 = 1
 
         SPEED 4
         MOVE G6A, 88,  71, 152,  91, 110
@@ -602,9 +602,9 @@ GOSUB_RX_EXIT2:
         MOVE G6C,110
         WAIT
 
-        GOTO ��������_����_1	
+        GOTO 연속후진_골프_1	
     ELSE
-        ������� = 0
+        보행순서 = 0
 
         SPEED 4
         MOVE G6D,  85,  71, 152,  91, 110
@@ -621,28 +621,28 @@ GOSUB_RX_EXIT2:
         WAIT
 
 
-        GOTO ��������_����_2
+        GOTO 연속후진_골프_2
 
     ENDIF
 
     '*************************************
-��������_����_1:
-    ETX 4800,12 '�����ڵ带 ����
-    SPEED ����ӵ�
+연속후진_골프_1:
+    ETX 4800,12 '진행코드를 보냄
+    SPEED 보행속도
 
     MOVE G6D,110,  76, 146, 93,  96
     MOVE G6A,90, 98, 146,  69, 110
     WAIT
 
-    SPEED �¿�ӵ�
+    SPEED 좌우속도
     MOVE G6D, 90,  60, 137, 120, 110
     MOVE G6A,107,  85, 137,  93,  96
     WAIT
 
 
-    GOSUB �յڱ�������
-    IF �Ѿ���Ȯ�� = 1 THEN
-        �Ѿ���Ȯ�� = 0
+    GOSUB 앞뒤기울기측정
+    IF 넘어진확인 = 1 THEN
+        넘어진확인 = 0
         GOTO RX_EXIT
     ENDIF
 
@@ -655,9 +655,9 @@ GOSUB_RX_EXIT2:
     MOVE G6C,90
     WAIT
 
-    ERX 4800,A, ��������_����_2
+    ERX 4800,A, 연속후진_골프_2
     IF A <> A_old THEN
-��������_����_1_EXIT:
+연속후진_골프_1_EXIT:
         HIGHSPEED SETOFF
         SPEED 5
 
@@ -668,28 +668,28 @@ GOSUB_RX_EXIT2:
         WAIT	
 
         SPEED 3
-        GOSUB �⺻�ڼ�2
+        GOSUB 기본자세2
         GOTO RX_EXIT
     ENDIF
     '**********
 
-��������_����_2:
-    ETX 4800,12 '�����ڵ带 ����
-    SPEED ����ӵ�
+연속후진_골프_2:
+    ETX 4800,12 '진행코드를 보냄
+    SPEED 보행속도
     MOVE G6A,112,  76, 146, 93,  96
     MOVE G6D,90, 98, 146,  69, 110
     WAIT
 
 
-    SPEED �¿�ӵ�
+    SPEED 좌우속도
     MOVE G6A, 90,  60, 137, 120, 110
     MOVE G6D,107  85, 137,  93,  96
     WAIT
 
 
-    GOSUB �յڱ�������
-    IF �Ѿ���Ȯ�� = 1 THEN
-        �Ѿ���Ȯ�� = 0
+    GOSUB 앞뒤기울기측정
+    IF 넘어진확인 = 1 THEN
+        넘어진확인 = 0
         GOTO RX_EXIT
     ENDIF
 
@@ -702,9 +702,9 @@ GOSUB_RX_EXIT2:
     WAIT
 
 
-    ERX 4800,A, ��������_����_1
+    ERX 4800,A, 연속후진_골프_1
     IF A <> A_old THEN
-��������_����_2_EXIT:
+연속후진_골프_2_EXIT:
         HIGHSPEED SETOFF
         SPEED 5
 
@@ -715,48 +715,48 @@ GOSUB_RX_EXIT2:
         WAIT	
 
         SPEED 3
-        GOSUB �⺻�ڼ�2
+        GOSUB 기본자세2
         GOTO RX_EXIT
     ENDIF  	
 
-    GOTO ��������_����_1
+    GOTO 연속후진_골프_1
     '**********************************************
 
 
     '******************************************
 
     '******************************************
-������������_����:
+전진종종걸음_골프:
     GOSUB All_motor_mode3
-    ����COUNT = 0
+    보행COUNT = 0
     SPEED 7
     HIGHSPEED SETON
 
 
-    IF ������� = 0 THEN
-        ������� = 1
+    IF 보행순서 = 0 THEN
+        보행순서 = 1
         MOVE G6A,95,  76, 147,  93, 101
         MOVE G6D,101,  76, 147,  93, 98
         MOVE G6B,100
         MOVE G6C,100
         WAIT
 
-        GOTO ������������_����_1
+        GOTO 전진종종걸음_골프_1
     ELSE
-        ������� = 0
+        보행순서 = 0
         MOVE G6D,93,  76, 147,  93, 101
         MOVE G6A,104,  76, 147,  93, 98
         MOVE G6B,100
         MOVE G6C,100
         WAIT
 
-        GOTO ������������_����_4
+        GOTO 전진종종걸음_골프_4
     ENDIF
 
 
     '**********************
 
-������������_����_1:
+전진종종걸음_골프_1:
     MOVE G6A,95,  90, 125, 100, 104
     MOVE G6D,103,  76, 146,  93,  102
     MOVE G6B, 90
@@ -764,25 +764,25 @@ GOSUB_RX_EXIT2:
     WAIT
 
 
-������������_����_2:
+전진종종걸음_골프_2:
 
     MOVE G6A,107,   73, 140, 103,  100
     MOVE G6D, 90,  83, 146,  85, 102
     WAIT
 
-    GOSUB �յڱ�������
-    IF �Ѿ���Ȯ�� = 1 THEN
-        �Ѿ���Ȯ�� = 0
+    GOSUB 앞뒤기울기측정
+    IF 넘어진확인 = 1 THEN
+        넘어진확인 = 0
 
         GOTO RX_EXIT
     ENDIF
 
-    ' ����COUNT = ����COUNT + 1
-    'IF ����COUNT > ����Ƚ�� THEN  GOTO ������������_����_2_stop
+    ' 보행COUNT = 보행COUNT + 1
+    'IF 보행COUNT > 보행횟수 THEN  GOTO 전진종종걸음_골프_2_stop
 
-    ERX 4800,A, ������������_����_4
+    ERX 4800,A, 전진종종걸음_골프_4
     IF A <> A_old THEN
-������������_����_2_stop:
+전진종종걸음_골프_2_stop:
         MOVE G6D,93,  90, 125, 95, 104
         MOVE G6A,107,  76, 145,  91,  102
         MOVE G6C, 100
@@ -790,9 +790,9 @@ GOSUB_RX_EXIT2:
         WAIT
         HIGHSPEED SETOFF
         SPEED 15
-        GOSUB ����ȭ�ڼ�
+        GOSUB 안정화자세
         SPEED 5
-        GOSUB �⺻�ڼ�2
+        GOSUB 기본자세2
 
         'DELAY 400
         GOTO RX_EXIT
@@ -800,7 +800,7 @@ GOSUB_RX_EXIT2:
 
     '*********************************
 
-������������_����_4:
+전진종종걸음_골프_4:
     MOVE G6D,95,  88, 125, 103, 104
     MOVE G6A,107,  76, 146,  93,  102
     MOVE G6C, 85
@@ -808,24 +808,24 @@ GOSUB_RX_EXIT2:
     WAIT
 
 
-������������_����_5:
+전진종종걸음_골프_5:
     MOVE G6D,102,    74, 140, 103,  100
     MOVE G6A, 97,  83, 146,  85, 102
     WAIT
     'DELAY 10
 
-    GOSUB �յڱ�������
-    IF �Ѿ���Ȯ�� = 1 THEN
-        �Ѿ���Ȯ�� = 0
+    GOSUB 앞뒤기울기측정
+    IF 넘어진확인 = 1 THEN
+        넘어진확인 = 0
         GOTO RX_EXIT
     ENDIF
 
-    ' ����COUNT = ����COUNT + 1
-    ' IF ����COUNT > ����Ƚ�� THEN  GOTO ������������_����_5_stop
+    ' 보행COUNT = 보행COUNT + 1
+    ' IF 보행COUNT > 보행횟수 THEN  GOTO 전진종종걸음_골프_5_stop
 
-    ERX 4800,A, ������������_����_1
+    ERX 4800,A, 전진종종걸음_골프_1
     IF A <> A_old THEN
-������������_����_5_stop:
+전진종종걸음_골프_5_stop:
         MOVE G6A,95,  90, 125, 95, 104
         MOVE G6D,104,  76, 145,  91,  102
         MOVE G6B, 100
@@ -833,9 +833,9 @@ GOSUB_RX_EXIT2:
         WAIT
         HIGHSPEED SETOFF
         SPEED 15
-        GOSUB ����ȭ�ڼ�
+        GOSUB 안정화자세
         SPEED 5
-        GOSUB �⺻�ڼ�2
+        GOSUB 기본자세2
 
         'DELAY 400
         GOTO RX_EXIT
@@ -845,42 +845,42 @@ GOSUB_RX_EXIT2:
 
     '*********************************
 
-    GOTO ������������_����_1
+    GOTO 전진종종걸음_골프_1
 
     '******************************************
     '******************************************
 	 
 '    GOSUB All_motor_mode3
-'    �Ѿ���Ȯ�� = 0
-'    ����COUNT = 0
+'    넘어진확인 = 0
+'    보행COUNT = 0
 '    SPEED 7
 '    HIGHSPEED SETON
 '
 '
-'    IF ������� = 0 THEN
-'        ������� = 1
+'    IF 보행순서 = 0 THEN
+'        보행순서 = 1
 '        MOVE G6A,95,  76, 145,  93, 101
 '        MOVE G6D,101,  76, 145,  93, 98
 '        MOVE G6B,100
 '        MOVE G6C,100
 '        WAIT
 '
-'        GOTO ������������_����_1
+'        GOTO 후진종종걸음_골프_1
 '    ELSE
-'        ������� = 0
+'        보행순서 = 0
 '        MOVE G6D,95,  76, 145,  93, 101
 '        MOVE G6A,101,  76, 145,  93, 98
 '        MOVE G6B,100
 '        MOVE G6C,100
 '        WAIT
 '
-'        GOTO ������������_����_4
+'        GOTO 후진종종걸음_골프_4
 '    ENDIF
 '
 '
 '    '**********************
 '
-'������������_����_1:
+'후진종종걸음_골프_1:
 '    MOVE G6D,104,  76, 147,  93,  102
 '    MOVE G6A,95,  95, 120, 95, 104
 '    MOVE G6B,115
@@ -889,22 +889,22 @@ GOSUB_RX_EXIT2:
 '
 '
 '
-'������������_����_3:
+'후진종종걸음_골프_3:
 '    MOVE G6A, 103,  79, 147,  89, 100
 '    MOVE G6D,95,   65, 147, 103,  102
 '    WAIT
 '
-'    GOSUB �յڱ�������
-'    IF �Ѿ���Ȯ�� = 1 THEN
-'        �Ѿ���Ȯ�� = 0
+'    GOSUB 앞뒤기울기측정
+'    IF 넘어진확인 = 1 THEN
+'        넘어진확인 = 0
 '        GOTO RX_EXIT
 '    ENDIF
-'    ' ����COUNT = ����COUNT + 1
-'    ' IF ����COUNT > ����Ƚ�� THEN  GOTO ������������_����_3_stop
+'    ' 보행COUNT = 보행COUNT + 1
+'    ' IF 보행COUNT > 보행횟수 THEN  GOTO 후진종종걸음_골프_3_stop
 '
-'    ERX 4800,A, ������������_����_4
+'    ERX 4800,A, 후진종종걸음_골프_4
 '    IF A <> A_old THEN
-'������������_����_3_stop:
+'후진종종걸음_골프_3_stop:
 '        MOVE G6D,95,  85, 130, 100, 104
 '        MOVE G6A,104,  77, 146,  93,  102
 '        MOVE G6C, 100
@@ -912,17 +912,17 @@ GOSUB_RX_EXIT2:
 '        WAIT
 '
 '        'SPEED 15
-'        GOSUB ����ȭ�ڼ�
+'        GOSUB 안정화자세
 '        HIGHSPEED SETOFF
 '        SPEED 5
-'        GOSUB �⺻�ڼ�2
+'        GOSUB 기본자세2
 '
 '        'DELAY 400
 '        GOTO RX_EXIT
 '    ENDIF
 '    '*********************************
 '
-'������������_����_4:
+'후진종종걸음_골프_4:
 '    MOVE G6A,104,  76, 147,  93,  102
 '    MOVE G6D,95,  95, 120, 95, 104
 '    MOVE G6C,115
@@ -930,22 +930,22 @@ GOSUB_RX_EXIT2:
 '    WAIT
 '
 '
-'������������_����_6:
+'후진종종걸음_골프_6:
 '    MOVE G6D, 103,  79, 147,  89, 100
 '    MOVE G6A,95,   65, 147, 103,  102
 '    WAIT
-'    GOSUB �յڱ�������
-'    IF �Ѿ���Ȯ�� = 1 THEN
-'        �Ѿ���Ȯ�� = 0
+'    GOSUB 앞뒤기울기측정
+'    IF 넘어진확인 = 1 THEN
+'        넘어진확인 = 0
 '        GOTO RX_EXIT
 '    ENDIF
 '
-'    ' ����COUNT = ����COUNT + 1
-'    'IF ����COUNT > ����Ƚ�� THEN  GOTO ������������_����_6_stop
+'    ' 보행COUNT = 보행COUNT + 1
+'    'IF 보행COUNT > 보행횟수 THEN  GOTO 후진종종걸음_골프_6_stop
 '
-'    ERX 4800,A, ������������_����_1
-'    IF A <> A_old THEN  'GOTO ������������_����
-'������������_����_6_stop:
+'    ERX 4800,A, 후진종종걸음_골프_1
+'    IF A <> A_old THEN  'GOTO 후진종종걸음_멈춤
+'후진종종걸음_골프_6_stop:
 '        MOVE G6A,95,  85, 130, 100, 104
 '        MOVE G6D,104,  77, 146,  93,  102
 '        MOVE G6B, 100
@@ -953,16 +953,16 @@ GOSUB_RX_EXIT2:
 '        WAIT
 '
 '        'SPEED 15
-'        GOSUB ����ȭ�ڼ�
+'        GOSUB 안정화자세
 '        HIGHSPEED SETOFF
 '        SPEED 5
-'        GOSUB �⺻�ڼ�2
+'        GOSUB 기본자세2
 '
 '        'DELAY 400
 '        GOTO RX_EXIT
 '    ENDIF
 '
-'    GOTO ������������_����_1
+'    GOTO 후진종종걸음_골프_1
 '
 '
 '
@@ -970,7 +970,7 @@ GOSUB_RX_EXIT2:
 '    '******************************************
 
     '************************************************
-�����ʿ�����20_����: '****
+오른쪽옆으로20_골프: '****
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
 
@@ -990,12 +990,12 @@ GOSUB_RX_EXIT2:
     WAIT
 
     SPEED 3
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
     GOTO RX_EXIT
     '************************************************
 
-���ʿ�����20_����: '****
+왼쪽옆으로20_골프: '****
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
 
@@ -1015,17 +1015,17 @@ GOSUB_RX_EXIT2:
     WAIT
 
     SPEED 3
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
     GOTO RX_EXIT
 
     '**********************************************
     '******************************************
-�����ʿ�����70����_����:
+오른쪽옆으로70연속_골프:
     MOTORMODE G6A,3,3,2,3,2
     MOTORMODE G6D,3,3,2,3,2
 
-�����ʿ�����70����_����_loop:
+오른쪽옆으로70연속_골프_loop:
     DELAY  10
 
     SPEED 10
@@ -1050,15 +1050,15 @@ GOSUB_RX_EXIT2:
 
 
     SPEED 3
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
     GOTO RX_EXIT
     '**********************************************
 
-���ʿ�����70����_����:
+왼쪽옆으로70연속_골프:
     MOTORMODE G6A,3,3,2,3,2
     MOTORMODE G6D,3,3,2,3,2
-���ʿ�����70����_����_loop:
+왼쪽옆으로70연속_골프_loop:
     DELAY  10
 
     SPEED 10
@@ -1083,7 +1083,7 @@ GOSUB_RX_EXIT2:
 
 
     SPEED 3
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
     GOTO RX_EXIT
 
@@ -1091,13 +1091,13 @@ GOSUB_RX_EXIT2:
     '************************************************
     '*********************************************
 
-������3:
+왼쪽턴3:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
-������3_LOOP:
+왼쪽턴3_LOOP:
 
-    IF ������� = 0 THEN
-        ������� = 1
+    IF 보행순서 = 0 THEN
+        보행순서 = 1
         SPEED 15
         MOVE G6D,100,  73, 145,  93, 100, 100
         MOVE G6A,100,  79, 145,  93, 100, 100
@@ -1120,7 +1120,7 @@ GOSUB_RX_EXIT2:
 
 
     ELSE
-        ������� = 0
+        보행순서 = 0
         SPEED 15
         MOVE G6D,100,  73, 145,  93, 100, 100
         MOVE G6A,100,  79, 145,  93, 100, 100
@@ -1147,20 +1147,20 @@ GOSUB_RX_EXIT2:
     ENDIF
 
     SPEED 12
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
 
     GOTO RX_EXIT
 
     '**********************************************
-��������3:
+오른쪽턴3:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
 
-��������3_LOOP:
+오른쪽턴3_LOOP:
 
-    IF ������� = 0 THEN
-        ������� = 1
+    IF 보행순서 = 0 THEN
+        보행순서 = 1
         SPEED 15
         MOVE G6A,100,  73, 145,  93, 100, 100
         MOVE G6D,100,  79, 145,  93, 100, 100
@@ -1184,7 +1184,7 @@ GOSUB_RX_EXIT2:
 
 
     ELSE
-        ������� = 0
+        보행순서 = 0
         SPEED 15
         MOVE G6A,100,  73, 145,  93, 100, 100
         MOVE G6D,100,  79, 145,  93, 100, 100
@@ -1208,13 +1208,13 @@ GOSUB_RX_EXIT2:
 
     ENDIF
     SPEED 12
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
     GOTO RX_EXIT
 
     '******************************************************
     '**********************************************
-������5_����:
+왼쪽턴5_골프:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
     SPEED 5
@@ -1232,10 +1232,10 @@ GOSUB_RX_EXIT2:
     MOVE G6D,101,  76, 146,  93, 98, 100
     WAIT
 
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
     GOTO RX_EXIT
     '**********************************************
-��������5_����:
+오른쪽턴5_골프:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
     SPEED 5
@@ -1252,13 +1252,13 @@ GOSUB_RX_EXIT2:
     MOVE G6D,101,  76, 146,  93, 98, 100
     WAIT
 
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
     GOTO RX_EXIT
     '**********************************************
 
     '**********************************************
-������10_����:
+왼쪽턴10_골프:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
     SPEED 5
@@ -1276,10 +1276,10 @@ GOSUB_RX_EXIT2:
     MOVE G6D,101,  76, 146,  93, 98, 100
     WAIT
 
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
     GOTO RX_EXIT
     '**********************************************
-��������10_����:
+오른쪽턴10_골프:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
     SPEED 5
@@ -1296,12 +1296,12 @@ GOSUB_RX_EXIT2:
     MOVE G6D,101,  76, 146,  93, 98, 100
     WAIT
 
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
     GOTO RX_EXIT
     '**********************************************
     '**********************************************
-������20_����:
+왼쪽턴20_골프:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
     SPEED 8
@@ -1318,11 +1318,11 @@ GOSUB_RX_EXIT2:
     MOVE G6D,101,  76, 146,  93, 98, 100
     WAIT
 
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
     GOTO RX_EXIT
     '**********************************************
-��������20_����:
+오른쪽턴20_골프:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
     SPEED 8
@@ -1341,7 +1341,7 @@ GOSUB_RX_EXIT2:
 
     WAIT
 
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
     GOTO RX_EXIT
     '**********************************************
@@ -1350,7 +1350,7 @@ GOSUB_RX_EXIT2:
 
 
     '**********************************************
-������45_����:
+왼쪽턴45_골프:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
 
@@ -1366,13 +1366,13 @@ GOSUB_RX_EXIT2:
     WAIT
 
     SPEED 8
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
     '
     GOTO RX_EXIT
 
     '**********************************************
-��������45_����:
+오른쪽턴45_골프:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
 
@@ -1388,11 +1388,11 @@ GOSUB_RX_EXIT2:
     WAIT
 
     SPEED 8
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
     GOTO RX_EXIT
     '**********************************************
-������60_����:
+왼쪽턴60_골프:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
 
@@ -1408,12 +1408,12 @@ GOSUB_RX_EXIT2:
     WAIT
 
     SPEED 10
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
     GOTO RX_EXIT
 
     '**********************************************
-��������60_����:
+오른쪽턴60_골프:
     MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
 
@@ -1429,7 +1429,7 @@ GOSUB_RX_EXIT2:
     WAIT
 
     SPEED 10
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
     GOTO RX_EXIT
     '****************************************
@@ -1442,18 +1442,18 @@ GOSUB_RX_EXIT2:
     ''************************************************
     '************************************************
     '************************************************
-�ڷ��Ͼ��:
+뒤로일어나기:
 
     HIGHSPEED SETOFF
     PTP SETON 				
     PTP ALLON		
 
-    GOSUB ���̷�OFF
+    GOSUB 자이로OFF
 
     GOSUB All_motor_Reset
 
     SPEED 15
-    GOSUB �⺻�ڼ�
+    GOSUB 기본자세
 
     MOVE G6A,90, 130, 120,  80, 110, 100
     MOVE G6D,90, 130, 120,  80, 110, 100
@@ -1513,25 +1513,25 @@ GOSUB_RX_EXIT2:
     MOVE G6D,100, 150,  33, 140, 100, 100
     WAIT
     SPEED 10
-    GOSUB �⺻�ڼ�
+    GOSUB 기본자세
 
-    �Ѿ���Ȯ�� = 1
+    넘어진확인 = 1
 
     DELAY 200
-    GOSUB ���̷�ON
+    GOSUB 자이로ON
 
     RETURN
 
 
     '**********************************************
-�������Ͼ��:
+앞으로일어나기:
 
 
     HIGHSPEED SETOFF
     PTP SETON 				
     PTP ALLON
 
-    GOSUB ���̷�OFF
+    GOSUB 자이로OFF
 
     HIGHSPEED SETOFF
 
@@ -1594,12 +1594,12 @@ GOSUB_RX_EXIT2:
 
     SPEED 8
     GOSUB All_motor_mode2
-    GOSUB �⺻�ڼ�
-    �Ѿ���Ȯ�� = 1
+    GOSUB 기본자세
+    넘어진확인 = 1
 
     '******************************
     DELAY 200
-    GOSUB ���̷�ON
+    GOSUB 자이로ON
     RETURN
 
     '******************************************
@@ -1611,166 +1611,166 @@ GOSUB_RX_EXIT2:
     '******************************************	
     '**********************************************
 
-�Ӹ�����30��:
-    SPEED �Ӹ��̵��ӵ�
+머리왼쪽30도:
+    SPEED 머리이동속도
     SERVO 11,70
     GOTO RX_EXIT
 
-�Ӹ�����45��:
-    SPEED �Ӹ��̵��ӵ�
+머리왼쪽45도:
+    SPEED 머리이동속도
     SERVO 11,55
     GOTO RX_EXIT  
 
-�Ӹ�����60��:
-    SPEED �Ӹ��̵��ӵ�
+머리왼쪽60도:
+    SPEED 머리이동속도
     SERVO 11,40
     GOTO RX_EXIT 
 
-�Ӹ�����90��:
-    SPEED �Ӹ��̵��ӵ�
+머리왼쪽90도:
+    SPEED 머리이동속도
     SERVO 11,10
     GOTO RX_EXIT
     
-�Ӹ�����90������0��:
-    SPEED �Ӹ��̵��ӵ�
+머리왼쪽90도하향0도:
+    SPEED 머리이동속도
     SERVO 16,100
     WAIT
     
-    SPEED �Ӹ��̵��ӵ�
+    SPEED 머리이동속도
     SERVO 11,10
     WAIT
     
     GOTO RX_EXIT
     
-�Ӹ�����90������15��:
-	SPEED �Ӹ��̵��ӵ�
+머리왼쪽90도하향15도:
+	SPEED 머리이동속도
     SERVO 16,85
     WAIT
     
-    SPEED �Ӹ��̵��ӵ�
+    SPEED 머리이동속도
     SERVO 11,10
     WAIT
     
     GOTO RX_EXIT    
 
-�Ӹ�����90������30��:
-	SPEED �Ӹ��̵��ӵ�
+머리왼쪽90도하향30도:
+	SPEED 머리이동속도
     SERVO 16,70
     WAIT
     
-    SPEED �Ӹ��̵��ӵ�
+    SPEED 머리이동속도
     SERVO 11,10
     WAIT
     
     GOTO RX_EXIT
 
-�Ӹ�����90������45��:
-    SPEED �Ӹ��̵��ӵ�
+머리왼쪽90도하향45도:
+    SPEED 머리이동속도
     SERVO 16,55
     WAIT
     
-    SPEED �Ӹ��̵��ӵ�
+    SPEED 머리이동속도
     SERVO 11,10
     WAIT
     
     GOTO RX_EXIT     
 
-�Ӹ�����90������60��:
-    SPEED �Ӹ��̵��ӵ�
+머리왼쪽90도하향60도:
+    SPEED 머리이동속도
     SERVO 16,40
     WAIT
     
-    SPEED �Ӹ��̵��ӵ�
+    SPEED 머리이동속도
     SERVO 11,10
     WAIT
     
     GOTO RX_EXIT 
     
-�Ӹ��߾�����0��:
-    SPEED �Ӹ��̵��ӵ�
+머리중앙하향0도:
+    SPEED 머리이동속도
     SERVO 16,100
     WAIT
     
-    SPEED �Ӹ��̵��ӵ�
+    SPEED 머리이동속도
     SERVO 11,100
     WAIT
     
     GOTO RX_EXIT
     
-�Ӹ��߾�����15��:
-	SPEED �Ӹ��̵��ӵ�
+머리중앙하향15도:
+	SPEED 머리이동속도
     SERVO 16,85
     WAIT
     
-    SPEED �Ӹ��̵��ӵ�
+    SPEED 머리이동속도
     SERVO 11,100
     WAIT
     
     GOTO RX_EXIT    
 
-�Ӹ��߾�����30��:
-	SPEED �Ӹ��̵��ӵ�
+머리중앙하향30도:
+	SPEED 머리이동속도
     SERVO 16,70
     WAIT
     
-    SPEED �Ӹ��̵��ӵ�
+    SPEED 머리이동속도
     SERVO 11,100
     WAIT
     
     GOTO RX_EXIT
 
-�Ӹ��߾�����45��:
-    SPEED �Ӹ��̵��ӵ�
+머리중앙하향45도:
+    SPEED 머리이동속도
     SERVO 16,55
     WAIT
     
-    SPEED �Ӹ��̵��ӵ�
+    SPEED 머리이동속도
     SERVO 11,100
     WAIT
     
     GOTO RX_EXIT      
 
-�Ӹ�������30��:
-    SPEED �Ӹ��̵��ӵ�
+머리오른쪽30도:
+    SPEED 머리이동속도
     SERVO 11,130
     GOTO RX_EXIT
 
-�Ӹ�������45��:
-    SPEED �Ӹ��̵��ӵ�
+머리오른쪽45도:
+    SPEED 머리이동속도
     SERVO 11,145
     GOTO RX_EXIT	
 
-�Ӹ�������60��:
-    SPEED �Ӹ��̵��ӵ�
+머리오른쪽60도:
+    SPEED 머리이동속도
     SERVO 11,160
     GOTO RX_EXIT
 
-�Ӹ�������90��:
-    SPEED �Ӹ��̵��ӵ�
+머리오른쪽90도:
+    SPEED 머리이동속도
     SERVO 11,190
     GOTO RX_EXIT
 
-�Ӹ��¿��߾�:
-    SPEED �Ӹ��̵��ӵ�
+머리좌우중앙:
+    SPEED 머리이동속도
     SERVO 11,100
     GOTO RX_EXIT
 
-�Ӹ���������:
-    SPEED �Ӹ��̵��ӵ�
+머리상하정면:
+    SPEED 머리이동속도
     SERVO 16, 100
     SERVO 11,100	
     SPEED 5
-    GOSUB �⺻�ڼ�
+    GOSUB 기본자세
     GOTO RX_EXIT
 
     '******************************************
-��������90��:
+전방하향90도:
     SPEED 3
     SERVO 16, 85
     SERVO 11, 100
     GOTO RX_EXIT
     '******************************************
-��������80��:
+전방하향80도:
 
     SPEED 3
     SERVO 16, 65
@@ -1778,7 +1778,7 @@ GOSUB_RX_EXIT2:
     ETX 4800,35
     GOTO RX_EXIT
     '******************************************
-��������60��:
+전방하향60도:
 
     SPEED 3
     SERVO 16, 40
@@ -1787,7 +1787,7 @@ GOSUB_RX_EXIT2:
     GOTO RX_EXIT
 
     '******************************************
-��ȸ��90����������45��:
+좌회전90도전방하향45도:
 
 	MOTORMODE G6A,3,3,3,3,2
     MOTORMODE G6D,3,3,3,3,2
@@ -1805,53 +1805,53 @@ GOSUB_RX_EXIT2:
     MOVE G6D,101,  76, 146,  93, 98, 100
     WAIT
 
-    GOSUB �⺻�ڼ�2
+    GOSUB 기본자세2
 
 	
 
     
     '******************************************
-�յڱ�������:
+앞뒤기울기측정:
     FOR i = 0 TO COUNT_MAX
-        A = AD(�յڱ���AD��Ʈ)	'���� �յ�
+        A = AD(앞뒤기울기AD포트)	'기울기 앞뒤
         IF A > 250 OR A < 5 THEN RETURN
         IF A > MIN AND A < MAX THEN RETURN
-        DELAY ����Ȯ�νð�
+        DELAY 기울기확인시간
     NEXT i
 
     IF A < MIN THEN
-        GOSUB �����
+        GOSUB 기울기앞
     ELSEIF A > MAX THEN
-        GOSUB �����
+        GOSUB 기울기뒤
     ENDIF
 
     RETURN
     '**************************************************
-�����:
-    A = AD(�յڱ���AD��Ʈ)
-    'IF A < MIN THEN GOSUB �������Ͼ��
+기울기앞:
+    A = AD(앞뒤기울기AD포트)
+    'IF A < MIN THEN GOSUB 앞으로일어나기
     IF A < MIN THEN
         ETX  4800,16
-        GOSUB �ڷ��Ͼ��
+        GOSUB 뒤로일어나기
 
     ENDIF
     RETURN
 
-�����:
-    A = AD(�յڱ���AD��Ʈ)
-    'IF A > MAX THEN GOSUB �ڷ��Ͼ��
+기울기뒤:
+    A = AD(앞뒤기울기AD포트)
+    'IF A > MAX THEN GOSUB 뒤로일어나기
     IF A > MAX THEN
         ETX  4800,15
-        GOSUB �������Ͼ��
+        GOSUB 앞으로일어나기
     ENDIF
     RETURN
     '**************************************************
-�¿��������:
+좌우기울기측정:
     FOR i = 0 TO COUNT_MAX
-        B = AD(�¿����AD��Ʈ)	'���� �¿�
+        B = AD(좌우기울기AD포트)	'기울기 좌우
         IF B > 250 OR B < 5 THEN RETURN
         IF B > MIN AND B < MAX THEN RETURN
-        DELAY ����Ȯ�νð�
+        DELAY 기울기확인시간
     NEXT i
 
     IF B < MIN OR B > MAX THEN
@@ -1859,7 +1859,7 @@ GOSUB_RX_EXIT2:
         MOVE G6B,140,  40,  80
         MOVE G6C,140,  40,  80
         WAIT
-        GOSUB �⺻�ڼ�	
+        GOSUB 기본자세	
     ENDIF
     RETURN
     '******************************************
@@ -1918,7 +1918,7 @@ NUM_TO_ARR:
 
     RETURN
     '************************************************
-Number_Play: '  BUTTON_NO = ���ڴ���
+Number_Play: '  BUTTON_NO = 숫자대입
 
 
     GOSUB NUM_TO_ARR
@@ -1956,11 +1956,11 @@ Number_Play: '  BUTTON_NO = ���ڴ���
     '******************************************
 
     ' ************************************************
-���ܼ��Ÿ�����Ȯ��:
+적외선거리센서확인:
 
-    ���ܼ��Ÿ��� = AD(���ܼ�AD��Ʈ)
+    적외선거리값 = AD(적외선AD포트)
 
-    IF ���ܼ��Ÿ��� > 50 THEN '50 = ���ܼ��Ÿ��� = 25cm
+    IF 적외선거리값 > 50 THEN '50 = 적외선거리값 = 25cm
         MUSIC "C"
         DELAY 200
     ENDIF
@@ -1969,9 +1969,9 @@ Number_Play: '  BUTTON_NO = ���ڴ���
     RETURN
 
     '******************************************
-������_���������:
+변수값_음성값출력:
 
-    J = AD(���ܼ�AD��Ʈ)	'���ܼ��Ÿ��� �б�
+    J = AD(적외선AD포트)	'적외선거리값 읽기
     BUTTON_NO = J
     GOSUB Number_Play
     GOSUB SOUND_PLAY_CHK
@@ -1981,9 +1981,9 @@ Number_Play: '  BUTTON_NO = ���ڴ���
     RETURN
 
     '************************************************
-����_��������_��1:
+골프_왼쪽으로_샷1:
 
-    CONST ����ä���� = 135
+    CONST 골프채높이 = 135
 
     SPEED 8
     MOVE G6A,97,  76, 145,  93, 100, 100
@@ -2001,7 +2001,7 @@ Number_Play: '  BUTTON_NO = ���ڴ���
     MOVE G6C,135,  40,  90, 10
     WAIT
 
-    '**** ���� _��������_�� ���ǵ� *******
+    '**** 골프 _왼쪽으로_샷 스피드 *******
     'HIGHSPEED SETON
     SPEED 8
     MOVE G6C,135,  10,  70, 10
@@ -2018,12 +2018,12 @@ Number_Play: '  BUTTON_NO = ���ڴ���
     MOVE G6C,135,  50,  60, 190
     WAIT
 
-    GOSUB �⺻�ڼ�
+    GOSUB 기본자세
 
     RETURN
     '******************************************
 
-����_��������_��巹��1:
+골프_왼쪽으로_어드레스1:
     GOSUB All_motor_mode3
 
     SPEED 8
@@ -2041,7 +2041,7 @@ Number_Play: '  BUTTON_NO = ���ڴ���
     '******************************************
 
     '************************************************
-����_����������_��1:
+골프_오른쪽으로_샷1:
 
     SPEED 8
     MOVE G6A,97,  76, 145,  93, 100, 100
@@ -2070,7 +2070,7 @@ Number_Play: '  BUTTON_NO = ���ڴ���
     WAIT
 
 
-    '**** ���� _����������_�� ���ǵ� *******
+    '**** 골프 _오른쪽으로_샷 스피드 *******
     'HIGHSPEED SETON
     SPEED 3
 
@@ -2085,13 +2085,13 @@ Number_Play: '  BUTTON_NO = ���ڴ���
     MOVE G6C,135,  50,  60, 190
     WAIT
 
-    GOSUB �⺻�ڼ�
+    GOSUB 기본자세
 
     RETURN
     '******************************************
 
 
-����_����������_��巹��1:
+골프_오른쪽으로_어드레스1:
     GOSUB All_motor_mode3
 
     SPEED 8
@@ -2112,23 +2112,23 @@ Number_Play: '  BUTTON_NO = ���ڴ���
     RETURN
     '******************************************      
     '******************************************	
-MAIN: '�󺧼���
+MAIN: '라벨설정
 
-    ETX 4800, 38 ' ���� ���� Ȯ�� �۽� ��
+    ETX 4800, 38 ' 동작 멈춤 확인 송신 값
 
 MAIN_2:
 
-    GOSUB �յڱ�������
-    GOSUB �¿��������
-    GOSUB ���ܼ��Ÿ�����Ȯ��
+    GOSUB 앞뒤기울기측정
+    GOSUB 좌우기울기측정
+    GOSUB 적외선거리센서확인
 
 
     ERX 4800,A,MAIN_2	
 
     A_old = A
 
-    '**** �Էµ� A���� 0 �̸� MAIN �󺧷� ����
-    '**** 1�̸� KEY1 ��, 2�̸� key2��... ���¹�
+    '**** 입력된 A값이 0 이면 MAIN 라벨로 가고
+    '**** 1이면 KEY1 라벨, 2이면 key2로... 가는문
     ON A GOTO MAIN,KEY1,KEY2,KEY3,KEY4,KEY5,KEY6,KEY7,KEY8,KEY9,KEY10,KEY11,KEY12,KEY13,KEY14,KEY15,KEY16,KEY17,KEY18 ,KEY19,KEY20,KEY21,KEY22,KEY23,KEY24,KEY25,KEY26,KEY27,KEY28,KEY29,KEY30,KEY31,KEY32,KEY33,KEY34,KEY35,KEY36,KEY37,KEY38,KEY39,KEY40,KEY41
 
     IF A > 100 AND A < 110 THEN
@@ -2148,19 +2148,19 @@ MAIN_2:
         WAIT
         DELAY 500
         SPEED 6
-        GOSUB �⺻�ڼ�
+        GOSUB 기본자세
 
     ENDIF
 
 
     GOTO MAIN	
     '*******************************************
-    '		MAIN �󺧷� ����
+    '		MAIN 라벨로 가기
     '*******************************************
 
 KEY1:
     ETX  4800,1
-    GOTO ������5_����
+    GOTO 왼쪽턴5_골프
 
 
     GOTO RX_EXIT
@@ -2169,7 +2169,7 @@ KEY2:
     ETX  4800,2
 
 
-    GOSUB ����_��������_��1
+    GOSUB 골프_왼쪽으로_샷1
 
 
     GOTO RX_EXIT
@@ -2177,21 +2177,21 @@ KEY2:
 KEY3:
     ETX  4800,3
 
-    GOTO ��������5_����
+    GOTO 오른쪽턴5_골프
 
     GOTO RX_EXIT
     '***************
 KEY4:
     ETX  4800,4
 
-    GOTO ������10_����
+    GOTO 왼쪽턴10_골프
 
     GOTO RX_EXIT
     '***************
 KEY5:
     ETX  4800,5
 
-    GOSUB ����_����������_��1
+    GOSUB 골프_오른쪽으로_샷1
 
 
 
@@ -2200,14 +2200,14 @@ KEY5:
 KEY6:
     ETX  4800,6
 
-    GOTO ��������10_����
+    GOTO 오른쪽턴10_골프
 
 
     GOTO RX_EXIT
     '***************
 KEY7:
     ETX  4800,7
-    GOTO ������20_����
+    GOTO 왼쪽턴20_골프
 
     GOTO RX_EXIT
     '***************
@@ -2219,47 +2219,47 @@ KEY8:
     '***************
 KEY9:
     ETX  4800,9
-    GOTO ��������20_����
+    GOTO 오른쪽턴20_골프
 
 
     GOTO RX_EXIT
     '***************
 KEY10: '0
     ETX  4800,10
-    GOTO ������������_����
+    GOTO 전진종종걸음_골프
 
     GOTO RX_EXIT
     '***************
-KEY11: ' ��
+KEY11: ' ▲
     ETX  4800,11
 
-    GOTO ��������_����
+    GOTO 연속전진_골프
 
     GOTO RX_EXIT
     '***************
-KEY12: ' ��
+KEY12: ' ▼
     ETX  4800,12
-    GOTO ��������_����
+    GOTO 연속후진_골프
 
     GOTO RX_EXIT
     '***************
-KEY13: '��
+KEY13: '▶
     ETX  4800,13
-    GOTO �����ʿ�����70����_����
+    GOTO 오른쪽옆으로70연속_골프
 
 
     GOTO RX_EXIT
     '***************
-KEY14: ' ��
+KEY14: ' ◀
     ETX  4800,14
-    GOTO ���ʿ�����70����_����
+    GOTO 왼쪽옆으로70연속_골프
 
 
     GOTO RX_EXIT
     '***************
 KEY15: ' A
     ETX  4800,15
-    GOTO ���ʿ�����20_����
+    GOTO 왼쪽옆으로20_골프
 
 
     GOTO RX_EXIT
@@ -2275,8 +2275,8 @@ KEY16: ' POWER
         WAIT
     ENDIF
     SPEED 4
-    GOSUB �����ڼ�	
-    GOSUB ������
+    GOSUB 앉은자세	
+    GOSUB 종료음
 
     GOSUB MOTOR_GET
     GOSUB MOTOR_OFF
@@ -2285,7 +2285,7 @@ KEY16: ' POWER
     GOSUB GOSUB_RX_EXIT
 KEY16_1:
 
-    IF ����ONOFF = 1  THEN
+    IF 모터ONOFF = 1  THEN
         OUT 52,1
         DELAY 200
         OUT 52,0
@@ -2300,15 +2300,15 @@ KEY16_1:
     GOSUB SOUND_PLAY_CHK
 
 
-    IF  A = 16 THEN 	'�ٽ� �Ŀ���ư�� �����߸� ����
+    IF  A = 16 THEN 	'다시 파워버튼을 눌러야만 복귀
         GOSUB MOTOR_ON
         SPEED 10
         MOVE G6A,100, 140,  37, 145, 100, 100
         MOVE G6D,100, 140,  37, 145, 100, 100
         WAIT
 
-        GOSUB �⺻�ڼ�2
-        GOSUB ���̷�ON
+        GOSUB 기본자세2
+        GOSUB 자이로ON
         GOSUB All_motor_mode3
         GOTO RX_EXIT
     ENDIF
@@ -2322,7 +2322,7 @@ KEY16_1:
     '***************
 KEY17: ' C
     ETX  4800,17
-    GOTO �Ӹ�����90��
+    GOTO 머리왼쪽90도
 
 
     GOTO RX_EXIT
@@ -2331,15 +2331,15 @@ KEY18: ' E
     ETX  4800,18	
 
 
-    GOSUB ���̷�OFF
-    GOSUB ������
+    GOSUB 자이로OFF
+    GOSUB 에러음
 KEY18_wait:
 
     ERX 4800,A,KEY18_wait	
 
     IF  A = 26 THEN
-        GOSUB ������
-        GOSUB ���̷�ON
+        GOSUB 시작음
+        GOSUB 자이로ON
         GOTO RX_EXIT
     ENDIF
 
@@ -2350,26 +2350,26 @@ KEY18_wait:
     '***************
 KEY19: ' P2
     ETX  4800,19
-    GOTO ��������60_����
+    GOTO 오른쪽턴60_골프
 
     GOTO RX_EXIT
     '***************
 KEY20: ' B	
     ETX  4800,20
-    GOTO �����ʿ�����20_����
+    GOTO 오른쪽옆으로20_골프
 
 
     GOTO RX_EXIT
     '***************
-KEY21: ' ��
+KEY21: ' △
     ETX  4800,21
-    GOTO �Ӹ��¿��߾�
+    GOTO 머리좌우중앙
 
     GOTO RX_EXIT
     '***************
 KEY22: ' *	
     ETX  4800,22
-    GOTO ������45_����
+    GOTO 왼쪽턴45_골프
 
     GOTO RX_EXIT
     '***************
@@ -2383,116 +2383,116 @@ KEY23: ' G
     '***************
 KEY24: ' #
     ETX  4800,24
-    GOTO ��������45_����
+    GOTO 오른쪽턴45_골프
 
     GOTO RX_EXIT
     '***************
 KEY25: ' P1
     ETX  4800,25
-    GOTO ������60_����
+    GOTO 왼쪽턴60_골프
 
     GOTO RX_EXIT
     '***************
-KEY26: ' ��
+KEY26: ' ■
     ETX  4800,26
 
     SPEED 5
-    GOSUB �⺻�ڼ�2	
+    GOSUB 기본자세2	
     TEMPO 220
     MUSIC "ff"
-    GOSUB �⺻�ڼ�
+    GOSUB 기본자세
     GOTO RX_EXIT
     '***************
 KEY27: ' D
     ETX  4800,27
-    GOTO �Ӹ�������90��
+    GOTO 머리오른쪽90도
 
 
     GOTO RX_EXIT
     '***************
-KEY28: ' ��
+KEY28: ' ◁
     ETX  4800,28
-    GOTO �Ӹ�����45��
+    GOTO 머리왼쪽45도
 
 
     GOTO RX_EXIT
     '***************
-KEY29: ' ��
+KEY29: ' □
     ETX  4800,29
 
-    GOTO ��������80��
+    GOTO 전방하향80도
 
     GOTO RX_EXIT
     '***************
-KEY30: ' ��
+KEY30: ' ▷
     ETX  4800,30
-    GOTO �Ӹ�������45��
+    GOTO 머리오른쪽45도
 
     GOTO RX_EXIT
     '***************
-KEY31: ' ��
+KEY31: ' ▽
     ETX  4800,31
-    GOTO ��������60��
+    GOTO 전방하향60도
     
     GOTO RX_EXIT
     '***************
 
 KEY32: ' F (test)
     ETX  4800,32
-    GOTO �Ӹ�����90��
+    GOTO 머리왼쪽90도
     GOTO RX_EXIT
     '***************
     
 KEY33: ' X
     ETX  4800,33
-    GOTO ��������90��
+    GOTO 전방하향90도
     GOTO RX_EXIT
     '***************
 
 KEY34: 
 	ETX 4800,101
-	GOTO �Ӹ�����90������0��
+	GOTO 머리왼쪽90도하향0도
 	GOTO RX_EXIT	
 	'***************
 
 KEY35: 
 	ETX 4800,102
-	GOTO �Ӹ�����90������15��
+	GOTO 머리왼쪽90도하향15도
 	GOTO RX_EXIT
 	'***************	
 	
 KEY36: 
 	ETX 4800,103
-	GOTO �Ӹ�����90������30��
+	GOTO 머리왼쪽90도하향30도
 	GOTO RX_EXIT
 	'***************	
 	
 KEY37: 
 	ETX 4800,104
-	GOTO �Ӹ��߾�����45��
+	GOTO 머리중앙하향45도
 	GOTO RX_EXIT
 	'***************
 		
 KEY38: 
 	ETX 4800,105
-	GOTO �Ӹ��߾�����0��
+	GOTO 머리중앙하향0도
 	GOTO RX_EXIT
 	'***************
 	
 KEY39: 
 	ETX 4800,106
-	GOTO �Ӹ��߾�����15��
+	GOTO 머리중앙하향15도
 	GOTO RX_EXIT
 	'***************	
 	
 KEY40: 
 	ETX 4800,107
-	GOTO �Ӹ��߾�����30��
+	GOTO 머리중앙하향30도
 	GOTO RX_EXIT
 	'***************	
 	
 KEY41: 
 	ETX 4800,108
-	GOTO �Ӹ��߾�����45��
+	GOTO 머리중앙하향45도
 	GOTO RX_EXIT
 	'***************						
