@@ -34,14 +34,14 @@ hsv_Upper1 = 0
 #----------- 
 color_num = [   0,  1,  2,  3,  4]
     
-h_max =     [ 179,240, 140,111,110]
-h_min =     [  86,0,  0, 59, 74]
+h_max =     [ 179,240, 140,100,110]
+h_min =     [  86,0,  0, 30, 74]
     
-s_max =     [ 121,70,130,110,255]
-s_min =     [ 100, 0,85, 51,133]
+s_max =     [ 121,70,130,140,255]
+s_min =     [ 100, 0,85, 100,133]
     
-v_max =     [ 255,175,180,156,255]
-v_min =     [ 180, 0,100, 61,104]
+v_max =     [ 255,175,180,100,255]
+v_min =     [ 180, 0,100, 60,104]
     
 min_area =  [  10, 30, 50, 10, 10]
 
@@ -449,11 +449,11 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
                     largest_s_mean = s_mean
                     largest_v_mean = v_mean
 
-    print("x1: {}, x2: {}, y1: {}, y2: {}".format(largest_x1, largest_x2, largest_y1, largest_y2))
+    # print("x1: {}, x2: {}, y1: {}, y2: {}".format(largest_x1, largest_x2, largest_y1, largest_y2))
 
-    print("h_mean: {}".format(largest_h_mean))
-    print("s_mean: {}".format(largest_s_mean))
-    print("v_mean: {}".format(largest_v_mean))
+    # print("h_mean: {}".format(largest_h_mean))
+    # print("s_mean: {}".format(largest_s_mean))
+    # print("v_mean: {}".format(largest_v_mean))
 
     # 홀의 윤곽선 표시, 중심 좌표 계산
     if largest_ellipse is not None:
@@ -461,6 +461,76 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
 
     # 홀의 면적, 중심 좌표 반환
     return hole_detected, largest_area, (largest_cX, largest_cY), closing
+
+def border_before_hole_detecting(frame, mask, cx_hole, cy_hole, w_view_size, h_view_size, area_threshold, safety_thickness):
+
+    border_before_hole_detected = False
+
+    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+
+    start_x, start_y = (w_view_size // 2, h_view_size)
+    end_x, end_y = (cx_hole, cy_hole)
+
+    line_points = get_line_points_with_thickness(start_x, start_y, end_x, end_y, safety_thickness)
+
+    count = 0
+
+    mask_height, mask_width = mask.shape[:2]  # mask의 높이와 너비
+
+    for x, y in line_points:
+        # 유효한 범위 내의 좌표만 처리
+        if 0 <= y < mask_height and 0 <= x < mask_width and end_x != 0 or end_y != 0:
+            count += mask[y, x] / 255
+            if mask[y, x] == 255:
+                # frame에 점을 그림
+                cv2.circle(frame, (x, y), radius=1, color=(0, 0, 200), thickness=-1)
+
+    print(f"count = ", count)
+
+    if count > area_threshold:
+        border_before_hole_detected = True
+    else:
+        border_before_hole_detected = False
+    
+    return border_before_hole_detected
+
+def get_line_points(x1, y1, x2, y2):
+    """Bresenham 알고리즘을 사용하여 두 점 사이의 좌표들을 계산합니다."""
+    points = []
+    dx = abs(x2 - x1)
+    dy = -abs(y2 - y1)
+
+    sx = 1 if x1 < x2 else -1
+    sy = 1 if y1 < y2 else -1
+
+    err = dx + dy
+    x, y = x1, y1
+
+    while True:
+        points.append((x, y))
+        if x == x2 and y == y2:
+            break
+        e2 = 2 * err
+        if e2 >= dy:
+            err += dy
+            x += sx
+        if e2 <= dx:
+            err += dx
+            y += sy
+    return points
+
+def get_line_points_with_thickness(x1, y1, x2, y2, thickness=1):
+    """Bresenham 알고리즘을 사용하여 두 점 사이의 좌표를 계산하고, 선의 굵기를 추가합니다."""
+    points = []
+    line_points = get_line_points(x1, y1, x2, y2)
+
+    for (x, y) in line_points:
+        # 중심 점을 기준으로 주변에 사각형을 그려 선의 굵기를 추가
+        for i in range(-thickness, thickness + 1):
+            for j in range(-thickness, thickness + 1):
+                points.append((x + i, y + j))
+
+    return points
 
 def ball_at_center(cx, cy, limits):
     if cx <= limits[0]:
@@ -616,6 +686,7 @@ if __name__ == '__main__':
     
     ball_detected = False
     hole_detected = False
+    border_before_hole_detected = False
 
 
         # Byoungseo 20240823
@@ -643,7 +714,7 @@ if __name__ == '__main__':
 
 
 
-    status = 0
+    status = 11
     # 0: Finding Ball
     # 1: Walking toward the Ball
     # 2: Ball at center
@@ -712,6 +783,8 @@ if __name__ == '__main__':
         
         X_Size, Y_Size, X_255_point, Y_255_point, cx_ball, cy_ball, ball_detected, Area, Angle = ball_detecting(mask0)
 
+        border_before_hole_detected = border_before_hole_detecting(frame, mask3, cx_hole, cy_hole, W_View_size, H_View_size, 400, 10)
+
         Frame_time = (clock() - old_time) * 1000.
         old_time = clock()
            
@@ -754,7 +827,9 @@ if __name__ == '__main__':
 
                 if status == 6:
                     draw_str2(frame, (3, 30), 'hole_distance: %.1d' % (hole_distance))
-
+                    
+                if status == 11:
+                    cv2.line(frame, (W_View_size // 2, H_View_size), (cx_hole, cy_hole), 5)
 
 
                 if not ball_detected and status <= 1:
@@ -871,7 +946,7 @@ if __name__ == '__main__':
                                 ball_success = True
                                 status = 4
                             elif TX_num == 0 and (hole_success and ball_success):
-                                status = 6
+                                status = 11
                             else:
                                 ball_success = False
                                 hole_success = False
@@ -887,9 +962,19 @@ if __name__ == '__main__':
 
                         if TX_num != 0:
                             status = 0
+
+                    elif status == 11:
+                        if TX_num == 0:    
+                            TX_num = 33    # head up
+                            delay = 5
+                        elif TX_num == 33: 
+                            TX_num = 17    # head left
+                            delay = 5
+                        if border_before_hole_detected:
+                            status = 6
+                        print(border_before_hole_detected)
                     
                     TX_data(serial_port, TX_num)
-                    print(TX_num)
                 else:
                     TX_data(serial_port, 0)
                     delay = delay - 1
@@ -934,7 +1019,7 @@ if __name__ == '__main__':
             cv2.imshow('mini CTS5 - Mask0', mask0)
             cv2.imshow('mini CTS5 - Mask1', mask1)
             cv2.imshow('mini CTS5 - Mask2', mask2)
-            # cv2.imshow('mini CTS5 - Mask3', mask3)
+            cv2.imshow('mini CTS5 - Mask3', mask3)
             # cv2.imshow('mini CTS5 - Mask4', mask4)
 
 
