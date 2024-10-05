@@ -534,7 +534,7 @@ def get_line_points_with_thickness(x1, y1, x2, y2, thickness=1):
 
 def ball_at_center(cx, cy, limits):
     if cx <= limits[0]:
-        TX_num = 14
+        TX_num = 14 # 
     elif cx >= limits[1]:
         TX_num = 13
     elif cy <= limits[2]:
@@ -687,6 +687,8 @@ if __name__ == '__main__':
     ball_detected = False
     hole_detected = False
     border_before_hole_detected = False
+    ball_angle = 1
+    motion_cnt = -1
 
 
         # Byoungseo 20240823
@@ -716,12 +718,13 @@ if __name__ == '__main__':
 
     status = 11
     # 0: Finding Ball
-    # 1: Walking toward the Ball
+    # 1: Walking toward the Ball -> 공 높이에 따라 고개 숙이기
     # 2: Ball at center
     # 3: Finding Hole
     # 4: Hole at hit point
     # 5: Ball at hit point
     # 6: Hitting the Ball
+    # 7: Tracking Ball -> 왼쪽으로 고개 돌린 상태에서 고개 숙이기
 
     TX_num = 0
     previous_TX_num = 0
@@ -938,7 +941,6 @@ if __name__ == '__main__':
                             TX_num = 21     # head up
                             delay = 5
                         else:
-                            # now_color = 0
                             limits = [ball_at_point_left_limit, ball_at_point_right_limit, ball_at_point_top_limit, ball_at_point_bottom_limit]
                             TX_num = ball_at_center(cx_ball, cy_ball, limits)
                             delay = 5
@@ -950,36 +952,89 @@ if __name__ == '__main__':
                             else:
                                 ball_success = False
                                 hole_success = False
-                    
-                    elif status == 6:
-                        if hole_distance > 300:
-                            TX_num = 2     # hit the ball
-                        elif hole_distance > 100:
-                            TX_num = 34
+                
+                    elif status == 6:       # 6: Hitting the Ball
+                        if TX_num == 0:
+                            if hole_distance > 300:
+                                TX_num = 2     # hit the ball
+                            elif hole_distance > 100:
+                                TX_num = 34
+                            else:
+                                TX_num = 35
+                            delay = 30
+                        elif TX_num in [2, 34, 35]:
+                            TX_num = 33     # face forward
+                            delay = 5
                         else:
-                            TX_num = 35
-                        delay = 30
-
-                        if TX_num != 0:
-                            status = 0
-
-                    elif status == 11:
-                        if TX_num == 0:    
-                            TX_num = 33    # head up
+                            TX_num = 0
                             delay = 5
-                        elif TX_num == 33: 
-                            TX_num = 17    # head left
+                            status = 7
+
+                    elif status == 7:       # 7: Tracking Ball                  
+                        if ball_angle in [-0, -15, 30, -45] and motion_cnt >= 0:    # 공의 높이에 높이에 맞추어 정면을 보고 몸을 왼쪽으로 회전함.
+                            motion_dict = {
+                                -0: [7, 25, 40],                                    # {key : value}: {얼굴 각도 : [왼쪽으로 몸 30도 회전 <- 왼쪽으로 몸 60도 회전 <- 홀 높이의 정면 보기]}
+                                -15: [7, 25, 41], 
+                                -30: [7, 25, 42],
+                                -45: [7, 25, 43]
+                            }
+                            TX_num = motion_dict[ball_angle][motion_cnt]            # ball_angle에 따라 3개의 동작을 순서대로 실행
                             delay = 5
-                        if border_before_hole_detected:
-                            status = 6
-                        print(border_before_hole_detected)
-                    
+                            motion_cnt += -1
+                            if motion_cnt == -1:
+                                ball_angle = -80
+                                status = 1                                          # 공의 높이에 맞추어 정면으로 보고 있는 상태에서 status 1 (Walking toward Ball) 진입
+
+                        else:                           
+                            if TX_num == 36:            # 36 : 머리 왼쪽 90도 하향 0도
+                                if hole_detected:
+                                    ball_angle = -0     # 공을 찾음 -> 다음 사이클에서 ball_angle = -0 에 맞추어 3개의 동작 실행
+                                    motion_cnt = 2      
+                                else:
+                                    TX_num = 37         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 0도 -> 하향 15도)
+                                    delay = 5
+                            elif TX_num == 37:          # 37 : 머리 왼쪽 90도 하향 15도
+                                if hole_detected:
+                                    ball_angle = -15    # 공을 찾음 -> 다음 사이클에서 ball_angle = -15 에 맞추어 3개의 동작 실행
+                                    motion_cnt = 2
+                                else:
+                                    TX_num = 38         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 15도 -> 하향 35도)
+                                    delay = 5
+                            elif TX_num == 38:          # 36 : 머리 왼쪽 90도 하향 30도
+                                if hole_detected:
+                                    ball_angle = -30    # 공을 찾음 -> 다음 사이클에서 ball_angle = -30 에 맞추어 3개의 동작 실행
+                                    motion_cnt = 2
+                                else:
+                                    TX_num = 39         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 30도 -> 하향 45도)
+                                    delay = 5
+                            elif TX_num == 39:          # 37 : 머리 왼쪽 90도 하향 45도
+                                if hole_detected:
+                                    ball_angle = -45    # 다음 사이클에서 ball_angle = -45 에 맞추어 3개의 동작 실행
+                                    motion_cnt = 2
+                                else:
+                                    TX_num = 40         # 머리 중앙 하향 0도
+                                    delay = 5
+                                    status = 0          # 고개를 끝까지 내려도 공을 못 찾음 -> 다음 사이클에서 status 0 (Finding Ball 진입)
+                            else:
+                                TX_num = 36
+                                delay = 5
+
+                        elif status == 11:
+                            if TX_num == 0:    
+                                TX_num = 33    # head up
+                                delay = 5
+                            elif TX_num == 33: 
+                                TX_num = 17    # head left
+                                delay = 5
+                            if border_before_hole_detected:
+                                status = 6
+                            print(border_before_hole_detected)
+
+                    print("TX_num: {}".format(TX_num))
                     TX_data(serial_port, TX_num)
                 else:
                     TX_data(serial_port, 0)
                     delay = delay - 1
-
-                      
                       
             #------mouse pixel hsv -------------------------------
             mx2 = mx
@@ -1021,11 +1076,6 @@ if __name__ == '__main__':
             cv2.imshow('mini CTS5 - Mask2', mask2)
             cv2.imshow('mini CTS5 - Mask3', mask3)
             # cv2.imshow('mini CTS5 - Mask4', mask4)
-
-
-
-
-            
 
         key = 0xFF & cv2.waitKey(1)
         
