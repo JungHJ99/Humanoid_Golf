@@ -723,8 +723,8 @@ if __name__ == '__main__':
     ball_at_point_bottom_limit = int(H_View_size / 2 + ball_at_point_range / 2)
 
     hole_center_region_width = 100
-    hole_left_region_limit = int(W_View_size / 2 - hole_center_region_width / 3)
-    hole_right_region_limit = int(W_View_size / 2 + hole_center_region_width / 3)
+    hole_left_region_limit = int(W_View_size / 2 - hole_center_region_width / 3 + 10)
+    hole_right_region_limit = int(W_View_size / 2 + hole_center_region_width / 3 + 10)
 
 
 
@@ -831,8 +831,8 @@ if __name__ == '__main__':
                     cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
 
                 if status == 4:
-                    cv2.line(frame, (hole_left_region_limit + int(cy_hole * 0.7), 0), (hole_left_region_limit + int(cy_hole * 0.7), H_View_size), (0, 0, 255), 3)
-                    cv2.line(frame, (hole_right_region_limit + int(cy_hole * 0.7), 0), (hole_right_region_limit + int(cy_hole * 0.7), H_View_size), (0, 0, 255), 3)
+                    cv2.line(frame, (hole_left_region_limit + int(cy_hole * 0.6), 0), (hole_left_region_limit + int(cy_hole * 0.6), H_View_size), (0, 0, 255), 3)
+                    cv2.line(frame, (hole_right_region_limit + int(cy_hole * 0.6), 0), (hole_right_region_limit + int(cy_hole * 0.6), H_View_size), (0, 0, 255), 3)
                     cv2.line(frame, (0, H_View_size - 100), (W_View_size, H_View_size - 100), (155, 155, 0), 3)
                     cv2.line(frame, (0, H_View_size - 200), (W_View_size, H_View_size - 200), (255, 255, 0), 3)
 
@@ -873,6 +873,8 @@ if __name__ == '__main__':
                         elif cx_ball >= right_region_limit:     # ball is at the right side
                             TX_num = 3                          # turn right
                         else:                                   # ball is at the middle
+                            if TX_num in [1, 3]:
+                                delay = 3                       # delay for swing by rotation           
                             if cy_ball < bottom_region_limit:   # ball is not close enough
                                 TX_num = 11                     # step forward
                             else:                               # ball is close enough
@@ -923,10 +925,10 @@ if __name__ == '__main__':
                                 TX_num = 0
                                 status = 3
                                 delay = 5
-                            elif cx_hole <= hole_left_region_limit + int(cy_hole * 0.7):       # hole is at the left side
+                            elif cx_hole <= hole_left_region_limit + int(cy_hole * 0.6):       # hole is at the left side
                                 TX_num = 1                                # turn right
                                 ball_success = False
-                            elif cx_hole >= hole_right_region_limit + int(cy_hole * 0.7):      # hole is at the right side
+                            elif cx_hole >= hole_right_region_limit + int(cy_hole * 0.6):      # hole is at the right side
                                 TX_num = 3                                # turn left
                                 ball_success = False
                             else:
@@ -960,11 +962,9 @@ if __name__ == '__main__':
                             if hole_distance > 200:
                                 TX_num = 2     # hit the ball
                             elif hole_distance > 100:
-                                # TX_num = 34
-                                TX_num = 2
+                                TX_num = 34
                             else:
-                                TX_num = 2
-                                # TX_num = 35
+                                TX_num = 35
                             delay = 30
                         else:
                             hit_cnt += 1
