@@ -560,6 +560,10 @@ motion_dict = {
     (0, -30): 42,
     (0, -45): 43,
     (0, -80): 31,
+    (-90, 0): 44,
+    (-90, -15): 45,
+    (-90, -30): 46,
+    (-90, -45): 47,
 }                        # (xy_angle, z_angle)
 
 # **************************************************
@@ -723,8 +727,8 @@ if __name__ == '__main__':
     ball_at_point_bottom_limit = int(H_View_size / 2 + ball_at_point_range / 2)
 
     hole_center_region_width = 100
-    hole_left_region_limit = int(W_View_size / 2 - hole_center_region_width / 3 + 10)
-    hole_right_region_limit = int(W_View_size / 2 + hole_center_region_width / 3 + 10)
+    hole_left_region_limit = int(W_View_size / 2 - hole_center_region_width / 3)
+    hole_right_region_limit = int(W_View_size / 2 + hole_center_region_width / 3)
 
 
 
@@ -754,6 +758,8 @@ if __name__ == '__main__':
     only_video = False
 
     hit_cnt = 0
+
+    hit_direction = 0  # 0: left, 1: right
 
     # -------- Main Loop Start --------
     while True:
@@ -817,8 +823,8 @@ if __name__ == '__main__':
                 if msg_one_view > 10:
                     msg_one_view = 0                
                                 
-            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, status: %.1d, ball_detected: %.1d, hole_detected: %.1d, TX_num: %.1d, head_angle_z: %.1d' 
-                      % (X_255_point, Y_255_point, status, ball_detected, hole_detected, TX_num, head_angle[1]))
+            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, status: %.1d, ball_detected: %.1d, hole_detected: %.1d, TX_num: %.1d, hit_direction: %.1d' 
+                      % (X_255_point, Y_255_point, status, ball_detected, hole_detected, TX_num, hit_direction))
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
 
@@ -831,8 +837,10 @@ if __name__ == '__main__':
                     cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
 
                 if status == 4:
-                    cv2.line(frame, (hole_left_region_limit + int(cy_hole * 0.6), 0), (hole_left_region_limit + int(cy_hole * 0.6), H_View_size), (0, 0, 255), 3)
-                    cv2.line(frame, (hole_right_region_limit + int(cy_hole * 0.6), 0), (hole_right_region_limit + int(cy_hole * 0.6), H_View_size), (0, 0, 255), 3)
+                    tuned_left_limit = hole_left_region_limit + int((cy_hole+15 if hit_direction == 0 else -cy_hole-15) * 0.6)
+                    tuned_right_limit = hole_right_region_limit + int((cy_hole+15 if hit_direction == 0 else -cy_hole-15) * 0.6)
+                    cv2.line(frame, (tuned_left_limit, 0), (tuned_left_limit, H_View_size), (0, 0, 255), 3)
+                    cv2.line(frame, (tuned_right_limit, 0), (tuned_right_limit, H_View_size), (0, 0, 255), 3)
                     cv2.line(frame, (0, H_View_size - 100), (W_View_size, H_View_size - 100), (155, 155, 0), 3)
                     cv2.line(frame, (0, H_View_size - 200), (W_View_size, H_View_size - 200), (255, 255, 0), 3)
 
@@ -863,9 +871,17 @@ if __name__ == '__main__':
                                 status = 1
                                 TX_num = 0
                                 delay = 5
+                                if hole_detected and cx_hole > cx_ball and hit_cnt > 0: # ball is on the left of the hole
+                                    hit_direction = 1
+                                else:                                   # ball is on the right of the hole
+                                    hit_direction = 0
                             else:
-                                TX_num = 22      # turn left
-                                delay = 5
+                                if hit_direction == 0:  # left hit
+                                    TX_num = 22      # turn left
+                                    delay = 5
+                                else:   # right hit
+                                    TX_num = 24      # turn right
+                                    delay = 5
                         
                     elif status == 1:        # 1: Walking towards the Ball
                         if cx_ball <= left_region_limit:        # ball is at the left side
@@ -901,23 +917,29 @@ if __name__ == '__main__':
 
                     elif status == 3:       # 3: Finding Hole
                         if TX_num == 0:
-                            head_angle = (90, -0 if hit_cnt == 0 else -30)
+                            head_angle = (90 if hit_direction == 0 else -90, -0 if hit_cnt == 0 else -30)
                             TX_num = motion_dict[head_angle]            # head left up
                             delay = 5
-                        elif TX_num == motion_dict[head_angle] or TX_num == 9:
-                            TX_num = 14    # step left
+                        elif TX_num in [9, 7, motion_dict[head_angle]]:
+                            if hit_direction == 0:
+                                TX_num = 14    # step left
+                            else:
+                                TX_num = 13    # step right
                             delay = 2
-                        elif TX_num == 14: 
-                            TX_num = 9      # turn right
+                        elif TX_num in [14, 13]: 
+                            if hit_direction == 0:
+                                TX_num = 9      # turn right
+                            else:
+                                TX_num = 7      # turn left
                             delay = 2
-                        if hole_detected and TX_num in [9, 14]:
+                        if hole_detected and TX_num in [9, 7, 14, 13]:
                             status = 4
                             TX_num = 0
                             delay = 10
 
                     elif status == 4:      # Hole at hit point
                         if TX_num == 0:    
-                            head_angle = (90, -0 if hit_cnt == 0 else -30)
+                            head_angle = (90 if hit_direction == 0 else -90, -0 if hit_cnt == 0 else -30)
                             TX_num = motion_dict[head_angle]             # head left up
                             delay = 5
                         else:
@@ -925,11 +947,11 @@ if __name__ == '__main__':
                                 TX_num = 0
                                 status = 3
                                 delay = 5
-                            elif cx_hole <= hole_left_region_limit + int(cy_hole * 0.6):       # hole is at the left side
-                                TX_num = 1                                # turn right
+                            elif cx_hole <= tuned_left_limit:       # hole is at the left side
+                                TX_num = 1                          # turn right
                                 ball_success = False
-                            elif cx_hole >= hole_right_region_limit + int(cy_hole * 0.6):      # hole is at the right side
-                                TX_num = 3                                # turn left
+                            elif cx_hole >= tuned_right_limit:      # hole is at the right side
+                                TX_num = 3                          # turn left
                                 ball_success = False
                             else:
                                 hole_success = True
@@ -959,12 +981,15 @@ if __name__ == '__main__':
                 
                     elif status == 6:       # 6: Hitting the Ball
                         if TX_num == 0:
-                            if hole_distance > 200:
-                                TX_num = 2     # hit the ball
-                            elif hole_distance > 100:
-                                TX_num = 34
+                            if hit_direction == 0:
+                                if hole_distance > 200:
+                                    TX_num = 2     # hit the ball
+                                elif hole_distance > 100:
+                                    TX_num = 34
+                                else:
+                                    TX_num = 35
                             else:
-                                TX_num = 35
+                                TX_num = 5
                             delay = 20
                         else:
                             hit_cnt += 1
@@ -973,8 +998,9 @@ if __name__ == '__main__':
                             status = 7
 
                     elif status == 7:       # 7: Tracking Ball
+                        head_angle_x = 90 if hit_direction == 0 else -90
                         if TX_num == 0:
-                            head_angle = (90, -0)
+                            head_angle = (head_angle_x, -0)
                             TX_num = motion_dict[head_angle]
                             delay = 5
                         else:
@@ -984,48 +1010,11 @@ if __name__ == '__main__':
                                 status = 0
                             else:
                                 if head_angle[1] < -45:
-                                    head_angle = (90, -0)
+                                    head_angle = (head_angle_x, -0)         # Todo: Exception
                                 else:
-                                    head_angle = (90, head_angle[1] - 15)
+                                    head_angle = (head_angle_x, head_angle[1] - 15)
                                 TX_num = motion_dict[head_angle]
                                 delay = 5
-
-                        
-                        # if head_angle in [-0, -15, -30, -45]:    # 공의 높이에 높이에 맞추어 정면을 보고 몸을 왼쪽으로 회전함.
-                        #     TX_num = motion_dict[head_angle]            # head_angle에 따라 3개의 동작을 순서대로 실행
-                        #     delay = 5                           
-                        #     status = 0                                         # 공의 높이에 맞추어 정면으로 보고 있는 상태에서 status 1 (Walking toward Ball) 진입
-
-                        # else:              
-                        #     if TX_num == 36:            # 36 : 머리 왼쪽 90도 하향 0도
-                        #         if ball_detected:
-                        #             head_angle = -0     # 공을 찾음 -> 다음 사이클에서 head_angle = -0 에 맞추어 3개의 동작 실행
-                        #         else:
-                        #             TX_num = 37         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 0도 -> 하향 15도)
-                        #             delay = 5
-                        #     elif TX_num == 37:          # 37 : 머리 왼쪽 90도 하향 15도
-                        #         if ball_detected:
-                        #             head_angle = -15    # 공을 찾음 -> 다음 사이클에서 head_angle = -15 에 맞추어 3개의 동작 실행
-                        #         else:
-                        #             TX_num = 38         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 15도 -> 하향 35도)
-                        #             delay = 5
-                        #     elif TX_num == 38:          # 36 : 머리 왼쪽 90도 하향 30도
-                        #         if ball_detected:
-                        #             head_angle = -30    # 공을 찾음 -> 다음 사이클에서 head_angle = -30 에 맞추어 3개의 동작 실행
-                        #         else:
-                        #             TX_num = 39         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 30도 -> 하향 45도)
-                        #             delay = 5
-                        #     elif TX_num == 39:          # 37 : 머리 왼쪽 90도 하향 45도
-                        #         if ball_detected:
-                        #             head_angle = -45    # 다음 사이클에서 head_angle = -45 에 맞추어 3개의 동작 실행
-                        #         else:
-                        #             TX_num = 40         # 머리 중앙 하향 0도
-                        #             delay = 5
-                        #             status = 0          # 고개를 끝까지 내려도 공을 못 찾음 -> 다음 사이클에서 status 0 (Finding Ball 진입)
-                        #     else:
-                        #         TX_num = 36
-                        #         delay = 5
-
 
                     # elif status == 11:
                     #     if TX_num == 0:    
