@@ -1750,6 +1750,61 @@ GOSUB_RX_EXIT2:
     SERVO 11,190
     GOTO RX_EXIT
 
+머리오른쪽90도하향0도:
+    SPEED 머리이동속도
+    SERVO 16,100
+    WAIT
+    
+    SPEED 머리이동속도
+    SERVO 11,190
+    WAIT
+    
+    GOTO RX_EXIT
+    
+머리오른쪽90도하향15도:
+	SPEED 머리이동속도
+    SERVO 16,85
+    WAIT
+    
+    SPEED 머리이동속도
+    SERVO 11,190
+    WAIT
+    
+    GOTO RX_EXIT    
+
+머리오른쪽90도하향30도:
+	SPEED 머리이동속도
+    SERVO 16,70
+    WAIT
+    
+    SPEED 머리이동속도
+    SERVO 11,190
+    WAIT
+    
+    GOTO RX_EXIT
+
+머리오른쪽90도하향45도:
+    SPEED 머리이동속도
+    SERVO 16,55
+    WAIT
+    
+    SPEED 머리이동속도
+    SERVO 11,190
+    WAIT
+    
+    GOTO RX_EXIT     
+
+머리오른쪽90도하향60도:
+    SPEED 머리이동속도
+    SERVO 16,40
+    WAIT
+    
+    SPEED 머리이동속도
+    SERVO 11,190
+    WAIT
+    
+    GOTO RX_EXIT
+
 머리좌우중앙:
     SPEED 머리이동속도
     SERVO 11,100
@@ -2209,7 +2264,7 @@ MAIN_2:
 
     '**** 입력된 A값이 0 이면 MAIN 라벨로 가고
     '**** 1이면 KEY1 라벨, 2이면 key2로... 가는문
-    ON A GOTO MAIN,KEY1,KEY2,KEY3,KEY4,KEY5,KEY6,KEY7,KEY8,KEY9,KEY10,KEY11,KEY12,KEY13,KEY14,KEY15,KEY16,KEY17,KEY18 ,KEY19,KEY20,KEY21,KEY22,KEY23,KEY24,KEY25,KEY26,KEY27,KEY28,KEY29,KEY30,KEY31,KEY32,KEY33,KEY34,KEY35,KEY36,KEY37,KEY38,KEY39,KEY40,KEY41,KEY42,KEY43
+    ON A GOTO MAIN,KEY1,KEY2,KEY3,KEY4,KEY5,KEY6,KEY7,KEY8,KEY9,KEY10,KEY11,KEY12,KEY13,KEY14,KEY15,KEY16,KEY17,KEY18 ,KEY19,KEY20,KEY21,KEY22,KEY23,KEY24,KEY25,KEY26,KEY27,KEY28,KEY29,KEY30,KEY31,KEY32,KEY33,KEY34,KEY35,KEY36,KEY37,KEY38,KEY39,KEY40,KEY41,KEY42,KEY43,KEY44,KEY45,KEY46,KEY47
 
     IF A > 100 AND A < 110 THEN
         BUTTON_NO = A - 100
@@ -2587,3 +2642,27 @@ KEY43:
 	GOTO 머리중앙하향45도
 	GOTO RX_EXIT
 	'***************						
+
+KEY44: 
+	ETX 4800,109
+	GOTO 머리오른쪽90도하향0도
+	GOTO RX_EXIT	
+	'***************
+
+KEY45: 
+	ETX 4800,110
+	GOTO 머리오른쪽90도하향15도
+	GOTO RX_EXIT
+	'***************	
+	
+KEY46: 
+	ETX 4800,111
+	GOTO 머리오른쪽90도하향30도
+	GOTO RX_EXIT
+	'***************
+
+KEY47: 
+	ETX 4800,112
+	GOTO 머리오른쪽90도하향45도
+	GOTO RX_EXIT
+	'***************
