@@ -545,8 +545,8 @@ def ball_at_center(cx, cy, limits):
         TX_num = 0
     return TX_num
 
-def get_hole_distance(cy, head_status):
-    hole_distance = H_View_size - cy
+def get_hole_distance(cy, head_angle_z):
+    hole_distance = int(H_View_size - cy + head_angle_z * 1.5)
     return hole_distance
 
 
@@ -837,8 +837,8 @@ if __name__ == '__main__':
                     cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
 
                 if status == 4:
-                    tuned_left_limit = hole_left_region_limit + int((cy_hole+15 if hit_direction == 0 else -cy_hole-15) * 0.6)
-                    tuned_right_limit = hole_right_region_limit + int((cy_hole+15 if hit_direction == 0 else -cy_hole-15) * 0.6)
+                    tuned_left_limit = hole_left_region_limit + int((H_View_size - get_hole_distance(cy_hole, head_angle[1])) * 0.3)
+                    tuned_right_limit = hole_right_region_limit + int((H_View_size - get_hole_distance(cy_hole, head_angle[1])) * 0.3)
                     cv2.line(frame, (tuned_left_limit, 0), (tuned_left_limit, H_View_size), (0, 0, 255), 3)
                     cv2.line(frame, (tuned_right_limit, 0), (tuned_right_limit, H_View_size), (0, 0, 255), 3)
                     cv2.line(frame, (0, H_View_size - 100), (W_View_size, H_View_size - 100), (155, 155, 0), 3)
@@ -955,7 +955,7 @@ if __name__ == '__main__':
                                 ball_success = False
                             else:
                                 hole_success = True
-                                hole_distance = get_hole_distance(cy_hole, '')
+                                hole_distance = get_hole_distance(cy_hole, head_angle[1])
                                 status = 5
                                 TX_num = 0
                                 delay = 5
