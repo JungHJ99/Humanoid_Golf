@@ -752,7 +752,7 @@ if __name__ == '__main__':
 
     delay = 0
 
-    only_video = True # False
+    only_video = False
 
     hit_cnt = 0
 
