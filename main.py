@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
-# main_241012_pbs_01.py
-# 구현 : 폴대 2cm로 두꺼워도 홀 인식 원활하게
+# main_241029_pbs_01.py
+
+# Done:
+# hole_detecting 함수에서 hole_width (홀의 너비) 반환
+
+# ToDo:
+# hole_width를 사용해 status 4 의 tuned_left_limit, tuned_right_limit 다시 계산
+# XS_target = XR_target (12cm) * WS_hole / WR_hole (16cm)
+# 참고: https://1drv.ms/i/s!AjX5g6JOqqcriLQ_sVmDIzntR6TeRA?e=q2xlQZ
 
 import platform
 import numpy as np
@@ -12,6 +19,7 @@ import sys
 from threading import Thread
 import csv
 import math
+import argparse
 
 from picamera import PiCamera
 from picamera.array import PiRGBArray
@@ -352,7 +360,7 @@ max_aspect_ratio_hole = 10 # 1.5
 def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_aspect_ratio):
 
     # GaussianBlur
-    blurred_image = cv2.GaussianBlur(mask, (5, 5), 0)
+    # blurred_image = cv2.GaussianBlur(mask, (5, 5), 0)
 
     # Morph Close
     kernel = np.ones((20, 20), np.uint8)    # kernel = np.ones((10, 10), np.uint8)
@@ -366,10 +374,14 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
     largest_ellipse = None
     largest_contour = None
     largest_area = 0
+    largest_width = 0
     cX, cY, cR = 0, 0, 0
     x1, x2, y1, y2 = 0, 0, 0, 0
+    x_min = float('inf')
+    x_max = float('-inf')
+
     largest_cX, largest_cY, largest_cR = 0, 0, 0
-    largest_x1, largest_x2, largest_y1, largest_y2, largest_h_mean, largest_s_mean, largest_v_mean = 0, 0, 0, 0, 0, 0, 0
+    largest_x1, largest_x2, largest_y1, largest_y2, largest_x_min, largest_x_max, largest_h_mean, largest_s_mean, largest_v_mean = 0, 0, 0, 0, 0, 0, 0, 0, 0
     
     W_View_size =  800  #320  #640
     #H_View_size = int(W_View_size / 1.777)
@@ -404,6 +416,10 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
                 y2 = cY + cR
                 x1 = cX - cR
                 x2 = cX + cR
+
+                x, y, w, h = cv2.boundingRect(cnt)  # 각 윤곽선의 경계 상자
+                x_min = min(x_min, x)
+                x_max = max(x_max, x + w)
             
                 center_region = hsv[y1:y2, x1:x2]
 
@@ -444,6 +460,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
                     largest_x2 = x2
                     largest_y1 = y1
                     largest_y2 = y2
+                    largest_width = x_max - x_min
                     largest_h_mean = h_mean
                     largest_s_mean = s_mean
                     largest_v_mean = v_mean
@@ -459,7 +476,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
         cv2.drawContours(frame, [largest_contour], -1, (255, 0, 0), 2)
 
     # 홀의 면적, 중심 좌표 반환
-    return hole_detected, largest_area, (largest_cX, largest_cY), closing
+    return hole_detected, largest_area, largest_width, (largest_cX, largest_cY), closing
 
 def border_before_hole_detecting(frame, mask, cx_hole, cy_hole, w_view_size, h_view_size, area_threshold, safety_thickness):
 
@@ -492,6 +509,15 @@ def border_before_hole_detecting(frame, mask, cx_hole, cy_hole, w_view_size, h_v
         border_before_hole_detected = False
     
     return border_before_hole_detected
+
+def corner_detecting(frame, mask):
+    corner_detected = False
+    cX, cY = 0, 0
+
+
+    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+
+    return corner_detected, (cX, cY)
 
 def get_line_points(x1, y1, x2, y2):
     """Bresenham 알고리즘을 사용하여 두 점 사이의 좌표들을 계산합니다."""
@@ -581,8 +607,7 @@ if __name__ == '__main__':
     print (" ---> Python " + python_version)
     opencv_version = cv2.__version__
     print (" ---> OpenCV  " + opencv_version)
-    
-   
+
    
     #-------------------------------------
     #---- user Setting -------------------
@@ -612,6 +637,7 @@ if __name__ == '__main__':
                     help="path to the (optional) video file")
     ap.add_argument("-b", "--buffer", type=int, default=64,
                     help="max buffer size")
+    ap.add_argument('--map', type=str, default='par3', help="Map name")
     args = vars(ap.parse_args())
 
     img = create_blank(320, 100, rgb_color=(0, 0, 255))
@@ -720,12 +746,17 @@ if __name__ == '__main__':
     ball_at_point_range = 60
     ball_at_point_left_limit = int(W_View_size / 2 - ball_at_point_range / 2 + 80)
     ball_at_point_right_limit = int(W_View_size / 2 + ball_at_point_range / 2 + 80)
-    ball_at_point_top_limit = int(H_View_size / 2 - ball_at_point_range / 2)
-    ball_at_point_bottom_limit = int(H_View_size / 2 + ball_at_point_range / 2)
+    ball_at_point_top_limit = int(H_View_size / 2 - ball_at_point_range / 2 - 50)
+    ball_at_point_bottom_limit = int(H_View_size / 2 + ball_at_point_range / 2 - 50)
 
     hole_center_region_width = 100
     hole_left_region_limit = int(W_View_size / 2 - hole_center_region_width / 3)
     hole_right_region_limit = int(W_View_size / 2 + hole_center_region_width / 3)
+
+    corner_center_region_width = 100
+    corner_left_region_limit = int(W_View_size / 2 - corner_center_region_width / 3 + 10)
+    corner_right_region_limit = int(W_View_size / 2 + corner_center_region_width / 3 + 10)
+
 
 
 
@@ -743,7 +774,7 @@ if __name__ == '__main__':
     # 29: middle down
     # 31: extreme down
 
-    hole_success = False
+    goal_point_success = False
     ball_success = False
 
     hole_distance = 0
@@ -752,7 +783,7 @@ if __name__ == '__main__':
 
     delay = 0
 
-    only_video = True # False
+    only_video = False
 
     hit_cnt = 0
 
@@ -795,8 +826,25 @@ if __name__ == '__main__':
         '''
         
         center = None
+        
+        hole_detected, hole_area, hole_width, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
 
-        hole_detected, hole_area, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
+        corner_detected, (cx_corner, cy_corner) = corner_detecting(frame, mask3)
+
+        # 공을 보내야하는 포인트 지정
+        if hit_cnt == 0:
+            if args['map'] == 'par3':
+                goal_point_detected = hole_detected
+                cx_goal_point = cx_hole
+                cy_goal_point = cy_hole
+            elif args['map'] == 'par4':
+                goal_point_detected = corner_detected
+                cx_goal_point = cx_corner
+                cy_goal_point = cy_corner
+        else:
+            goal_point_detected = hole_detected
+            cx_goal_point = cx_hole
+            cy_goal_point = cy_hole
         
         # 241012
         cv2.imshow('Hole Detection with Pole Ignoring', closing)
@@ -853,11 +901,11 @@ if __name__ == '__main__':
                 if status == 11:
                     cv2.line(frame, (W_View_size // 2, H_View_size), (cx_hole, cy_hole), 5)
 
-
+                        
                 if not ball_detected and status <= 1:
                     status = 0
-                    
-                
+
+
                 if delay == 0:
 
                     # Action by Status
@@ -932,7 +980,7 @@ if __name__ == '__main__':
                             else:
                                 TX_num = 7      # turn left
                             delay = 2
-                        if hole_detected and TX_num in [9, 7, 14, 13]:
+                        if goal_point_detected and TX_num in [9, 7, 14, 13]:
                             status = 4
                             TX_num = 0
                             delay = 10
@@ -947,15 +995,15 @@ if __name__ == '__main__':
                                 TX_num = 0
                                 status = 3
                                 delay = 5
-                            elif cx_hole <= tuned_left_limit:       # hole is at the left side
+                            elif cx_goal_point <= tuned_left_limit:       # hole is at the left side
                                 TX_num = 1                          # turn right
                                 ball_success = False
-                            elif cx_hole >= tuned_right_limit:      # hole is at the right side
+                            elif cx_goal_point >= tuned_right_limit:      # hole is at the right side
                                 TX_num = 3                          # turn left
                                 ball_success = False
                             else:
-                                hole_success = True
-                                hole_distance = get_hole_distance(cy_hole, head_angle[1])
+                                goal_point_success = True
+                                hole_distance = get_hole_distance(cy_goal_point, head_angle[1])
                                 status = 5
                                 TX_num = 0
                                 delay = 5
@@ -969,20 +1017,21 @@ if __name__ == '__main__':
                             limits = [ball_at_point_left_limit, ball_at_point_right_limit, ball_at_point_top_limit, ball_at_point_bottom_limit]
                             TX_num = ball_at_center(cx_ball, cy_ball, limits)
                             delay = 5
-                            if TX_num == 0 and (not hole_success or not ball_success):
+                            if TX_num == 0 and (not goal_point_success or not ball_success):
                                 ball_success = True
                                 status = 4
-                            elif TX_num == 0 and (hole_success and ball_success):
+                            elif TX_num == 0 and (goal_point_success and ball_success):
                                 # status = 11
                                 status = 6
                             else:
                                 ball_success = False
-                                hole_success = False
+                                goal_point_success = False
                 
                     elif status == 6:       # 6: Hitting the Ball
                         if TX_num == 0:
                             if hit_direction == 0:
-                                if hole_distance > 200:
+                                print(hole_distance)
+                                if hole_distance > 130:
                                     TX_num = 2     # hit the ball
                                 elif hole_distance > 100:
                                     TX_num = 34
@@ -1015,14 +1064,41 @@ if __name__ == '__main__':
                                     head_angle = (head_angle_x, head_angle[1] - 15)
                                 TX_num = motion_dict[head_angle]
                                 delay = 5
+                        
+                        # if head_angle in [-0, -15, -30, -45]:    # 공의 높이에 높이에 맞추어 정면을 보고 몸을 왼쪽으로 회전함.
+                        #     TX_num = motion_dict[head_angle]            # head_angle에 따라 3개의 동작을 순서대로 실행
+                        #     delay = 5                           
+                        #     status = 0                                         # 공의 높이에 맞추어 정면으로 보고 있는 상태에서 status 1 (Walking toward Ball) 진입
 
-                    # elif status == 11:
-                    #     if TX_num == 0:    
-                    #         TX_num = 36    # head up, left
-                    #         delay = 5
-                    #     if border_before_hole_detected:
-                    #         status = 6
-                    #     print(border_before_hole_detected)
+                        # else:              
+                        #     if TX_num == 36:            # 36 : 머리 왼쪽 90도 하향 0도
+                        #         if ball_detected:
+                        #             head_angle = -0     # 공을 찾음 -> 다음 사이클에서 head_angle = -0 에 맞추어 3개의 동작 실행
+                        #         else:
+                        #             TX_num = 37         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 0도 -> 하향 15도)
+                        #             delay = 5
+                        #     elif TX_num == 37:          # 37 : 머리 왼쪽 90도 하향 15도
+                        #         if ball_detected:
+                        #             head_angle = -15    # 공을 찾음 -> 다음 사이클에서 head_angle = -15 에 맞추어 3개의 동작 실행
+                        #         else:
+                        #             TX_num = 38         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 15도 -> 하향 35도)
+                        #             delay = 5
+                        #     elif TX_num == 38:          # 36 : 머리 왼쪽 90도 하향 30도
+                        #         if ball_detected:
+                        #             head_angle = -30    # 공을 찾음 -> 다음 사이클에서 head_angle = -30 에 맞추어 3개의 동작 실행
+                        #         else:
+                        #             TX_num = 39         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 30도 -> 하향 45도)
+                        #             delay = 5
+                        #     elif TX_num == 39:          # 37 : 머리 왼쪽 90도 하향 45도
+                        #         if ball_detected:
+                        #             head_angle = -45    # 다음 사이클에서 head_angle = -45 에 맞추어 3개의 동작 실행
+                        #         else:
+                        #             TX_num = 40         # 머리 중앙 하향 0도
+                        #             delay = 5
+                        #             status = 0          # 고개를 끝까지 내려도 공을 못 찾음 -> 다음 사이클에서 status 0 (Finding Ball 진입)
+                        #     else:
+                        #         TX_num = 36
+                        #         delay = 5
 
                     print("TX_num: {}".format(TX_num))
                     TX_data(serial_port, TX_num)
