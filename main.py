@@ -532,7 +532,7 @@ def get_hole_distance(cy, head_angle_z):
 
 def get_screen_arm_length(hole_width):
     hole_real_width = 15
-    arm_real_length = 16
+    arm_real_length = 15
     return int(arm_real_length * hole_width / hole_real_width)
 
 motion_dict = {
@@ -835,8 +835,8 @@ if __name__ == '__main__':
                 if msg_one_view > 10:
                     msg_one_view = 0                
                                 
-            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, status: %.1d, ball_detected: %.1d, hole_detected: %.1d, TX_num: %.1d, hit_direction: %.1d' 
-                      % (X_255_point, Y_255_point, status, ball_detected, hole_detected, TX_num, hit_direction))
+            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, status: %.1d, ball_detected: %.1d, hole_detected: %.1d, TX_num: %.1d, hole_d: %.1d' 
+                      % (X_255_point, Y_255_point, status, ball_detected, hole_detected, TX_num, get_hole_distance(cy_hole, head_angle[1])))
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
 
@@ -847,8 +847,8 @@ if __name__ == '__main__':
                 cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
 
             if status == 4:
-                tuned_left_limit = hole_left_region_limit + get_screen_arm_length(hole_width)
-                tuned_right_limit = hole_right_region_limit + get_screen_arm_length(hole_width)
+                tuned_left_limit = hole_left_region_limit + get_screen_arm_length(hole_width) * (1 if hit_direction == 0 else -1)
+                tuned_right_limit = hole_right_region_limit + get_screen_arm_length(hole_width) * (1 if hit_direction == 0 else -1)
                 cv2.line(frame, (tuned_left_limit, 0), (tuned_left_limit, H_View_size), (0, 0, 255), 3)
                 cv2.line(frame, (tuned_right_limit, 0), (tuned_right_limit, H_View_size), (0, 0, 255), 3)
                 cv2.line(frame, (0, H_View_size - 100), (W_View_size, H_View_size - 100), (155, 155, 0), 3)
@@ -909,7 +909,6 @@ if __name__ == '__main__':
                                 if head_angle[1] > -30:
                                     head_angle = (0, head_angle[1] - 15)
                                     TX_num = motion_dict[head_angle]
-                                    delay = 10
                                 else:
                                     status = 2
                                     TX_num = 0
@@ -923,9 +922,10 @@ if __name__ == '__main__':
                         else:
                             limits = [ball_at_center_left_limit, ball_at_center_right_limit, ball_at_center_top_limit, ball_at_center_bottom_limit]
                             TX_num = ball_at_center(cx_ball, cy_ball, limits)
-                            delay = 5
+                            delay = 3
                             if TX_num == 0:
                                 status = 3
+
 
                     elif status == 3:       # 3: Finding Hole
                         if TX_num == 0:
@@ -947,7 +947,7 @@ if __name__ == '__main__':
                         if goal_point_detected and TX_num in [9, 7, 14, 13]:
                             status = 4
                             TX_num = 0
-                            delay = 10
+                            delay = 5
 
                     elif status == 4:      # Hole at hit point
                         if TX_num == 0:    
@@ -958,13 +958,15 @@ if __name__ == '__main__':
                             if not hole_detected:
                                 TX_num = 0
                                 status = 3
-                                delay = 5
+                                delay = 2
                             elif cx_goal_point <= tuned_left_limit:       # hole is at the left side
                                 TX_num = 1                          # turn right
                                 ball_success = False
+                                delay = 1
                             elif cx_goal_point >= tuned_right_limit:      # hole is at the right side
                                 TX_num = 3                          # turn left
                                 ball_success = False
+                                delay = 1
                             else:
                                 goal_point_success = True
                                 hole_distance = get_hole_distance(cy_goal_point, head_angle[1])
@@ -976,11 +978,11 @@ if __name__ == '__main__':
                         if TX_num == 0:
                             head_angle = (0, -80)
                             TX_num = motion_dict[head_angle]
-                            delay = 5
+                            delay = 8
                         else:
                             limits = [ball_at_point_left_limit, ball_at_point_right_limit, ball_at_point_top_limit, ball_at_point_bottom_limit]
                             TX_num = ball_at_center(cx_ball, cy_ball, limits)
-                            delay = 5
+                            delay = 3
                             if TX_num == 0 and (not goal_point_success or not ball_success):
                                 ball_success = True
                                 status = 4
@@ -1002,7 +1004,7 @@ if __name__ == '__main__':
                                     TX_num = 35
                             else:
                                 TX_num = 5
-                            delay = 20
+                            delay = 12
                         else:
                             hit_cnt += 1
                             TX_num = 0
