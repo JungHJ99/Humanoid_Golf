@@ -44,14 +44,14 @@ hsv_Upper1 = 0
 #----------- 
 color_num = [   0,  1,  2,  3,  4]
     
-h_max =     [ 179,240, 140,100,110]
-h_min =     [  86,0,  0, 30, 74]
+h_max =     [ 179,240, 140,200,100]
+h_min =     [  86,0,  0, 86, 12]
     
-s_max =     [ 121,83,130,140,255]
-s_min =     [ 100, 0,85, 100,133]
+s_max =     [ 121,83,130,111,140]
+s_min =     [ 100, 0,85, 70, 103]
     
-v_max =     [ 255,175,180,100,255]
-v_min =     [ 180, 0,100, 60,104]
+v_max =     [ 255,175,180,121,133]
+v_min =     [ 180, 0,100, 70, 67]
     
 min_area =  [  3, 30, 50, 10, 10]
 
@@ -478,84 +478,40 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
     # 홀의 면적, 중심 좌표 반환
     return hole_detected, largest_area, largest_width, (largest_cX, largest_cY), closing
 
-def border_before_hole_detecting(frame, mask, cx_hole, cy_hole, w_view_size, h_view_size, area_threshold, safety_thickness):
-
-    border_before_hole_detected = False
-
-    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
-
-    start_x, start_y = (w_view_size // 2, h_view_size)
-    end_x, end_y = (cx_hole, cy_hole)
-
-    line_points = get_line_points_with_thickness(start_x, start_y, end_x, end_y, safety_thickness)
-
-    count = 0
-
-    mask_height, mask_width = mask.shape[:2]  # mask의 높이와 너비
-
-    for x, y in line_points:
-        # 유효한 범위 내의 좌표만 처리
-        if 0 <= y < mask_height and 0 <= x < mask_width and end_x != 0 or end_y != 0:
-            count += mask[y, x] / 255
-            if mask[y, x] == 255:
-                # frame에 점을 그림
-                cv2.circle(frame, (x, y), radius=1, color=(0, 0, 200), thickness=-1)
-
-    print(f"count = ", count)
-
-    if count > area_threshold:
-        border_before_hole_detected = True
-    else:
-        border_before_hole_detected = False
-    
-    return border_before_hole_detected
-
-def corner_detecting(frame, mask):
+def corner_detecting(frame, maskf, maskb):
     corner_detected = False
-    cX, cY = 0, 0
+    cx, cy = 0, 0
+    max_mean_roif = 0
+    roi_num = 30  # 주변 영역 크기
+    f_thr = 160  # 코너 주변 필드 비율 임계값
+    b_thr = 30  # 코너 주변 테두리 비율 임계값
+    g_from_c = 120 # 목표점 x좌표를 위한 오프셋
+    goal_point_x = 0
 
+    # ORB 설정
+    orb = cv2.ORB_create()
+    keypoints = orb.detect(maskf, None)
 
-    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+    for idx, kp in enumerate(keypoints):
+        x, y = int(kp.pt[0]), int(kp.pt[1])
+        roif = maskf[y - roi_num:y + roi_num + 1, x - roi_num:x + roi_num + 1]
+        roib = maskb[y - roi_num:y + roi_num + 1, x - roi_num:x + roi_num + 1]
+        
+        if np.mean(roif) > f_thr and np.mean(roib) > b_thr:  # 주변 필드, 테두리 비율이 임계값 이상인 경우
+            if np.mean(roif) > max_mean_roif:  # 가장 주변 흰색 비율이 큰 점 선택
+                max_mean_roif = np.mean(roif)
+                cx, cy = x, y
+                corner_detected = True
 
-    return corner_detected, (cX, cY)
+                goal_point_x = cx - g_from_c
+                print(f"{idx}: {np.mean(roif)}")
+                
+    # 코너와 목표 지점 표시
+    cv2.circle(frame, (cx, cy), 5, (0, 255, 0), -1)
+    # cv2.putText(frame, f"({idx})", (cx + 10, cy), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, cv2.LINE_AA)
+    cv2.circle(frame, (goal_point_x, cy), 5, (0, 0, 255), -1)
 
-def get_line_points(x1, y1, x2, y2):
-    """Bresenham 알고리즘을 사용하여 두 점 사이의 좌표들을 계산합니다."""
-    points = []
-    dx = abs(x2 - x1)
-    dy = -abs(y2 - y1)
-
-    sx = 1 if x1 < x2 else -1
-    sy = 1 if y1 < y2 else -1
-
-    err = dx + dy
-    x, y = x1, y1
-
-    while True:
-        points.append((x, y))
-        if x == x2 and y == y2:
-            break
-        e2 = 2 * err
-        if e2 >= dy:
-            err += dy
-            x += sx
-        if e2 <= dx:
-            err += dx
-            y += sy
-    return points
-
-def get_line_points_with_thickness(x1, y1, x2, y2, thickness=1):
-    """Bresenham 알고리즘을 사용하여 두 점 사이의 좌표를 계산하고, 선의 굵기를 추가합니다."""
-    points = []
-    line_points = get_line_points(x1, y1, x2, y2)
-
-    for (x, y) in line_points:
-        # 중심 점을 기준으로 주변에 사각형을 그려 선의 굵기를 추가
-        for i in range(-thickness, thickness + 1):
-            for j in range(-thickness, thickness + 1):
-                points.append((x + i, y + j))
-
-    return points
+    return corner_detected, (cx, cy), goal_point_x
 
 def ball_at_center(cx, cy, limits):
     if cx <= limits[0]:
@@ -761,8 +717,6 @@ if __name__ == '__main__':
     corner_right_region_limit = int(W_View_size / 2 + corner_center_region_width / 3 + 10)
 
 
-
-
     status = 0
     # 0: Finding Ball
     # 1: Walking toward the Ball -> 공 높이에 따라 고개 숙이기
@@ -817,8 +771,16 @@ if __name__ == '__main__':
         mask0 = cv2.inRange(hsv, (h_min[0], s_min[0], v_min[0]), (h_max[0], s_max[0], v_max[0]))
         mask1 = cv2.inRange(hsv, (h_min[1], s_min[1], v_min[1]), (h_max[1], s_max[1], v_max[1]))
         mask2 = cv2.inRange(hsv, (h_min[2], s_min[2], v_min[2]), (h_max[2], s_max[2], v_max[2]))
+
         mask3 = cv2.inRange(hsv, (h_min[3], s_min[3], v_min[3]), (h_max[3], s_max[3], v_max[3]))
+        kernel = np.ones((3, 3), np.uint8)
+        mask3 = cv2.morphologyEx(mask3, cv2.MORPH_OPEN, kernel)
+        mask3 = cv2.morphologyEx(mask3, cv2.MORPH_CLOSE, kernel)
+
         mask4 = cv2.inRange(hsv, (h_min[4], s_min[4], v_min[4]), (h_max[4], s_max[4], v_max[4]))
+        kernel = np.ones((3, 3), np.uint8)
+        mask4 = cv2.morphologyEx(mask4, cv2.MORPH_OPEN, kernel)
+        mask4 = cv2.morphologyEx(mask4, cv2.MORPH_CLOSE, kernel)
         
         #mask = cv2.erode(mask, None, iterations=1)
         #mask = cv2.dilate(mask, None, iterations=1)
@@ -836,18 +798,13 @@ if __name__ == '__main__':
         
         hole_detected, hole_area, hole_width, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
 
-        corner_detected, (cx_corner, cy_corner) = corner_detecting(frame, mask3)
+        corner_detected, (cx_corner, cy_corner), par4_goal_x = corner_detecting(frame, mask3, mask4)
 
         # 공을 보내야하는 포인트 지정
-        if hit_cnt == 0:
-            if args['map'] == 'par3':
-                goal_point_detected = hole_detected
-                cx_goal_point = cx_hole
-                cy_goal_point = cy_hole
-            elif args['map'] == 'par4':
-                goal_point_detected = corner_detected
-                cx_goal_point = cx_corner
-                cy_goal_point = cy_corner
+        if hit_cnt == 0 and args['map'] == 'par4':
+            goal_point_detected = corner_detected
+            cx_goal_point = par4_goal_x
+            cy_goal_point = cy_corner
         else:
             goal_point_detected = hole_detected
             cx_goal_point = cx_hole
@@ -1151,7 +1108,7 @@ if __name__ == '__main__':
             cv2.imshow('mini CTS5 - Mask1', mask1)
             cv2.imshow('mini CTS5 - Mask2', mask2)
             cv2.imshow('mini CTS5 - Mask3', mask3)
-            # cv2.imshow('mini CTS5 - Mask4', mask4)
+            cv2.imshow('mini CTS5 - Mask4', mask4)
 
         key = 0xFF & cv2.waitKey(1)
         
