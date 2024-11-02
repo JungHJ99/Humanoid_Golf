@@ -559,13 +559,13 @@ def get_line_points_with_thickness(x1, y1, x2, y2, thickness=1):
 
 def ball_at_center(cx, cy, limits):
     if cx <= limits[0]:
-        TX_num = 14 # 
+        TX_num = 15 # 
     elif cx >= limits[1]:
-        TX_num = 13
+        TX_num = 20
     elif cy <= limits[2]:
-        TX_num = 11
+        TX_num = 10
     elif cy >= limits[3]:
-        TX_num = 12
+        TX_num = 48
     else:
         TX_num = 0
     return TX_num

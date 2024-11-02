@@ -76,7 +76,7 @@ OUT 52,0	'머리 LED 켜기
 보행순서 = 0
 반전체크 = 0
 기울기확인횟수 = 0
-보행횟수 = 1
+보행횟수 = 0
 모터ONOFF = 0
 
 '****초기위치 피드백*****************************
@@ -777,8 +777,8 @@ GOSUB_RX_EXIT2:
         GOTO RX_EXIT
     ENDIF
 
-    ' 보행COUNT = 보행COUNT + 1
-    'IF 보행COUNT > 보행횟수 THEN  GOTO 전진종종걸음_골프_2_stop
+    보행COUNT = 보행COUNT + 1
+    IF 보행COUNT > 보행횟수 THEN  GOTO 전진종종걸음_골프_2_stop
 
     ERX 4800,A, 전진종종걸음_골프_4
     IF A <> A_old THEN
@@ -820,8 +820,8 @@ GOSUB_RX_EXIT2:
         GOTO RX_EXIT
     ENDIF
 
-    ' 보행COUNT = 보행COUNT + 1
-    ' IF 보행COUNT > 보행횟수 THEN  GOTO 전진종종걸음_골프_5_stop
+    보행COUNT = 보행COUNT + 1
+    IF 보행COUNT > 보행횟수 THEN  GOTO 전진종종걸음_골프_5_stop
 
     ERX 4800,A, 전진종종걸음_골프_1
     IF A <> A_old THEN
@@ -849,125 +849,126 @@ GOSUB_RX_EXIT2:
 
     '******************************************
     '******************************************
-	 
-'    GOSUB All_motor_mode3
-'    넘어진확인 = 0
-'    보행COUNT = 0
-'    SPEED 7
-'    HIGHSPEED SETON
-'
-'
-'    IF 보행순서 = 0 THEN
-'        보행순서 = 1
-'        MOVE G6A,95,  76, 145,  93, 101
-'        MOVE G6D,101,  76, 145,  93, 98
-'        MOVE G6B,100
-'        MOVE G6C,100
-'        WAIT
-'
-'        GOTO 후진종종걸음_골프_1
-'    ELSE
-'        보행순서 = 0
-'        MOVE G6D,95,  76, 145,  93, 101
-'        MOVE G6A,101,  76, 145,  93, 98
-'        MOVE G6B,100
-'        MOVE G6C,100
-'        WAIT
-'
-'        GOTO 후진종종걸음_골프_4
-'    ENDIF
-'
-'
-'    '**********************
-'
-'후진종종걸음_골프_1:
-'    MOVE G6D,104,  76, 147,  93,  102
-'    MOVE G6A,95,  95, 120, 95, 104
-'    MOVE G6B,115
-'    MOVE G6C,85
-'    WAIT
-'
-'
-'
-'후진종종걸음_골프_3:
-'    MOVE G6A, 103,  79, 147,  89, 100
-'    MOVE G6D,95,   65, 147, 103,  102
-'    WAIT
-'
-'    GOSUB 앞뒤기울기측정
-'    IF 넘어진확인 = 1 THEN
-'        넘어진확인 = 0
-'        GOTO RX_EXIT
-'    ENDIF
-'    ' 보행COUNT = 보행COUNT + 1
-'    ' IF 보행COUNT > 보행횟수 THEN  GOTO 후진종종걸음_골프_3_stop
-'
-'    ERX 4800,A, 후진종종걸음_골프_4
-'    IF A <> A_old THEN
-'후진종종걸음_골프_3_stop:
-'        MOVE G6D,95,  85, 130, 100, 104
-'        MOVE G6A,104,  77, 146,  93,  102
-'        MOVE G6C, 100
-'        MOVE G6B,100
-'        WAIT
-'
-'        'SPEED 15
-'        GOSUB 안정화자세
-'        HIGHSPEED SETOFF
-'        SPEED 5
-'        GOSUB 기본자세2
-'
-'        'DELAY 400
-'        GOTO RX_EXIT
-'    ENDIF
-'    '*********************************
-'
-'후진종종걸음_골프_4:
-'    MOVE G6A,104,  76, 147,  93,  102
-'    MOVE G6D,95,  95, 120, 95, 104
-'    MOVE G6C,115
-'    MOVE G6B,85
-'    WAIT
-'
-'
-'후진종종걸음_골프_6:
-'    MOVE G6D, 103,  79, 147,  89, 100
-'    MOVE G6A,95,   65, 147, 103,  102
-'    WAIT
-'    GOSUB 앞뒤기울기측정
-'    IF 넘어진확인 = 1 THEN
-'        넘어진확인 = 0
-'        GOTO RX_EXIT
-'    ENDIF
-'
-'    ' 보행COUNT = 보행COUNT + 1
-'    'IF 보행COUNT > 보행횟수 THEN  GOTO 후진종종걸음_골프_6_stop
-'
-'    ERX 4800,A, 후진종종걸음_골프_1
-'    IF A <> A_old THEN  'GOTO 후진종종걸음_멈춤
-'후진종종걸음_골프_6_stop:
-'        MOVE G6A,95,  85, 130, 100, 104
-'        MOVE G6D,104,  77, 146,  93,  102
-'        MOVE G6B, 100
-'        MOVE G6C,100
-'        WAIT
-'
-'        'SPEED 15
-'        GOSUB 안정화자세
-'        HIGHSPEED SETOFF
-'        SPEED 5
-'        GOSUB 기본자세2
-'
-'        'DELAY 400
-'        GOTO RX_EXIT
-'    ENDIF
-'
-'    GOTO 후진종종걸음_골프_1
-'
-'
-'
-'
-'    '******************************************
+
+후진종종걸음_골프:
+   GOSUB All_motor_mode3
+   넘어진확인 = 0
+   보행COUNT = 0
+   SPEED 7
+   HIGHSPEED SETON
+
+
+   IF 보행순서 = 0 THEN
+       보행순서 = 1
+       MOVE G6A,95,  76, 145,  93, 101
+       MOVE G6D,101,  76, 145,  93, 98
+       MOVE G6B,100
+       MOVE G6C,100
+       WAIT
+
+       GOTO 후진종종걸음_골프_1
+   ELSE
+       보행순서 = 0
+       MOVE G6D,95,  76, 145,  93, 101
+       MOVE G6A,101,  76, 145,  93, 98
+       MOVE G6B,100
+       MOVE G6C,100
+       WAIT
+
+       GOTO 후진종종걸음_골프_4
+   ENDIF
+
+
+   '**********************
+
+후진종종걸음_골프_1:
+   MOVE G6D,104,  76, 147,  93,  102
+   MOVE G6A,95,  95, 120, 95, 104
+   MOVE G6B,115
+   MOVE G6C,85
+   WAIT
+
+
+
+후진종종걸음_골프_3:
+   MOVE G6A, 103,  79, 147,  89, 100
+   MOVE G6D,95,   65, 147, 103,  102
+   WAIT
+
+   GOSUB 앞뒤기울기측정
+   IF 넘어진확인 = 1 THEN
+       넘어진확인 = 0
+       GOTO RX_EXIT
+   ENDIF
+   보행COUNT = 보행COUNT + 1
+   IF 보행COUNT > 보행횟수 THEN  GOTO 후진종종걸음_골프_3_stop
+
+   ERX 4800,A, 후진종종걸음_골프_4
+   IF A <> A_old THEN
+후진종종걸음_골프_3_stop:
+       MOVE G6D,95,  85, 130, 100, 104
+       MOVE G6A,104,  77, 146,  93,  102
+       MOVE G6C, 100
+       MOVE G6B,100
+       WAIT
+
+       'SPEED 15
+       GOSUB 안정화자세
+       HIGHSPEED SETOFF
+       SPEED 5
+       GOSUB 기본자세2
+
+       'DELAY 400
+       GOTO RX_EXIT
+   ENDIF
+   '*********************************
+
+후진종종걸음_골프_4:
+   MOVE G6A,104,  76, 147,  93,  102
+   MOVE G6D,95,  95, 120, 95, 104
+   MOVE G6C,115
+   MOVE G6B,85
+   WAIT
+
+
+후진종종걸음_골프_6:
+   MOVE G6D, 103,  79, 147,  89, 100
+   MOVE G6A,95,   65, 147, 103,  102
+   WAIT
+   GOSUB 앞뒤기울기측정
+   IF 넘어진확인 = 1 THEN
+       넘어진확인 = 0
+       GOTO RX_EXIT
+   ENDIF
+
+   보행COUNT = 보행COUNT + 1
+   IF 보행COUNT > 보행횟수 THEN  GOTO 후진종종걸음_골프_6_stop
+
+   ERX 4800,A, 후진종종걸음_골프_1
+   IF A <> A_old THEN  'GOTO 후진종종걸음_멈춤
+후진종종걸음_골프_6_stop:
+       MOVE G6A,95,  85, 130, 100, 104
+       MOVE G6D,104,  77, 146,  93,  102
+       MOVE G6B, 100
+       MOVE G6C,100
+       WAIT
+
+       'SPEED 15
+       GOSUB 안정화자세
+       HIGHSPEED SETOFF
+       SPEED 5
+       GOSUB 기본자세2
+
+       'DELAY 400
+       GOTO RX_EXIT
+   ENDIF
+
+   GOTO 후진종종걸음_골프_1
+
+
+
+
+   '******************************************
 
     '************************************************
 오른쪽옆으로20_골프: '****
@@ -2264,7 +2265,7 @@ MAIN_2:
 
     '**** 입력된 A값이 0 이면 MAIN 라벨로 가고
     '**** 1이면 KEY1 라벨, 2이면 key2로... 가는문
-    ON A GOTO MAIN,KEY1,KEY2,KEY3,KEY4,KEY5,KEY6,KEY7,KEY8,KEY9,KEY10,KEY11,KEY12,KEY13,KEY14,KEY15,KEY16,KEY17,KEY18 ,KEY19,KEY20,KEY21,KEY22,KEY23,KEY24,KEY25,KEY26,KEY27,KEY28,KEY29,KEY30,KEY31,KEY32,KEY33,KEY34,KEY35,KEY36,KEY37,KEY38,KEY39,KEY40,KEY41,KEY42,KEY43,KEY44,KEY45,KEY46,KEY47
+    ON A GOTO MAIN,KEY1,KEY2,KEY3,KEY4,KEY5,KEY6,KEY7,KEY8,KEY9,KEY10,KEY11,KEY12,KEY13,KEY14,KEY15,KEY16,KEY17,KEY18 ,KEY19,KEY20,KEY21,KEY22,KEY23,KEY24,KEY25,KEY26,KEY27,KEY28,KEY29,KEY30,KEY31,KEY32,KEY33,KEY34,KEY35,KEY36,KEY37,KEY38,KEY39,KEY40,KEY41,KEY42,KEY43,KEY44,KEY45,KEY46,KEY47,KEY48
     
     IF A > 100 AND A < 110 THEN
         BUTTON_NO = A - 100
@@ -2664,5 +2665,12 @@ KEY46:
 KEY47: 
     ETX 4800,112
     GOTO 머리오른쪽90도하향45도
+    GOTO RX_EXIT
+    '***************
+
+KEY48:
+    ETX  4800,10
+    GOTO 후진종종걸음_골프
+
     GOTO RX_EXIT
     '***************
