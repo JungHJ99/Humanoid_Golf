@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
-# main_241012_pbs_01.py
-# 구현 : 폴대 2cm로 두꺼워도 홀 인식 원활하게
+# main_241029_pbs_01.py
+
+# Done:
+# hole_detecting 함수에서 hole_width (홀의 너비) 반환
+
+# ToDo:
+# hole_width를 사용해 status 4 의 tuned_left_limit, tuned_right_limit 다시 계산
+# XS_target = XR_target (12cm) * WS_hole / WR_hole (16cm)
+# 참고: https://1drv.ms/i/s!AjX5g6JOqqcriLQ_sVmDIzntR6TeRA?e=q2xlQZ
 
 import platform
 import numpy as np
@@ -353,7 +360,7 @@ max_aspect_ratio_hole = 10 # 1.5
 def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_aspect_ratio):
 
     # GaussianBlur
-    blurred_image = cv2.GaussianBlur(mask, (5, 5), 0)
+    # blurred_image = cv2.GaussianBlur(mask, (5, 5), 0)
 
     # Morph Close
     kernel = np.ones((20, 20), np.uint8)    # kernel = np.ones((10, 10), np.uint8)
@@ -367,10 +374,14 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
     largest_ellipse = None
     largest_contour = None
     largest_area = 0
+    largest_width = 0
     cX, cY, cR = 0, 0, 0
     x1, x2, y1, y2 = 0, 0, 0, 0
+    x_min = float('inf')
+    x_max = float('-inf')
+
     largest_cX, largest_cY, largest_cR = 0, 0, 0
-    largest_x1, largest_x2, largest_y1, largest_y2, largest_h_mean, largest_s_mean, largest_v_mean = 0, 0, 0, 0, 0, 0, 0
+    largest_x1, largest_x2, largest_y1, largest_y2, largest_x_min, largest_x_max, largest_h_mean, largest_s_mean, largest_v_mean = 0, 0, 0, 0, 0, 0, 0, 0, 0
     
     W_View_size =  800  #320  #640
     #H_View_size = int(W_View_size / 1.777)
@@ -405,6 +416,10 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
                 y2 = cY + cR
                 x1 = cX - cR
                 x2 = cX + cR
+
+                x, y, w, h = cv2.boundingRect(cnt)  # 각 윤곽선의 경계 상자
+                x_min = min(x_min, x)
+                x_max = max(x_max, x + w)
             
                 center_region = hsv[y1:y2, x1:x2]
 
@@ -445,6 +460,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
                     largest_x2 = x2
                     largest_y1 = y1
                     largest_y2 = y2
+                    largest_width = x_max - x_min
                     largest_h_mean = h_mean
                     largest_s_mean = s_mean
                     largest_v_mean = v_mean
@@ -460,7 +476,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
         cv2.drawContours(frame, [largest_contour], -1, (255, 0, 0), 2)
 
     # 홀의 면적, 중심 좌표 반환
-    return hole_detected, largest_area, (largest_cX, largest_cY), closing
+    return hole_detected, largest_area, largest_width, (largest_cX, largest_cY), closing
 
 def border_before_hole_detecting(frame, mask, cx_hole, cy_hole, w_view_size, h_view_size, area_threshold, safety_thickness):
 
@@ -811,7 +827,7 @@ if __name__ == '__main__':
         
         center = None
         
-        hole_detected, hole_area, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
+        hole_detected, hole_area, hole_width, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
 
         corner_detected, (cx_corner, cy_corner) = corner_detecting(frame, mask3)
 
