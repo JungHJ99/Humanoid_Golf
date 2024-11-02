@@ -485,7 +485,7 @@ def corner_detecting(frame, maskf, maskb):
     roi_num = 30  # 주변 영역 크기
     f_thr = 160  # 코너 주변 필드 비율 임계값
     b_thr = 30  # 코너 주변 테두리 비율 임계값
-    g_from_c = 120 # 목표점 x좌표를 위한 오프셋
+    g_from_c = 150 # 목표점 x좌표를 위한 오프셋
     goal_point_x = 0
 
     # ORB 설정
@@ -847,8 +847,14 @@ if __name__ == '__main__':
                 cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
 
             if status == 4:
-                tuned_left_limit = hole_left_region_limit + get_screen_arm_length(hole_width) * (1 if hit_direction == 0 else -1)
-                tuned_right_limit = hole_right_region_limit + get_screen_arm_length(hole_width) * (1 if hit_direction == 0 else -1)
+                if args['map'] == 'par4' and hit_cnt == 0:
+                    gp_left_region_limit = corner_left_region_limit
+                    gp_right_region_limit = corner_right_region_limit
+                else:
+                    gp_left_region_limit = hole_left_region_limit
+                    gp_right_region_limit = hole_right_region_limit
+                tuned_left_limit = gp_left_region_limit + get_screen_arm_length(hole_width) * (1 if hit_direction == 0 else -1)
+                tuned_right_limit = gp_right_region_limit + get_screen_arm_length(hole_width) * (1 if hit_direction == 0 else -1)
                 cv2.line(frame, (tuned_left_limit, 0), (tuned_left_limit, H_View_size), (0, 0, 255), 3)
                 cv2.line(frame, (tuned_right_limit, 0), (tuned_right_limit, H_View_size), (0, 0, 255), 3)
                 cv2.line(frame, (0, H_View_size - 100), (W_View_size, H_View_size - 100), (155, 155, 0), 3)
@@ -955,7 +961,7 @@ if __name__ == '__main__':
                             TX_num = motion_dict[head_angle]             # head left up
                             delay = 5
                         else:
-                            if not hole_detected:
+                            if not goal_point_detected:
                                 TX_num = 0
                                 status = 3
                                 delay = 2
