@@ -47,7 +47,7 @@ color_num = [   0,  1,  2,  3,  4]
 h_max =     [ 179,240, 140,100,110]
 h_min =     [  86,0,  0, 30, 74]
     
-s_max =     [ 121,70,130,140,255]
+s_max =     [ 121,83,130,140,255]
 s_min =     [ 100, 0,85, 100,133]
     
 v_max =     [ 255,175,180,100,255]
@@ -216,7 +216,7 @@ def GetLengthTwoPoints(XY_Point1, XY_Point2):
     return math.sqrt( (XY_Point2[0] - XY_Point1[0])**2 + (XY_Point2[1] - XY_Point1[1])**2 )
 # *************************
 def FYtand(dec_val_v ,dec_val_h):
-    return ( math.atan2(dec_val_v, dec_val_y) * (180.0 / math.pi))
+    return ( math.atan2(dec_val_v, dec_val_h) * (180.0 / math.pi))
 # *************************
 #degree 값을 라디안 값으로 변환하는 함수
 def FYrtd(rad_val ):
@@ -576,7 +576,7 @@ def get_hole_distance(cy, head_angle_z):
 
 def get_screen_arm_length(hole_width):
     hole_real_width = 15
-    arm_real_length = 15
+    arm_real_length = 16
     return int(arm_real_length * hole_width / hole_real_width)
 
 motion_dict = {
@@ -731,7 +731,6 @@ if __name__ == '__main__':
     ball_detected = False
     hole_detected = False
     border_before_hole_detected = False
-    head_angle = (0, -30)
 
         # Byoungseo 20240823
     center_region_width = 200
@@ -747,13 +746,13 @@ if __name__ == '__main__':
     ball_at_center_top_limit = int(H_View_size / 2 - ball_at_center_range / 2)
     ball_at_center_bottom_limit = int(H_View_size / 2 + ball_at_center_range / 2)
 
-    ball_at_point_range = 60
+    ball_at_point_range = 40
     ball_at_point_left_limit = int(W_View_size / 2 - ball_at_point_range / 2 + 80)
     ball_at_point_right_limit = int(W_View_size / 2 + ball_at_point_range / 2 + 80)
-    ball_at_point_top_limit = int(H_View_size / 2 - ball_at_point_range / 2 - 50)
-    ball_at_point_bottom_limit = int(H_View_size / 2 + ball_at_point_range / 2 - 50)
+    ball_at_point_top_limit = int(H_View_size / 2 - ball_at_point_range / 2 - 30)
+    ball_at_point_bottom_limit = int(H_View_size / 2 + ball_at_point_range / 2 - 30)
 
-    hole_center_region_width = 100
+    hole_center_region_width = 50
     hole_left_region_limit = int(W_View_size / 2 - hole_center_region_width / 3)
     hole_right_region_limit = int(W_View_size / 2 + hole_center_region_width / 3)
 
@@ -774,7 +773,6 @@ if __name__ == '__main__':
     # 6: Hitting the Ball
     # 7: Tracking Ball -> 왼쪽으로 고개 돌린 상태에서 고개 숙이기
 
-    TX_num = motion_dict[head_angle]
     # 29: middle down
     # 31: extreme down
 
@@ -783,7 +781,6 @@ if __name__ == '__main__':
 
     hole_distance = 0
 
-    TX_data(serial_port, TX_num)
 
     delay = 0
 
@@ -792,6 +789,12 @@ if __name__ == '__main__':
     hit_cnt = 0
 
     hit_direction = 0  # 0: left, 1: right
+
+    head_angle = (0, -30)
+
+    TX_num = motion_dict[head_angle]
+
+    TX_data(serial_port, TX_num)
 
     # -------- Main Loop Start --------
     while True:
@@ -880,32 +883,32 @@ if __name__ == '__main__':
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
 
+            if status == 1:
+                cv2.line(frame, (0, bottom_region_limit), (W_View_size, bottom_region_limit), (0, 0, 255), 3)
+
+            if status == 2:
+                cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
+
+            if status == 4:
+                tuned_left_limit = hole_left_region_limit + get_screen_arm_length(hole_width)
+                tuned_right_limit = hole_right_region_limit + get_screen_arm_length(hole_width)
+                cv2.line(frame, (tuned_left_limit, 0), (tuned_left_limit, H_View_size), (0, 0, 255), 3)
+                cv2.line(frame, (tuned_right_limit, 0), (tuned_right_limit, H_View_size), (0, 0, 255), 3)
+                cv2.line(frame, (0, H_View_size - 100), (W_View_size, H_View_size - 100), (155, 155, 0), 3)
+                cv2.line(frame, (0, H_View_size - 200), (W_View_size, H_View_size - 200), (255, 255, 0), 3)
+
+            if status == 5:
+                cv2.rectangle(frame, (ball_at_point_left_limit, ball_at_point_top_limit), (ball_at_point_right_limit, ball_at_point_bottom_limit), (255, 255, 255), 2)
+
+            if status == 6:
+                draw_str2(frame, (3, 30), 'hole_distance: %.1d' % (hole_distance))
+                
+            if status == 11:
+                cv2.line(frame, (W_View_size // 2, H_View_size), (cx_hole, cy_hole), 5)
+
+
             if not only_video:  # for hsv select
 
-                if status == 1:
-                    cv2.line(frame, (0, bottom_region_limit), (W_View_size, bottom_region_limit), (0, 0, 255), 3)
-
-                if status == 2:
-                    cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
-
-                if status == 4:
-                    tuned_left_limit = hole_left_region_limit + get_screen_arm_length(hole_width)
-                    tuned_right_limit = hole_right_region_limit + get_screen_arm_length(hole_width)
-                    cv2.line(frame, (tuned_left_limit, 0), (tuned_left_limit, H_View_size), (0, 0, 255), 3)
-                    cv2.line(frame, (tuned_right_limit, 0), (tuned_right_limit, H_View_size), (0, 0, 255), 3)
-                    cv2.line(frame, (0, H_View_size - 100), (W_View_size, H_View_size - 100), (155, 155, 0), 3)
-                    cv2.line(frame, (0, H_View_size - 200), (W_View_size, H_View_size - 200), (255, 255, 0), 3)
-
-                if status == 5:
-                    cv2.rectangle(frame, (ball_at_point_left_limit, ball_at_point_top_limit), (ball_at_point_right_limit, ball_at_point_bottom_limit), (255, 255, 255), 2)
-
-                if status == 6:
-                    draw_str2(frame, (3, 30), 'hole_distance: %.1d' % (hole_distance))
-                    
-                if status == 11:
-                    cv2.line(frame, (W_View_size // 2, H_View_size), (cx_hole, cy_hole), 5)
-
-                        
                 if not ball_detected and status <= 1:
                     status = 0
 
