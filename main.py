@@ -574,6 +574,10 @@ def get_hole_distance(cy, head_angle_z):
     hole_distance = int(H_View_size - cy + head_angle_z * 1.5)
     return hole_distance
 
+def get_screen_arm_length(hole_width):
+    hole_real_width = 15
+    arm_real_length = 15
+    return arm_real_length * hole_width / hole_real_width
 
 motion_dict = {
     (90, -0): 36,
@@ -885,8 +889,8 @@ if __name__ == '__main__':
                     cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_top_limit), (ball_at_center_right_limit, ball_at_center_bottom_limit), (255, 255, 255), 2)
 
                 if status == 4:
-                    tuned_left_limit = hole_left_region_limit + int((H_View_size - get_hole_distance(cy_hole, head_angle[1])) * 0.3)
-                    tuned_right_limit = hole_right_region_limit + int((H_View_size - get_hole_distance(cy_hole, head_angle[1])) * 0.3)
+                    tuned_left_limit = hole_left_region_limit + get_screen_arm_length(hole_width)
+                    tuned_right_limit = hole_right_region_limit + get_screen_arm_length(hole_width)
                     cv2.line(frame, (tuned_left_limit, 0), (tuned_left_limit, H_View_size), (0, 0, 255), 3)
                     cv2.line(frame, (tuned_right_limit, 0), (tuned_right_limit, H_View_size), (0, 0, 255), 3)
                     cv2.line(frame, (0, H_View_size - 100), (W_View_size, H_View_size - 100), (155, 155, 0), 3)
@@ -1030,7 +1034,6 @@ if __name__ == '__main__':
                     elif status == 6:       # 6: Hitting the Ball
                         if TX_num == 0:
                             if hit_direction == 0:
-                                print(hole_distance)
                                 if hole_distance > 130:
                                     TX_num = 2     # hit the ball
                                 elif hole_distance > 100:
