@@ -577,7 +577,7 @@ def get_hole_distance(cy, head_angle_z):
 def get_screen_arm_length(hole_width):
     hole_real_width = 15
     arm_real_length = 15
-    return arm_real_length * hole_width / hole_real_width
+    return int(arm_real_length * hole_width / hole_real_width)
 
 motion_dict = {
     (90, -0): 36,
