@@ -473,7 +473,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
     # 홀의 면적, 중심 좌표 반환
     return hole_detected, largest_area, largest_width, (largest_cX, largest_cY), closing
 
-min_area_near_hole = 0
+min_area_near_hole = 50
 max_area_near_hole = 500000
 
 def near_hole_detecting(frame, mask, hsv, min_area_near_hole, max_area_near_hole):
@@ -894,9 +894,11 @@ if __name__ == '__main__':
                       % (W_View_size, H_View_size, Frame_time))
 
             if status == 1:
+                # 하단 범위 표시
                 cv2.line(frame, (0, bottom_region_limit), (W_View_size, bottom_region_limit), (0, 0, 255), 3)
 
             if status == 2:
+                # 공이 중앙이 되도록 하는 범위 표시
                 cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_upper_limit), (ball_at_center_right_limit, ball_at_center_lower_limit), (255, 255, 255), 2)
 
             if status == 31:
@@ -910,6 +912,8 @@ if __name__ == '__main__':
                 else:
                     gp_left_region_limit = hole_left_region_limit
                     gp_right_region_limit = hole_right_region_limit
+
+                # 홀이 중앙이 되도록 하는 범위 표시
                 tuned_left_limit = gp_left_region_limit + get_screen_arm_length(hole_width) * (1 if hit_direction == 0 else -1)
                 tuned_right_limit = gp_right_region_limit + get_screen_arm_length(hole_width) * (1 if hit_direction == 0 else -1)
                 cv2.line(frame, (tuned_left_limit, 0), (tuned_left_limit, H_View_size), (0, 0, 255), 3)
@@ -918,9 +922,11 @@ if __name__ == '__main__':
                 cv2.line(frame, (0, H_View_size - 200), (W_View_size, H_View_size - 200), (255, 255, 0), 3)
 
             if status == 5:
+                # 공이 타격 포인트가 되도록 하는 범위 표시
                 cv2.rectangle(frame, (ball_at_hit_point_left_limit, ball_at_hit_point_upper_limit), (ball_at_hit_point_right_limit, ball_at_hit_point_lower_limit), (255, 255, 255), 2)
 
             if status == 6:
+                # hole distance 표시
                 draw_str2(frame, (3, 30), 'hole_distance: %.1d' % (hole_distance))
                 
             if status == 11:
@@ -943,7 +949,7 @@ if __name__ == '__main__':
                             delay = 5
                         else:
                             # now_color = 0
-                            if ball_detected:
+                            if ball_detected:  
                                 status = 1
                                 TX_num = 0
                                 delay = 5
@@ -966,14 +972,15 @@ if __name__ == '__main__':
                             TX_num = 3                          # TX3: 오른쪽턴5_골프
                         else:                                   # ball is at the middle
                             # if TX_num in [1, 3]:
-                            #     delay = 3                       # delay for swing by rotation           
+                            #     delay = 3                     # delay for swing by rotation           
                             if cy_ball < bottom_region_limit:   # ball is not close enough
                                 TX_num = 11                     # TX11: 연속전진_골프
                             else:                               # ball is close enough
-                                if head_angle[1] > -30:
+                                if head_angle[1] > -30:         # head angle down
                                     head_angle = (0, head_angle[1] - 15)
                                     TX_num = motion_dict[head_angle]
-                                else:
+                                    delay = 10
+                                else:                           # go to status 2
                                     status = 2
                                     TX_num = 0
                                     delay = 10
@@ -985,7 +992,7 @@ if __name__ == '__main__':
                             delay = 5
                         else:
                             limits = [ball_at_center_left_limit, ball_at_center_right_limit, ball_at_center_upper_limit, ball_at_center_lower_limit]
-                            TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)
+                            TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)    # step
                             delay = 3
                             if TX_num == 0:
                                 status = 3
@@ -993,7 +1000,7 @@ if __name__ == '__main__':
 
                     elif status == 3:       # 3: Finding Hole
                         if TX_num == 0:
-                            if near_hole_detected:
+                            if near_hole_detected:   
                                 status = 31
                                 TX_num = 0
                                 delay = 10
@@ -1067,19 +1074,19 @@ if __name__ == '__main__':
                                 delay = 1
                             else:
                                 goal_point_success = True
-                                hole_distance = get_hole_distance(cy_goal_point, head_angle[1])
+                                hole_distance = get_hole_distance(cy_goal_point, head_angle[1])  # hole 까지의 거리 계산
                                 status = 5
                                 TX_num = 0
                                 delay = 5
                                 
                     elif status == 5:       # 5: Ball at hit point
-                        if TX_num == 0:
+                        if TX_num == 0:     # head down
                             head_angle = (0, -80)
                             TX_num = motion_dict[head_angle]
                             delay = 8
                         else:
                             limits = [ball_at_hit_point_left_limit, ball_at_hit_point_right_limit, ball_at_hit_point_upper_limit, ball_at_hit_point_lower_limit]
-                            TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)
+                            TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)  # step
                             delay = 3
                             if TX_num == 0 and (not goal_point_success or not ball_success):
                                 ball_success = True
@@ -1098,7 +1105,7 @@ if __name__ == '__main__':
                                 elif hole_distance > 100:
                                     TX_num = 34     # TX34: 골프_왼쪽으로_샷2 
                                 else:
-                                    TX_num = 35     # TX35: 골프_왼쪽으로_샷3
+                                    TX_num = 34     # TX35: 골프_왼쪽으로_샷3
                             else:
                                 TX_num = 5          # TX5: 골프_오른쪽으로_샷1
                             delay = 12
