@@ -2060,7 +2060,8 @@ Number_Play: '  BUTTON_NO = 숫자대입
     '**** 골프 _왼쪽으로_샷 스피드 *******
     'HIGHSPEED SETON
     SPEED 8
-    MOVE G6C,132,  10,  30, 10   '*** 세 번째 값을 바꿔서 세기 조절***'
+    'MOVE G6C,132,  10,  30, 10'   '*** 세 번째 값을 바꿔서 세기 조절***'
+    MOVE G6C,132,  10,  50, 10
     WAIT
     DELAY 1000
     ' HIGHSPEED SETOFF

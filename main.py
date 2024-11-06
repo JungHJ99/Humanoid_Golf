@@ -504,39 +504,8 @@ def near_hole_detecting(frame, mask, hsv, min_area_near_hole, max_area_near_hole
     # 가장 큰 컨투어가 있을 경우, 해당 중심 좌표를 반환
     return near_hole_detected, (largest_cX, largest_cY)
 
-def border_before_hole_detecting(frame, mask, cx_hole, cy_hole, w_view_size, h_view_size, area_threshold, safety_thickness):
-
-    border_before_hole_detected = False
-
-    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
-
-    start_x, start_y = (w_view_size // 2, h_view_size)
-    end_x, end_y = (cx_hole, cy_hole)
-
-    line_points = get_line_points_with_thickness(start_x, start_y, end_x, end_y, safety_thickness)
-
-    count = 0
-
-    mask_height, mask_width = mask.shape[:2]  # mask의 높이와 너비
-
-    for x, y in line_points:
-        # 유효한 범위 내의 좌표만 처리
-        if 0 <= y < mask_height and 0 <= x < mask_width and end_x != 0 or end_y != 0:
-            count += mask[y, x] / 255
-            if mask[y, x] == 255:
-                # frame에 점을 그림
-                cv2.circle(frame, (x, y), radius=1, color=(0, 0, 200), thickness=-1)
-
-    print(f"count = ", count)
-
-    if count > area_threshold:
-        border_before_hole_detected = True
-    else:
-        border_before_hole_detected = False
-    
-    return border_before_hole_detected
-
-def corner_detecting(frame, maskf, maskb):
+# 해진: 파4에 코너 감지하는 함수
+def corner_detecting(frame, maskf, maskb):  
     corner_detected = False
     cx, cy = 0, 0
     max_mean_roif = 0
@@ -544,7 +513,7 @@ def corner_detecting(frame, maskf, maskb):
     f_thr = 160  # 코너 주변 필드 비율 임계값
     b_thr = 30  # 코너 주변 테두리 비율 임계값
     g_from_c = 150 # 목표점 x좌표를 위한 오프셋
-    goal_point_x = 0
+    goal_point_x = 0 # 목표점의 x좌표
 
     # ORB 설정
     orb = cv2.ORB_create()
@@ -553,7 +522,7 @@ def corner_detecting(frame, maskf, maskb):
     for idx, kp in enumerate(keypoints):
         x, y = int(kp.pt[0]), int(kp.pt[1])
         roif = maskf[y - roi_num:y + roi_num + 1, x - roi_num:x + roi_num + 1]
-        roib = maskb[y - roi_num:y + roi_num + 1, x - roi_num:x + roi_num + 1]
+        roib = maskb[y - roi_num:y + roi_num + 1, x - roi_num:x + roi_num + 1]  # 테두리
         
         if np.mean(roif) > f_thr and np.mean(roib) > b_thr:  # 주변 필드, 테두리 비율이 임계값 이상인 경우
             if np.mean(roif) > max_mean_roif:  # 가장 주변 흰색 비율이 큰 점 선택
@@ -562,11 +531,9 @@ def corner_detecting(frame, maskf, maskb):
                 corner_detected = True
 
                 goal_point_x = cx - g_from_c
-                print(f"{idx}: {np.mean(roif)}")
                 
     # 코너와 목표 지점 표시
     cv2.circle(frame, (cx, cy), 5, (0, 255, 0), -1)
-    # cv2.putText(frame, f"({idx})", (cx + 10, cy), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, cv2.LINE_AA)
     cv2.circle(frame, (goal_point_x, cy), 5, (0, 0, 255), -1)
 
     return corner_detected, (cx, cy), goal_point_x
@@ -937,7 +904,7 @@ if __name__ == '__main__':
                 cv2.circle(frame, (cx_near_hole, cy_near_hole), radius=5, color=(255, 0, 0), thickness=-1)
 
             if status == 4:
-                if args['map'] == 'par4' and hit_cnt == 0:
+                if args['map'] == 'par4' and hit_cnt == 0:  # 파4 첫타일 때, 코너를 골 포인트로 인식
                     gp_left_region_limit = corner_left_region_limit
                     gp_right_region_limit = corner_right_region_limit
                 else:
