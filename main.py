@@ -47,7 +47,7 @@ color_num = [   0,  1,  2,  3,  4]
 h_max =     [ 179,240, 140,200,100]
 h_min =     [  86,0,  0, 86, 12]
     
-s_max =     [ 121,83,130,111,140]
+s_max =     [ 121,76,130,111,140]
 s_min =     [ 100, 0,85, 70, 103]
     
 v_max =     [ 255,175,180,121,133]
@@ -575,9 +575,8 @@ def near_hole_at_hit_point(cx, cy, limits):
             TX_num = 0
     return TX_num, hit_direction
 
-def get_hole_distance(cy, head_angle_z):
-    hole_distance = int(H_View_size - cy + head_angle_z * 1.5)
-    return hole_distance
+def get_hole_distance(hole_width):
+    return 264 - hole_width
 
 def get_screen_arm_length(hole_width):
     hole_real_width = 15
@@ -746,7 +745,7 @@ if __name__ == '__main__':
     left_region_limit = int(W_View_size / 2 - center_region_width / 2)
     right_region_limit = int(W_View_size / 2 + center_region_width / 2)
 
-    bottom_region_width = 160
+    bottom_region_width = 100
     bottom_region_limit = H_View_size - bottom_region_width
 
     ball_at_center_range = 80
@@ -798,7 +797,7 @@ if __name__ == '__main__':
 
     delay = 0
 
-    only_video = False
+    only_video = True
 
     hit_cnt = 0
 
@@ -897,7 +896,7 @@ if __name__ == '__main__':
                     msg_one_view = 0                
                                 
             draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, status: %.1d, ball_detected: %.1d, hole_detected: %.1d, TX_num: %.1d, hole_d: %.1d' 
-                      % (X_255_point, Y_255_point, status, ball_detected, hole_detected, TX_num, get_hole_distance(cy_hole, head_angle[1])))
+                      % (X_255_point, Y_255_point, status, ball_detected, hole_detected, TX_num, get_hole_distance(hole_width)))
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
 
@@ -961,7 +960,9 @@ if __name__ == '__main__':
                                 status = 1
                                 TX_num = 0
                                 delay = 5
-                                if hole_detected and cx_hole > cx_ball and hit_cnt > 0: # ball is on the left of the hole
+                                if argparse['map'] == 'par4' and hit_cnt == 1:
+                                    hit_direction = 1
+                                elif hole_detected and cx_hole > cx_ball and hit_cnt > 0: # ball is on the left of the hole
                                     hit_direction = 1
                                 else:                                   # ball is on the right of the hole
                                     hit_direction = 0
@@ -1013,7 +1014,7 @@ if __name__ == '__main__':
                                 TX_num = 0
                                 delay = 10
                             else:
-                                head_angle = (90 if hit_direction == 0 else -90, -0 if hit_cnt == 0 else -30)
+                                head_angle = (90 if hit_direction == 0 else -90, -0 if hit_cnt == 0 or (argparse['map'] == 'par4' and hit_cnt <= 1) else -30)
                                 TX_num = motion_dict[head_angle]            # head left up
                                 delay = 5
                         elif TX_num in [9, 7, motion_dict[head_angle]]:
@@ -1095,7 +1096,7 @@ if __name__ == '__main__':
                                 delay = 1
                             else:
                                 goal_point_success = True
-                                hole_distance = get_hole_distance(cy_goal_point, head_angle[1])  # hole 까지의 거리 계산
+                                hole_distance = get_hole_distance(hole_width)  # hole 까지의 거리 계산
                                 status = 5
                                 TX_num = 0
                                 delay = 5
@@ -1121,12 +1122,14 @@ if __name__ == '__main__':
                     elif status == 6:       # 6: Hitting the Ball
                         if TX_num == 0:
                             if hit_direction == 0:  # hit left
-                                if hole_distance > 130:
+                                if argparse['map'] == 'par4' and hit_cnt == 0:
+                                    TX_num = 2
+                                elif hole_distance > 200:
                                     TX_num = 2      # TX2: 골프_왼쪽으로_샷1
-                                elif hole_distance > 100:
+                                elif hole_distance > 130:
                                     TX_num = 34     # TX34: 골프_왼쪽으로_샷2 
                                 else:
-                                    TX_num = 34     # TX35: 골프_왼쪽으로_샷3
+                                    TX_num = 35     # TX35: 골프_왼쪽으로_샷3
                             else:
                                 TX_num = 5          # TX5: 골프_오른쪽으로_샷1
                             delay = 12
