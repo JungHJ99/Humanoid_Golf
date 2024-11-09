@@ -796,9 +796,11 @@ if __name__ == '__main__':
 
     delay = 0
 
-    only_video = True
+    only_video = False
 
     hit_cnt = 0
+
+    status_0_turn_cnt = 0
 
     hit_direction = 0  # 0: left, 1: right
 
@@ -961,8 +963,8 @@ if __name__ == '__main__':
                                 status = 1
                                 TX_num = 0
                                 delay = 5
-                                if argparse['map'] == 'par4' and hit_cnt == 1:
-                                    hit_direction = 1
+                                if args['map'] == 'par4' and hit_cnt == 1:
+                                    hit_direction = 0
                                 elif hole_detected and cx_hole > cx_ball and hit_cnt > 0: # ball is on the left of the hole
                                     hit_direction = 1
                                 else:                                   # ball is on the right of the hole
@@ -970,12 +972,27 @@ if __name__ == '__main__':
                             else:
                                 if hit_direction == 0:  # left hit
                                     TX_num = 22      # TX22: 왼쪽턴45_골프
-                                    delay = 5
+                                    delay = 3
                                 else:   # right hit
                                     TX_num = 24      # TX24: 오른쪽턴45_골프
-                                    delay = 5
+                                    delay = 3
+
+                                status_0_turn_cnt += 1
+                                
+                                if status_0_turn_cnt > 9:
+                                    status_0_turn_cnt = 0
+                                    if head_angle[1] == 0:
+                                        head_angle = (0, -30)
+                                    elif head_angle[1] == -45:
+                                        head_angle = (0, 0)
+                                    else: 
+                                        head_angle = (0, head_angle[1] - 15)
+                                    TX_num = motion_dict[head_angle]
+                                    delay = 10
+                                
                         
                     elif status == 1:        # 1: Walking towards the Ball
+                        status_0_turn_cnt = 0
                         if cx_ball <= left_region_limit:        # ball is at the left side
                             TX_num = 1                          # TX1: 왼쪽턴5_골프
                         elif cx_ball >= right_region_limit:     # ball is at the right side
@@ -1015,7 +1032,7 @@ if __name__ == '__main__':
                                 TX_num = 0
                                 delay = 10
                             else:
-                                head_angle = (90 if hit_direction == 0 else -90, -0 if hit_cnt == 0 or (argparse['map'] == 'par4' and hit_cnt <= 1) else -30)
+                                head_angle = (90 if hit_direction == 0 else -90, -0 if hit_cnt == 0 or (args['map'] == 'par4' and hit_cnt <= 1) else -30)
                                 TX_num = motion_dict[head_angle]            # head left up
                                 delay = 5
                         elif TX_num in [9, 7, motion_dict[head_angle]]:
@@ -1123,8 +1140,8 @@ if __name__ == '__main__':
                     elif status == 6:       # 6: Hitting the Ball
                         if TX_num == 0:
                             if hit_direction == 0:  # hit left
-                                if argparse['map'] == 'par4' and hit_cnt == 0:
-                                    TX_num = 2
+                                if args['map'] == 'par4' and hit_cnt == 0:
+                                    TX_num = 34
                                 elif hole_distance > 200:
                                     TX_num = 2      # TX2: 골프_왼쪽으로_샷1
                                 elif hole_distance > 130:
