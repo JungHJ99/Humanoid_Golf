@@ -42,18 +42,18 @@ hsv_Lower1 = 0
 hsv_Upper1 = 0
 
 #----------- 
-color_num = [   0,  1,  2,  3,  4]
+color_num = [   0,  1,  2,  3,  4, 5]
     
-h_max =     [ 179,240, 140,200,100]
-h_min =     [  86,0,  0, 86, 12]
+h_max =     [ 179,240, 140,200,120, 220]
+h_min =     [  86,0,  0, 86, 40, 170]
     
-s_max =     [ 121,76,130,111,140]
-s_min =     [ 100, 0,85, 70, 103]
+s_max =     [ 121,76,130,111,140, 60]
+s_min =     [ 100, 0,85, 70, 103, 20]
     
-v_max =     [ 255,175,180,121,133]
-v_min =     [ 180, 0,100, 70, 67]
+v_max =     [ 255,175,180,121,115,170]
+v_min =     [ 180, 0,100, 70, 67, 130]
     
-min_area =  [  3, 30, 50, 10, 10]
+min_area =  [  3, 30, 50, 10, 10, 50]
 
 now_color = 0
 serial_use = 1
@@ -509,8 +509,7 @@ def near_hole_detecting(frame, mask, hsv, min_area_near_hole, max_area_near_hole
     # 가장 큰 컨투어가 있을 경우, 해당 중심 좌표를 반환
     return near_hole_detected, (largest_cX, largest_cY)
 
-# 해진: 파4에 코너 감지하는 함수
-def corner_detecting(frame, maskf, maskb):  
+def corner_detecting(frame, maskf, maskb):
     corner_detected = False
     cx, cy = 0, 0
     max_mean_roif = 0
@@ -662,7 +661,7 @@ if __name__ == '__main__':
     cv2.createTrackbar('Vmax', Top_name, v_max[now_color], 255, Vmax_change)
     cv2.createTrackbar('Vmin', Top_name, v_min[now_color], 255, Vmin_change)
     cv2.createTrackbar('Min_Area', Top_name, min_area[now_color], 255, min_area_change)
-    cv2.createTrackbar('Color_num', Top_name,color_num[now_color], 4, Color_num_change)
+    cv2.createTrackbar('Color_num', Top_name,color_num[now_color], 5, Color_num_change)
 
     Trackbar_change(now_color)
 
@@ -840,6 +839,8 @@ if __name__ == '__main__':
         kernel = np.ones((3, 3), np.uint8)
         mask4 = cv2.morphologyEx(mask4, cv2.MORPH_OPEN, kernel)
         mask4 = cv2.morphologyEx(mask4, cv2.MORPH_CLOSE, kernel)
+
+        mask5 = cv2.inRange(hsv, (h_min[5], s_min[5], v_min[5]), (h_max[5], s_max[5], v_max[5]))
         
         #mask = cv2.erode(mask, None, iterations=1)
         #mask = cv2.dilate(mask, None, iterations=1)
@@ -856,7 +857,7 @@ if __name__ == '__main__':
         center = None
         
         hole_detected, hole_area, hole_width, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
-        near_hole_detected, (cx_near_hole, cy_near_hole) = near_hole_detecting(frame, mask1, hsv, min_area_near_hole, max_area_near_hole)
+        near_hole_detected, (cx_near_hole, cy_near_hole) = near_hole_detecting(frame, mask5, hsv, min_area_near_hole, max_area_near_hole)
         corner_detected, (cx_corner, cy_corner), par4_goal_x = corner_detecting(frame, mask3, mask4)
 
 
@@ -1239,6 +1240,8 @@ if __name__ == '__main__':
             cv2.imshow('mini CTS5 - Mask2', mask2)
             cv2.imshow('mini CTS5 - Mask3', mask3)
             cv2.imshow('mini CTS5 - Mask4', mask4)
+            cv2.imshow('mini CTS5 - Mask5', mask5)
+
 
         key = 0xFF & cv2.waitKey(1)
         
