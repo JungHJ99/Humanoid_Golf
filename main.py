@@ -43,16 +43,17 @@ hsv_Upper1 = 0
 
 #----------- 
 color_num = [  0,  1,  2,  3,  4,  5]
-h_max =     [150,189,100,168, 75,190]
-h_min =     [  0,145,  0, 120, 28,142]
+h_max =     [150,189,100,168, 75,200]
+h_min =     [  80,145,  0, 120, 28,160]
 
-s_max =     [180, 59,138, 73,140, 73]
-s_min =     [ 90, 38, 56, 46, 94, 33]
+s_max =     [91, 59,138, 73,140, 73]
+s_min =     [ 46, 38, 56, 46, 94, 33]
     
-v_max =     [255,244,181,163,144,255]
-v_min =     [177,  0, 53, 119,  0,  0]
+v_max =     [163,244,181,163,144,255]
+v_min =     [119,  0, 53, 119,  0,  0]
     
 min_area =  [  3, 30, 50, 10, 10, 50]
+
 
 now_color = 0
 serial_use = 1
@@ -492,7 +493,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
     # 홀의 면적, 중심 좌표 반환
     return hole_detected, largest_area, largest_width, (largest_cX, largest_cY), closing
 
-min_area_near_hole = 50
+min_area_near_hole = 500
 max_area_near_hole = 500000
 
 def near_hole_detecting(frame, mask, hsv, min_area_near_hole, max_area_near_hole):
@@ -519,6 +520,9 @@ def near_hole_detecting(frame, mask, hsv, min_area_near_hole, max_area_near_hole
                     largest_cX = int(M["m10"] / M["m00"])
                     largest_cY = int(M["m01"] / M["m00"])
                     near_hole_detected = True
+
+    if near_hole_detected:
+        cv2.drawContours(frame, [largest_contour], -1, (200, 200, 0), 2)
 
     # 가장 큰 컨투어가 있을 경우, 해당 중심 좌표를 반환
     return near_hole_detected, (largest_cX, largest_cY)
@@ -614,6 +618,9 @@ motion_dict = {
     (-90, -45): 47, # TX47: 머리오른쪽90도하향45도
     (15, -80): 49,  # TX49: 머리왼쪽15도하향80도
     (-15, -80): 50, # TX50: 머리오른쪽15도하향80도
+    (45, -45): 51, # TX51
+    (-45, -45): 52, # TX52
+
 }                   # (xy_angle, z_angle)
 
 # **************************************************
@@ -789,6 +796,10 @@ if __name__ == '__main__':
     corner_left_region_limit = int(W_View_size / 2 - corner_center_region_width / 3 + 10)
     corner_right_region_limit = int(W_View_size / 2 + corner_center_region_width / 3 + 10)
 
+    near_hole_center_region_width = 30
+    near_hole_left_region_limit = int(W_View_size / 2 - near_hole_center_region_width)
+    near_hole_right_region_limit = int(W_View_size / 2 + near_hole_center_region_width)
+
     status = 0
     # 0: Finding Ball
     # 1: Walking toward the Ball -> 공 높이에 따라 고개 숙이기
@@ -814,7 +825,7 @@ if __name__ == '__main__':
 
     only_video = False
 
-    hit_cnt = 0
+    hit_cnt = 1
 
     status_0_turn_cnt = 0
 
@@ -873,10 +884,14 @@ if __name__ == '__main__':
         '''
         
         center = None
+
+
         
         hole_detected, hole_area, hole_width, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
         near_hole_detected, (cx_near_hole, cy_near_hole) = near_hole_detecting(frame, mask5, hsv, min_area_near_hole, max_area_near_hole)
         corner_detected, (cx_corner, cy_corner), par4_goal_x = corner_detecting(frame, mask3, mask4)
+
+        far_shot = hit_cnt == 0 or args['map'] == 'par4' and hit_cnt <= 1
 
 
         # 공을 보내야하는 포인트 지정
@@ -914,8 +929,8 @@ if __name__ == '__main__':
                 if msg_one_view > 10:
                     msg_one_view = 0                
                                 
-            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, status: %.1d, ball_detected: %.1d, hole_detected: %.1d, TX_num: %.1d, hole_d: %.1d' 
-                      % (X_255_point, Y_255_point, status, ball_detected, hole_detected, TX_num, get_hole_distance(hole_width)))
+            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, status: %.1d, ball_detected: %.1d, goal_point_detected: %.1d, TX_num: %.1d, hole_d: %.1d' 
+                      % (X_255_point, Y_255_point, status, ball_detected, goal_point_detected, TX_num, get_hole_distance(hole_width)))
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
 
@@ -928,13 +943,21 @@ if __name__ == '__main__':
                 cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_upper_limit), (ball_at_center_right_limit, ball_at_center_lower_limit), (255, 255, 255), 2)
 
             if status == 31:
-                cv2.rectangle(frame, (near_hole_at_hit_point_left_limit, near_hole_at_hit_point_upper_limit), (near_hole_at_hit_point_right_limit, near_hole_at_hit_point_lower_limit), (255, 255, 255), 2)
-                cv2.circle(frame, (cx_near_hole, cy_near_hole), radius=5, color=(255, 0, 0), thickness=-1)
+                cv2.line(frame, (0, int(cy_ball) + 20), (W_View_size, int(cy_ball) + 20), (255, 255, 255))
+                cv2.line(frame, (0, int(cy_ball) - 20), (W_View_size, int(cy_ball) - 20), (255, 255, 255))
+                cv2.rectangle(frame, (ball_at_hit_point_left_limit, ball_at_hit_point_upper_limit), (ball_at_hit_point_right_limit, ball_at_hit_point_lower_limit), (0, 0, 255), 2)
 
             if status == 4:
                 if args['map'] == 'par4' and hit_cnt == 0:  # 파4 첫타일 때, 코너를 골 포인트로 인식
                     gp_left_region_limit = corner_left_region_limit
                     gp_right_region_limit = corner_right_region_limit
+                elif not far_shot:
+                    if hit_direction == 0:
+                        gp_left_region_limit = hole_left_region_limit - 200
+                        gp_right_region_limit = hole_right_region_limit - 200
+                    else:
+                        gp_left_region_limit = hole_left_region_limit + 200
+                        gp_right_region_limit = hole_right_region_limit + 200
                 else:
                     gp_left_region_limit = hole_left_region_limit
                     gp_right_region_limit = hole_right_region_limit
@@ -964,6 +987,7 @@ if __name__ == '__main__':
                     status = 0
 
 
+
                 if delay == 0:
 
                     # Action by Status
@@ -979,7 +1003,7 @@ if __name__ == '__main__':
                                 status = 1
                                 TX_num = 0
                                 delay = 5
-                                if args['map'] == 'par4' and hit_cnt == 1:
+                                if far_shot:
                                     hit_direction = 0
                                 elif hole_detected and cx_hole > cx_ball and hit_cnt > 0: # ball is on the left of the hole
                                     hit_direction = 1
@@ -997,10 +1021,8 @@ if __name__ == '__main__':
                                 
                                 if status_0_turn_cnt > 9:
                                     status_0_turn_cnt = 0
-                                    if head_angle[1] == 0:
-                                        head_angle = (0, -30)
-                                    elif head_angle[1] == -45:
-                                        head_angle = (0, 0)
+                                    if head_angle[1] == -45:
+                                        head_angle = (0, -15)
                                     else: 
                                         head_angle = (0, head_angle[1] - 15)
                                     TX_num = motion_dict[head_angle]
@@ -1022,7 +1044,7 @@ if __name__ == '__main__':
                                 if head_angle[1] > -30:         # head angle down
                                     head_angle = (0, head_angle[1] - 15)
                                     TX_num = motion_dict[head_angle]
-                                    delay = 10
+                                    delay = 5
                                 else:                           # go to status 2
                                     status = 2
                                     TX_num = 0
@@ -1034,23 +1056,40 @@ if __name__ == '__main__':
                             TX_num = motion_dict[head_angle]           # head front down
                             delay = 5
                         else:
-                            limits = [ball_at_center_left_limit, ball_at_center_right_limit, ball_at_center_upper_limit, ball_at_center_lower_limit]
-                            TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)    # step
-                            delay = 3
-                            if TX_num == 0:
-                                status = 3
+                            if not ball_detected:
+                                status = 21
+                                delay = 5
+                            else:
+                                limits = [ball_at_center_left_limit, ball_at_center_right_limit, ball_at_center_upper_limit, ball_at_center_lower_limit]
+                                TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)    # step
+                                delay = 3
+                                if TX_num == 0:
+                                    if near_hole_detected:
+                                        if cx_ball < cx_near_hole:
+                                            hit_direction = 1
+                                        else:
+                                            hit_direction = 0
+                                        status = 31
+                                        TX_num = 0
+                                        delay = 10
+                                    else:
+                                        status = 3
+
+                    elif status == 21:       # 2: Near Ball Lost
+                        head_angle = (0, -45)
+                        TX_num = motion_dict[head_angle]           # head front down
+                        delay = 5
+                        status = 0
 
 
                     elif status == 3:       # 3: Finding Hole
                         if TX_num == 0:
-                            if near_hole_detected:   
-                                status = 31
-                                TX_num = 0
-                                delay = 10
+                            if far_shot:
+                                head_angle = (90 if hit_direction == 0 else -90, -15)
                             else:
-                                head_angle = (90 if hit_direction == 0 else -90, -0 if hit_cnt == 0 or (args['map'] == 'par4' and hit_cnt <= 1) else -30)
-                                TX_num = motion_dict[head_angle]            # head left up
-                                delay = 5
+                                head_angle = (45 if hit_direction == 0 else -45, -45)
+                            TX_num = motion_dict[head_angle]            # head left up
+                            delay = 5
                         elif TX_num in [9, 7, motion_dict[head_angle]]:
                             if hit_direction == 0:  # hit left
                                 TX_num = 14         # TX14: 왼쪽옆으로70연속_골프
@@ -1068,58 +1107,44 @@ if __name__ == '__main__':
                             TX_num = 0
                             delay = 5
 
-                    elif status == 31:      # 31: Approach Shot
-                        approach_shot_ready = True
-                        if ball_success == False:
-                            head_angle = (0, -80)
-                            TX_num = motion_dict[head_angle]
-                            limits = [ball_at_hit_point_left_limit, ball_at_hit_point_right_limit, ball_at_hit_point_upper_limit, ball_at_hit_point_lower_limit]
-                            TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)
-                            delay = 5
-                            if TX_num == 0:
-                                ball_success = True
-                                if hit_direction == 0:                  # ball_success가 True이고 정방향 타격이면, 왼쪽 15도 고개 돌려 goal_point_success 판단
-                                    head_angle = (15, -80)
-                                    TX_num = motion_dict[head_angle]
-                                    delay = 8
-                                else:
-                                    head_angle = (-15, -80)             # ball_success가 True이고 역방향 타격이면, 오른쪽 15도 고개 돌려 goal_point_success 판단
-                                    TX_num = motion_dict[head_angle]
-                                    delay = 8
-                            else:
-                                ball_success = False
-                                goal_point_success = False
-                        elif goal_point_success == False:
-                            limits = [near_hole_at_hit_point_left_limit, near_hole_at_hit_point_right_limit, near_hole_at_hit_point_upper_limit, near_hole_at_hit_point_lower_limit]
-                            TX_num, hit_direction = near_hole_at_hit_point(cx_near_hole, cy_near_hole, limits)  # approaching shot 시 hit_direction 판단
-                            if TX_num == 0:
-                                limits = [ball_at_hit_point_left_limit, ball_at_hit_point_right_limit, ball_at_hit_point_upper_limit, ball_at_hit_point_lower_limit]
-                                TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)
-                                delay = 5
-                                if TX_num == 0:
-                                    goal_point_success = True           # goal_point_success가 True이면, 중앙으로 고개 돌려 ball_success 판단
-                                    head_angle = (0, -80)
-                                    TX_num = motion_dict[head_angle]
-                                    delay = 8
-                                else:
-                                    ball_success = False
-                                    goal_point_success = False
-                            else:
-                                goal_point_success = False
+
+                    elif status == 31:      # 31: Approach Shot 1
+                        if not near_hole_detected:
+                            status = 2
                         else:
-                            TX_num = 0
-                            status = 6
+                            if cy_near_hole < cy_ball - 20:      # hole이 더 위에
+                                if hit_direction == 0:
+                                    TX_num = 3
+                                else:
+                                    TX_num = 1
+                                delay = 1
+                            elif cy_near_hole > cy_ball + 20:    # hole이 더 아래에
+                                if hit_direction == 0:
+                                    TX_num = 1
+                                else:
+                                    TX_num = 3
+                                delay = 1
+                                
+                            else:
+                                limits = [ball_at_hit_point_left_limit, ball_at_hit_point_right_limit, ball_at_hit_point_upper_limit, ball_at_hit_point_lower_limit]
+                                TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)    # step
+                                delay = 3
+                                if TX_num == 0:
+                                    status = 6
+                    
 
                     elif status == 4:       # 4: Hole at hit point
                         if TX_num == 0:
-                            head_angle = (90 if hit_direction == 0 else -90, -0 if hit_cnt == 0 else -30)
+                            if far_shot:
+                                head_angle = (90 if hit_direction == 0 else -90, -15)
+                            else:
+                                head_angle = (45 if hit_direction == 0 else -45, -45)
+
                             TX_num = motion_dict[head_angle]                # head left up
                             delay = 5
                         else:
                             if not goal_point_detected:
                                 TX_num = 0
-                                status = 3
-                                delay = 2
                             elif cx_goal_point <= tuned_left_limit:         # hole is at the left side
                                 TX_num = 1                                  # TX1: 왼쪽턴5_골프
                                 ball_success = False
@@ -1141,23 +1166,29 @@ if __name__ == '__main__':
                             TX_num = motion_dict[head_angle]
                             delay = 8
                         else:
-                            limits = [ball_at_hit_point_left_limit, ball_at_hit_point_right_limit, ball_at_hit_point_upper_limit, ball_at_hit_point_lower_limit]
-                            TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)  # step
-                            delay = 3
-                            if TX_num == 0 and (not goal_point_success or not ball_success):
-                                ball_success = True
-                                status = 4
-                            elif TX_num == 0 and (goal_point_success and ball_success):
-                                status = 6
+                            if not ball_detected:
+                                status = 21
+                                delay = 5
                             else:
-                                ball_success = False
-                                goal_point_success = False
+                                limits = [ball_at_hit_point_left_limit, ball_at_hit_point_right_limit, ball_at_hit_point_upper_limit, ball_at_hit_point_lower_limit]
+                                TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)  # step
+                                delay = 3
+                                if TX_num == 0 and (not goal_point_success or not ball_success):
+                                    ball_success = True
+                                    status = 4
+                                elif TX_num == 0 and (goal_point_success and ball_success):
+                                    status = 6
+                                else:
+                                    ball_success = False
+                                    goal_point_success = False
                 
                     elif status == 6:       # 6: Hitting the Ball
                         if TX_num == 0:
                             if hit_direction == 0:  # hit left
                                 if args['map'] == 'par4' and hit_cnt == 0:
                                     TX_num = 34
+                                elif near_hole_detected:
+                                    TX_num = 35     # TX35: 골프_왼쪽으로_샷3
                                 elif hole_distance > 200:
                                     TX_num = 2      # TX2: 골프_왼쪽으로_샷1
                                 elif hole_distance > 130:
@@ -1168,29 +1199,42 @@ if __name__ == '__main__':
                                 TX_num = 5          # TX5: 골프_오른쪽으로_샷1
                             delay = 12
                         else:
-                            hit_cnt += 1
                             TX_num = 0
                             delay = 5
                             status = 7
 
                     elif status == 7:       # 7: Tracking Ball
-                        head_angle_x = 90 if hit_direction == 0 else -90
                         if TX_num == 0:
-                            head_angle = (head_angle_x, -0)
+                            if far_shot:
+                                head_angle_x = 90 if hit_direction == 0 else -90
+                                head_angle = (head_angle_x, -15)
+                            else:
+                                head_angle_x = 45 if hit_direction == 0 else -45
+                                head_angle = (head_angle_x, -45)
                             TX_num = motion_dict[head_angle]
                             delay = 5
                         else:
-                            if ball_detected:
+                            # ball in hole
+                            if ball_detected and hole_detected and cx_hole -5 < cx_ball < cx_ball - 5 and cy_hole -5 < cy_ball < cy_ball - 5:
+                                TX_data(serial_port, 23)
+                                break
+                            # ball in hole
+                            elif far_shot and not ball_detected:
+                                TX_data(serial_port, 23)
+                                break
+                            elif ball_detected:
                                 delay = 5
                                 TX_num = 0
                                 status = 0
                             else:
-                                if head_angle[1] < -45:
-                                    head_angle = (head_angle_x, -0)
+                                if head_angle[1] == -45:
+                                    head_angle = (head_angle_x, -15)
                                 else:
                                     head_angle = (head_angle_x, head_angle[1] - 15) # -0도 -> -15도 -> 30도 -> -45도 -> -60도 -> -0도
                                 TX_num = motion_dict[head_angle]
                                 delay = 5
+                        hit_cnt += 1
+                        
                         
                         # if head_angle in [-0, -15, -30, -45]:    # 공의 높이에 높이에 맞추어 정면을 보고 몸을 왼쪽으로 회전함.
                         #     TX_num = motion_dict[head_angle]            # head_angle에 따라 3개의 동작을 순서대로 실행
@@ -1268,12 +1312,12 @@ if __name__ == '__main__':
             
             cv2.imshow('mini CTS5 - Video', frame )
             # cv2.imshow('mini CTS5 - Mask', mask)
-            cv2.imshow('mini CTS5 - Mask0', mask0)
-            cv2.imshow('mini CTS5 - Mask1', mask1)
-            cv2.imshow('mini CTS5 - Mask2', mask2)
-            cv2.imshow('mini CTS5 - Mask3', mask3)
-            cv2.imshow('mini CTS5 - Mask4', mask4)
-            cv2.imshow('mini CTS5 - Mask5', mask5)
+            # cv2.imshow('mini CTS5 - Mask0', mask0)
+            # cv2.imshow('mini CTS5 - Mask1', mask1)
+            # cv2.imshow('mini CTS5 - Mask2', mask2)
+            # cv2.imshow('mini CTS5 - Mask3', mask3)
+            # cv2.imshow('mini CTS5 - Mask4', mask4)
+            # cv2.imshow('mini CTS5 - Mask5', mask5)
 
 
         key = 0xFF & cv2.waitKey(1)
