@@ -42,16 +42,15 @@ hsv_Lower1 = 0
 hsv_Upper1 = 0
 
 #----------- 
-color_num = [   0,  1,  2,  3,  4, 5]
+color_num = [  0,  1,  2,  3,  4,  5]
+h_max =     [150,189,100,168, 75,190]
+h_min =     [  0,145,  0, 120, 28,142]
+
+s_max =     [180, 59,138, 73,140, 73]
+s_min =     [ 90, 38, 56, 46, 94, 33]
     
-h_max =     [ 179,240, 140,200,120, 220]
-h_min =     [  86,0,  0, 86, 40, 170]
-    
-s_max =     [ 121,76,130,111,140, 60]
-s_min =     [ 100, 0,85, 70, 103, 20]
-    
-v_max =     [ 255,175,180,121,115,170]
-v_min =     [ 180, 0,100, 70, 67, 130]
+v_max =     [255,244,181,163,144,255]
+v_min =     [177,  0, 53, 119,  0,  0]
     
 min_area =  [  3, 30, 50, 10, 10, 50]
 
@@ -300,9 +299,9 @@ def hsv_setting_read():
     #    print("hsv_setting_read Error~")
     #    return 0
 
-def ball_detecting(mask):
+def ball_detecting(maskb, maskf):
 
-    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+    cnts = cv2.findContours(maskb.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
 
     # initialize parameter
 
@@ -315,30 +314,45 @@ def ball_detecting(mask):
     ball_detected = False
     Area = 0
     Angle = 0
+    roi_num = 30  # 주변 영역 크기
+    f_thr = 10
+    max_field_px = 0
+    min_area_ball = 3
+    x = 0
+    y = 0
+    w = 0
+    h = 0
 
     if len(cnts) > 0:
-        c = max(cnts, key=cv2.contourArea)
-        ((X, Y), radius) = cv2.minEnclosingCircle(c)
+        for cnt in cnts:
+            x4, y4, w4, h4 = cv2.boundingRect(cnt)
 
-        Area = cv2.contourArea(c) / min_area[0]
-
-        if Area > 255:
-            Area = 255
-
-        if Area > min_area[0]:
-            x4, y4, w4, h4 = cv2.boundingRect(c)
-            cv2.rectangle(frame, (x4, y4), (x4 + w4, y4 + h4), (0, 255, 0), 2)
+            cx = int(x4 - w4 / 2)
+            cy = int(y4 - h4 / 2)
             
-            X_Size = int((255.0 / W_View_size) * w4)
-            Y_Size = int((255.0 / H_View_size) * h4)
-            X_255_point = int((255.0 / W_View_size) * X)
-            Y_255_point = int((255.0 / H_View_size) * Y)
-            cx_ball = x4 + w4 / 2
-            cy_ball = y4 + h4 / 2
-            ball_detected = True
+            y1, y2 = max(0, y4 - roi_num), min(H_View_size, y4 + roi_num + 1)
+            x1, x2 = max(0, cx - roi_num), min(W_View_size, cx + roi_num + 1)
+            roib = maskf[y1:y2, x1:x2] # 주변의 필드 픽셀
+            mean_roib = np.mean(roib)
 
-        else:
-            ball_detected = False
+            if mean_roib > f_thr and mean_roib > max_field_px and w4 * h4 > min_area_ball:
+
+                X_Size = int((255.0 / W_View_size) * w4)
+                Y_Size = int((255.0 / H_View_size) * h4)
+                X_255_point = int((255.0 / W_View_size) * 1)
+                Y_255_point = int((255.0 / H_View_size) * 1)
+                cx_ball = cx
+                cy_ball = cy
+                x = x4
+                y = y4
+                w = w4
+                h = h4
+                ball_detected = True
+                
+                max_field_px = mean_roib
+
+        if ball_detected:
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
             
     else:
         X_255_point = 0
@@ -516,7 +530,7 @@ def corner_detecting(frame, maskf, maskb):
     roi_num = 30  # 주변 영역 크기
     f_thr = 160  # 코너 주변 필드 비율 임계값
     b_thr = 30  # 코너 주변 테두리 비율 임계값
-    g_from_c = 150 # 목표점 x좌표를 위한 오프셋
+    g_from_c = 200 # 목표점 x좌표를 위한 오프셋
     goal_point_x = 0 # 목표점의 x좌표
 
     # ORB 설정
@@ -527,10 +541,12 @@ def corner_detecting(frame, maskf, maskb):
         x, y = int(kp.pt[0]), int(kp.pt[1])
         roif = maskf[y - roi_num:y + roi_num + 1, x - roi_num:x + roi_num + 1]
         roib = maskb[y - roi_num:y + roi_num + 1, x - roi_num:x + roi_num + 1]  # 테두리
+        mean_roif = np.mean(roif)
+
         
-        if np.mean(roif) > f_thr and np.mean(roib) > b_thr:  # 주변 필드, 테두리 비율이 임계값 이상인 경우
-            if np.mean(roif) > max_mean_roif:  # 가장 주변 흰색 비율이 큰 점 선택
-                max_mean_roif = np.mean(roif)
+        if mean_roif > f_thr and mean_roif > b_thr:  # 주변 필드, 테두리 비율이 임계값 이상인 경우
+            if mean_roif > max_mean_roif:  # 가장 주변 흰색 비율이 큰 점 선택
+                max_mean_roif = mean_roif
                 cx, cy = x, y
                 corner_detected = True
 
@@ -876,7 +892,7 @@ if __name__ == '__main__':
         # 241012
         cv2.imshow('Hole Detection with Pole Ignoring', closing)
 
-        X_Size, Y_Size, X_255_point, Y_255_point, cx_ball, cy_ball, ball_detected, Area, Angle = ball_detecting(mask0)
+        X_Size, Y_Size, X_255_point, Y_255_point, cx_ball, cy_ball, ball_detected, Area, Angle = ball_detecting(mask0, mask3)
 
         # border_before_hole_detected = border_before_hole_detecting(frame, mask3, cx_hole, cy_hole, W_View_size, H_View_size, 400, 10)
 
