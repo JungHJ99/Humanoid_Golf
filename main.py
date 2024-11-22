@@ -42,18 +42,65 @@ hsv_Lower1 = 0
 hsv_Upper1 = 0
 
 #----------- 
-color_num = [  0,  1,  2,  3,  4,  5]
-h_max =     [150,189,100,168, 75,200]
-h_min =     [  80,145,  0, 120, 28,160]
+# Mask0: pink_ball
+# Mask1: yellow_outer_hole
+# Mask2: black_inner_hole
+# Mask3: light_green_field
+# Mask4: dark_green_boundary
+# Mask5: yellow_near_hole
+#----------- 
+# mask_list at 하늘6단지 헬스장
+# color_num = [   0,  1,  2,  3,  4, 5]
+# h_max =     [ 179,240, 140,200,120, 220]
+# h_min =     [  86,0,  0, 86, 40, 170]
 
-s_max =     [91, 59,138, 73,140, 73]
-s_min =     [ 46, 38, 56, 46, 94, 33]
+# s_max =     [ 121,76,130,111,140, 60]
+# s_min =     [ 100, 0,85, 70, 103, 20]
     
-v_max =     [163,244,181,163,144,255]
-v_min =     [119,  0, 53, 119,  0,  0]
+# v_max =     [ 255,175,180,121,115,170]
+# v_min =     [ 180, 0,100, 70, 67, 130]
+    
+# min_area =  [  3, 30, 50, 10, 10, 50]
+#----------- 
+# mask_list at 하늘 테라스, 18시
+color_num = [  0,  1,  2,  3,  4,  5]
+h_max =     [150,189,100,152, 75,190]
+h_min =     [  0,145,  0, 50, 28,142]
+
+s_max =     [180, 59,138, 98,140, 73]
+s_min =     [ 90, 38, 56, 46, 94, 33]
+    
+v_max =     [255,244,181,158,144,255]
+v_min =     [177,  0, 53, 70,  0,  0]
     
 min_area =  [  3, 30, 50, 10, 10, 50]
+#----------- 
+# # mask_list at 하늘 테라스, 13시
+# color_num = [  0,  1,  2,  3,  4, 5]
+# h_max =     [151,240,140,200,244,220]
+# h_min =     [  0,  0,  0, 50, 40,106]
 
+# s_max =     [180,76,130,111,140, 86]
+# s_min =     [100, 0, 85, 70,119, 20]
+    
+# v_max =     [255,175,180,121,115,170]
+# v_min =     [170,  0,100, 70, 87,130]
+    
+# min_area =  [  3, 30, 50, 10, 10, 50]
+#----------- 
+# mask_list at 쌍둥이 방
+# color_num = [   0,  1,  2,  3,  4, 5]
+# h_max =     [ 179,240, 140,200,120, 220]
+# h_min =     [  86,170,  0, 86, 40, 170]
+
+# s_max =     [ 121,76,130,111,140, 60]
+# s_min =     [ 100, 0,85, 70, 103, 20]
+    
+# v_max =     [ 255,180,180,121,115,230]
+# v_min =     [ 180, 0,100, 70, 67, 140]
+    
+# min_area =  [  3, 30, 50, 10, 10, 50]
+#----------- 
 
 now_color = 0
 serial_use = 1
@@ -1234,42 +1281,6 @@ if __name__ == '__main__':
                                 TX_num = motion_dict[head_angle]
                                 delay = 5
                         hit_cnt += 1
-                        
-                        
-                        # if head_angle in [-0, -15, -30, -45]:    # 공의 높이에 높이에 맞추어 정면을 보고 몸을 왼쪽으로 회전함.
-                        #     TX_num = motion_dict[head_angle]            # head_angle에 따라 3개의 동작을 순서대로 실행
-                        #     delay = 5                           
-                        #     status = 0                                         # 공의 높이에 맞추어 정면으로 보고 있는 상태에서 status 1 (Walking toward Ball) 진입
-
-                        # else:              
-                        #     if TX_num == 36:            # 36 : 머리 왼쪽 90도 하향 0도
-                        #         if ball_detected:
-                        #             head_angle = -0     # 공을 찾음 -> 다음 사이클에서 head_angle = -0 에 맞추어 3개의 동작 실행
-                        #         else:
-                        #             TX_num = 37         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 0도 -> 하향 15도)
-                        #             delay = 5
-                        #     elif TX_num == 37:          # 37 : 머리 왼쪽 90도 하향 15도
-                        #         if ball_detected:
-                        #             head_angle = -15    # 공을 찾음 -> 다음 사이클에서 head_angle = -15 에 맞추어 3개의 동작 실행
-                        #         else:
-                        #             TX_num = 38         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 15도 -> 하향 35도)
-                        #             delay = 5
-                        #     elif TX_num == 38:          # 36 : 머리 왼쪽 90도 하향 30도
-                        #         if ball_detected:
-                        #             head_angle = -30    # 공을 찾음 -> 다음 사이클에서 head_angle = -30 에 맞추어 3개의 동작 실행
-                        #         else:
-                        #             TX_num = 39         # 공을 못찾음 -> 다음 사이클에서 고개 더 내림 (하향 30도 -> 하향 45도)
-                        #             delay = 5
-                        #     elif TX_num == 39:          # 37 : 머리 왼쪽 90도 하향 45도
-                        #         if ball_detected:
-                        #             head_angle = -45    # 다음 사이클에서 head_angle = -45 에 맞추어 3개의 동작 실행
-                        #         else:
-                        #             TX_num = 40         # 머리 중앙 하향 0도
-                        #             delay = 5
-                        #             status = 0          # 고개를 끝까지 내려도 공을 못 찾음 -> 다음 사이클에서 status 0 (Finding Ball 진입)
-                        #     else:
-                        #         TX_num = 36
-                        #         delay = 5
 
                     print("TX_num: {}".format(TX_num))
                     TX_data(serial_port, TX_num)
@@ -1312,12 +1323,12 @@ if __name__ == '__main__':
             
             cv2.imshow('mini CTS5 - Video', frame )
             # cv2.imshow('mini CTS5 - Mask', mask)
-            # cv2.imshow('mini CTS5 - Mask0', mask0)
-            # cv2.imshow('mini CTS5 - Mask1', mask1)
-            # cv2.imshow('mini CTS5 - Mask2', mask2)
-            # cv2.imshow('mini CTS5 - Mask3', mask3)
-            # cv2.imshow('mini CTS5 - Mask4', mask4)
-            # cv2.imshow('mini CTS5 - Mask5', mask5)
+            # cv2.imshow('Mask0: pink_ball', mask0)
+            # cv2.imshow('Mask1: yellow_outer_hole', mask1)
+            # cv2.imshow('Mask2: black_inner_hole', mask2)
+            # cv2.imshow('Mask3: light_green_field', mask3)
+            # cv2.imshow('Mask4: dark_green_boundary', mask4)
+            # cv2.imshow('Mask5: yellow_near_hole', mask5)
 
 
         key = 0xFF & cv2.waitKey(1)
