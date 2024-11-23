@@ -434,7 +434,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
     # blurred_image = cv2.GaussianBlur(mask, (5, 5), 0)
 
     # Morph Close
-    kernel = np.ones((40, 100), np.uint8)    # kernel = np.ones((20, 20), np.uint8)
+    kernel = np.ones((25, 25), np.uint8)    # kernel = np.ones((20, 20), np.uint8)
     closing = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)   # kenel 크기의 작은 구멍을 메움 / 2cm 폴대 무시하도록 kernel 키움
 
     # 일정 크기 이상인 노란색 면적의 윤곽선 반환
@@ -619,14 +619,15 @@ def corner_detecting(frame, maskf, maskb):
     return corner_detected, (cx, cy), goal_point_x
 
 def ball_at_hit_point(cx, cy, limits):
-    if cx <= limits[0]:
-        TX_num = 15     # 왼쪽옆으로20연속_골프
-    elif cx >= limits[1]:
-        TX_num = 20     # 오른쪽옆으로20연속_골프
-    elif cy <= limits[2]:
+
+    if cy <= limits[2]:
         TX_num = 10     # 종종전진_골프
     elif cy >= limits[3]:
         TX_num = 48     # 종종후진_골프
+    elif cx <= limits[0]:
+        TX_num = 15     # 왼쪽옆으로20연속_골프
+    elif cx >= limits[1]:
+        TX_num = 20     # 오른쪽옆으로20연속_골프
     else:
         TX_num = 0
     return TX_num
@@ -928,19 +929,16 @@ if __name__ == '__main__':
 
         mask3 = cv2.inRange(hsv, (h_min[3], s_min[3], v_min[3]), (h_max[3], s_max[3], v_max[3]))
         kernel = np.ones((15, 15), np.uint8)
-        mask3 = cv2.morphologyEx(mask3, cv2.MORPH_OPEN, kernel)
         mask3 = cv2.morphologyEx(mask3, cv2.MORPH_CLOSE, kernel)
 
         mask4 = cv2.inRange(hsv, (h_min[4], s_min[4], v_min[4]), (h_max[4], s_max[4], v_max[4]))
         kernel = np.ones((3, 3), np.uint8)
-        mask4 = cv2.morphologyEx(mask4, cv2.MORPH_OPEN, kernel)
         mask4 = cv2.morphologyEx(mask4, cv2.MORPH_CLOSE, kernel)
 
         mask5 = cv2.inRange(hsv, (h_min[5], s_min[5], v_min[5]), (h_max[5], s_max[5], v_max[5]))
 
         mask6 = cv2.inRange(hsv, (h_min[6], s_min[6], v_min[6]), (h_max[6], s_max[6], v_max[6]))
         kernel = np.ones((15, 15), np.uint8)
-        mask6 = cv2.morphologyEx(mask6, cv2.MORPH_OPEN, kernel)
         mask6 = cv2.morphologyEx(mask6, cv2.MORPH_CLOSE, kernel)
         
         #mask = cv2.erode(mask, None, iterations=1)
@@ -1074,8 +1072,8 @@ if __name__ == '__main__':
                         ball_success = False
                         goal_point_success = False
                         if TX_num == 0:
-                            head_status = (0, head_status[1])
-                            TX_num = motion_dict[head_status]
+                            head_angle = (0, head_angle[1])
+                            TX_num = motion_dict[head_angle]
                             delay = 5
                         else:
                             # now_color = 0
@@ -1270,8 +1268,10 @@ if __name__ == '__main__':
                             if hit_direction == 0:  # hit left
                                 if args['map'] == 'par4' and hit_cnt == 0:
                                     TX_num = 34
+                                    hit_strength = 1
                                 elif near_hole_detected:
                                     TX_num = 35     # TX35: 골프_왼쪽으로_샷3
+                                    hit_strength = 0
                                 elif hole_distance > 200:
                                     TX_num = 2      # TX2: 골프_왼쪽으로_샷1
                                     hit_strength = 2
@@ -1280,6 +1280,7 @@ if __name__ == '__main__':
                                     hit_strength = 1 
                                 else:
                                     TX_num = 35     # TX35: 골프_왼쪽으로_샷3
+                                    hit_strength = 0
                             else:
                                 TX_num = 5          # TX5: 골프_오른쪽으로_샷1
                             delay = 12
@@ -1289,8 +1290,10 @@ if __name__ == '__main__':
                             if far_shot:
                                 if hit_strength == 1:
                                     after_hit_move_cnt = after_hit_move1
-                                if hit_strength == 2:
+                                elif hit_strength == 2:
                                     after_hit_move_cnt = after_hit_move2
+                                else:
+                                    after_hit_move_cnt = 0
                                 status = 61
                             else:
                                 status = 7
@@ -1330,7 +1333,8 @@ if __name__ == '__main__':
                                 status = 0
                             else:
                                 if head_angle[1] == -45:
-                                    head_angle = (head_angle_x, -15)
+                                    status = 0
+                                    head_angle = (-0, -30)
                                 else:
                                     head_angle = (head_angle_x, head_angle[1] - 15) # -0도 -> -15도 -> 30도 -> -45도 -> -60도 -> -0도
                                 TX_num = motion_dict[head_angle]
