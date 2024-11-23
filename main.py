@@ -101,6 +101,15 @@ min_area =  [  3, 30, 50, 10, 10, 50]
     
 # min_area =  [  3, 30, 50, 10, 10, 50]
 #----------- 
+# mask_list at 병서네 헬스장
+# 0,150,0,180,90,255,177,3
+# 1,224,124,69,39,244,0,30
+# 2,100,0,145,56,181,53,50
+# 3,154,80,123,57,108,66,10
+# 4,75,29,140,94,144,0,10
+# 5,200,160,73,33,255,0,50
+#----------- 
+
 
 now_color = 0
 serial_use = 1
@@ -375,8 +384,8 @@ def ball_detecting(maskb, maskf):
         for cnt in cnts:
             x4, y4, w4, h4 = cv2.boundingRect(cnt)
 
-            cx = int(x4 - w4 / 2)
-            cy = int(y4 - h4 / 2)
+            cx = int(x4 + w4 / 2)
+            cy = int(y4 + h4 / 2)
             
             y1, y2 = max(0, y4 - roi_num), min(H_View_size, y4 + roi_num + 1)
             x1, x2 = max(0, cx - roi_num), min(W_View_size, cx + roi_num + 1)
@@ -577,7 +586,7 @@ def corner_detecting(frame, maskf, maskb):
     corner_detected = False
     cx, cy = 0, 0
     max_mean_roif = 0
-    roi_num = 30  # 주변 영역 크기
+    roi_num = 20  # 주변 영역 크기
     f_thr = 160  # 코너 주변 필드 비율 임계값
     b_thr = 30  # 코너 주변 테두리 비율 임계값
     g_from_c = 200 # 목표점 x좌표를 위한 오프셋
@@ -592,9 +601,10 @@ def corner_detecting(frame, maskf, maskb):
         roif = maskf[y - roi_num:y + roi_num + 1, x - roi_num:x + roi_num + 1]
         roib = maskb[y - roi_num:y + roi_num + 1, x - roi_num:x + roi_num + 1]  # 테두리
         mean_roif = np.mean(roif)
+        mean_roib = np.mean(roib)
 
         
-        if mean_roif > f_thr and mean_roif > b_thr:  # 주변 필드, 테두리 비율이 임계값 이상인 경우
+        if mean_roif > f_thr and mean_roib > b_thr:  # 주변 필드, 테두리 비율이 임계값 이상인 경우
             if mean_roif > max_mean_roif:  # 가장 주변 흰색 비율이 큰 점 선택
                 max_mean_roif = mean_roif
                 cx, cy = x, y
@@ -906,7 +916,7 @@ if __name__ == '__main__':
         mask2 = cv2.inRange(hsv, (h_min[2], s_min[2], v_min[2]), (h_max[2], s_max[2], v_max[2]))
 
         mask3 = cv2.inRange(hsv, (h_min[3], s_min[3], v_min[3]), (h_max[3], s_max[3], v_max[3]))
-        kernel = np.ones((3, 3), np.uint8)
+        kernel = np.ones((7, 7), np.uint8)
         mask3 = cv2.morphologyEx(mask3, cv2.MORPH_OPEN, kernel)
         mask3 = cv2.morphologyEx(mask3, cv2.MORPH_CLOSE, kernel)
 
@@ -999,11 +1009,11 @@ if __name__ == '__main__':
                     gp_right_region_limit = corner_right_region_limit
                 elif not far_shot:
                     if hit_direction == 0:
-                        gp_left_region_limit = hole_left_region_limit - 200
-                        gp_right_region_limit = hole_right_region_limit - 200
+                        gp_left_region_limit = hole_left_region_limit - 370
+                        gp_right_region_limit = hole_right_region_limit - 370
                     else:
-                        gp_left_region_limit = hole_left_region_limit + 200
-                        gp_right_region_limit = hole_right_region_limit + 200
+                        gp_left_region_limit = hole_left_region_limit + 370
+                        gp_right_region_limit = hole_right_region_limit + 370
                 else:
                     gp_left_region_limit = hole_left_region_limit
                     gp_right_region_limit = hole_right_region_limit
