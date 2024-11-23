@@ -823,10 +823,10 @@ if __name__ == '__main__':
     left_region_limit = int(W_View_size / 2 - center_region_width / 2)
     right_region_limit = int(W_View_size / 2 + center_region_width / 2)
 
-    bottom_region_width = 100
+    bottom_region_width = 140
     bottom_region_limit = H_View_size - bottom_region_width
 
-    ball_at_center_range = 80
+    ball_at_center_range = 120
     ball_at_center_left_limit = int(W_View_size / 2 - ball_at_center_range / 2)
     ball_at_center_right_limit = int(W_View_size / 2 + ball_at_center_range / 2)
     ball_at_center_upper_limit = int(H_View_size / 2 - ball_at_center_range / 2)
@@ -1071,7 +1071,8 @@ if __name__ == '__main__':
                         ball_success = False
                         goal_point_success = False
                         if TX_num == 0:
-                            TX_num = 33     # 전방하향90도
+                            head_status = (0, head_status[1])
+                            TX_num = motion_dict[head_status]
                             delay = 5
                         else:
                             # now_color = 0
@@ -1308,7 +1309,7 @@ if __name__ == '__main__':
                             hit_cnt += 1
                         else:
                             # ball in hole
-                            if ball_detected and hole_detected and cx_hole -5 < cx_ball < cx_ball - 5 and cy_hole -5 < cy_ball < cy_ball - 5:
+                            if ball_detected and hole_detected and cx_hole -10 < cx_ball < cx_hole + 10 and cy_hole -5 < cy_ball < cy_hole + 5:
                                 TX_data(serial_port, 23)
                                 break
                             # ball in hole
