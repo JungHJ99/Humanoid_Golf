@@ -586,8 +586,8 @@ def corner_detecting(frame, maskf, maskb):
     corner_detected = False
     cx, cy = 0, 0
     max_mean_roif = 0
-    roi_num = 20  # 주변 영역 크기
-    f_thr = 170  # 코너 주변 필드 비율 임계값
+    roi_num = 30  # 주변 영역 크기
+    f_thr = 185  # 코너 주변 필드 비율 임계값
     b_thr = 30  # 코너 주변 테두리 비율 임계값
     g_from_c = 200 # 목표점 x좌표를 위한 오프셋
     goal_point_x = 0 # 목표점의 x좌표
