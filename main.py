@@ -895,7 +895,7 @@ if __name__ == '__main__':
 
     head_angle = (0, -30)
 
-    after_hit_move = 10
+    after_hit_move = 12
 
     TX_num = motion_dict[head_angle]
 
@@ -1177,7 +1177,7 @@ if __name__ == '__main__':
                                 TX_num = 9          # TX9: 오른쪽턴20_골프
                             else:                   # hit right
                                 TX_num = 7          # TX7: 왼쪽턴20_골프
-                            delay = 4
+                            delay = 2
                         if goal_point_detected and TX_num in [9, 7, 14, 13]:
                             status = 4
                             TX_num = 0
@@ -1193,13 +1193,13 @@ if __name__ == '__main__':
                                     TX_num = 3                  # TX3:오른쪽턴5_골프
                                 else:
                                     TX_num = 1                  # TX1:왼쪽턴5_골프
-                                delay = 1
+                                delay = 0
                             elif cy_near_hole > cy_ball + 20:    # hole이 near_ball보다 아래
                                 if hit_direction == 0:
                                     TX_num = 1                  # TX1:왼쪽턴5_골프
                                 else:
                                     TX_num = 3                  # TX3:오른쪽턴5_골프
-                                delay = 1
+                                delay = 0
                                 
                             else:                               # hole이 near_ball과 같은 선상
                                 limits = [ball_at_hit_point_left_limit, ball_at_hit_point_right_limit, ball_at_hit_point_upper_limit, ball_at_hit_point_lower_limit]
@@ -1299,12 +1299,13 @@ if __name__ == '__main__':
                         if TX_num == 0:
                             if far_shot:
                                 head_angle_x = 90 if hit_direction == 0 else -90
-                                head_angle = (head_angle_x, -15)
+                                head_angle = (head_angle_x, -30)
                             else:
                                 head_angle_x = 45 if hit_direction == 0 else -45
                                 head_angle = (head_angle_x, -45)
                             TX_num = motion_dict[head_angle]
                             delay = 5
+                            hit_cnt += 1
                         else:
                             # ball in hole
                             if ball_detected and hole_detected and cx_hole -5 < cx_ball < cx_ball - 5 and cy_hole -5 < cy_ball < cy_ball - 5:
