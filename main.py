@@ -839,10 +839,10 @@ if __name__ == '__main__':
     ball_at_hit_point_lower_limit = int(H_View_size / 2 + ball_at_hit_point_range / 2 - 30)
 
     ball_at_hit_point_range_par4 = 80
-    ball_at_hit_point_left_limit_par4 = int(W_View_size / 2 - ball_at_hit_point_range / 2 + 80)
-    ball_at_hit_point_right_limit_par4 = int(W_View_size / 2 + ball_at_hit_point_range / 2 + 80)
-    ball_at_hit_point_upper_limit_par4 = int(H_View_size / 2 - ball_at_hit_point_range / 2 - 30)
-    ball_at_hit_point_lower_limit_par4 = int(H_View_size / 2 + ball_at_hit_point_range / 2 - 30)
+    ball_at_hit_point_left_limit_par4 = int(W_View_size / 2 - ball_at_hit_point_range_par4 / 2 + 80)
+    ball_at_hit_point_right_limit_par4 = int(W_View_size / 2 + ball_at_hit_point_range_par4 / 2 + 80)
+    ball_at_hit_point_upper_limit_par4 = int(H_View_size / 2 - ball_at_hit_point_range_par4 / 2 - 30)
+    ball_at_hit_point_lower_limit_par4 = int(H_View_size / 2 + ball_at_hit_point_range_par4 / 2 - 30)
 
     hole_center_region_width = 50
     hole_left_region_limit = int(W_View_size / 2 - hole_center_region_width / 3)
