@@ -984,9 +984,13 @@ if __name__ == '__main__':
                 
                 if msg_one_view > 10:
                     msg_one_view = 0                
-                                
-            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, status: %.1d, ball_detected: %.1d, goal_point_detected: %.1d, TX_num: %.1d, hole_d: %.1d' 
-                      % (X_255_point, Y_255_point, status, ball_detected, goal_point_detected, TX_num, get_hole_distance(hole_width)))
+            
+            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, status: %.1d, hit_cnt: %.1d, hit_direction: %.1d, TX_num: %.1d' 
+                      % (X_255_point, Y_255_point, status, hit_cnt, hit_direction, TX_num))
+            draw_str2(frame, (3, 30), 'ball_detected: %.1d, hole_detected: %.1d, near_hole_detected: %.1d' 
+                      % (ball_detected, hole_detected, near_hole_detected))
+            draw_str2(frame, (3, 45), 'ball_success: %.1d, goal_point_success: %.1d' 
+                      % (ball_success, goal_point_success))
             draw_str2(frame, (3, H_View_size - 5), 'View: %.1d x %.1d Time: %.1f ms  Space: Fast <=> Video and Mask.'
                       % (W_View_size, H_View_size, Frame_time))
 
