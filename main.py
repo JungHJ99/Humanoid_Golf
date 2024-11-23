@@ -101,6 +101,15 @@ min_area =  [  3, 30, 50, 10, 10, 50]
     
 # min_area =  [  3, 30, 50, 10, 10, 50]
 #----------- 
+# mask_list at 병서네 헬스장
+# 0,150,0,180,90,255,177,3
+# 1,224,124,69,39,244,0,30
+# 2,100,0,145,56,181,53,50
+# 3,154,80,123,57,108,66,10
+# 4,75,29,140,94,144,0,10
+# 5,200,160,73,33,255,0,50
+#----------- 
+
 
 now_color = 0
 serial_use = 1
@@ -375,8 +384,8 @@ def ball_detecting(maskb, maskf):
         for cnt in cnts:
             x4, y4, w4, h4 = cv2.boundingRect(cnt)
 
-            cx = int(x4 - w4 / 2)
-            cy = int(y4 - h4 / 2)
+            cx = int(x4 + w4 / 2)
+            cy = int(y4 + h4 / 2)
             
             y1, y2 = max(0, y4 - roi_num), min(H_View_size, y4 + roi_num + 1)
             x1, x2 = max(0, cx - roi_num), min(W_View_size, cx + roi_num + 1)
@@ -907,7 +916,7 @@ if __name__ == '__main__':
         mask2 = cv2.inRange(hsv, (h_min[2], s_min[2], v_min[2]), (h_max[2], s_max[2], v_max[2]))
 
         mask3 = cv2.inRange(hsv, (h_min[3], s_min[3], v_min[3]), (h_max[3], s_max[3], v_max[3]))
-        kernel = np.ones((3, 3), np.uint8)
+        kernel = np.ones((15, 15), np.uint8)
         mask3 = cv2.morphologyEx(mask3, cv2.MORPH_OPEN, kernel)
         mask3 = cv2.morphologyEx(mask3, cv2.MORPH_CLOSE, kernel)
 
@@ -1000,11 +1009,11 @@ if __name__ == '__main__':
                     gp_right_region_limit = corner_right_region_limit
                 elif not far_shot:
                     if hit_direction == 0:
-                        gp_left_region_limit = hole_left_region_limit - 200
-                        gp_right_region_limit = hole_right_region_limit - 200
+                        gp_left_region_limit = hole_left_region_limit - 370
+                        gp_right_region_limit = hole_right_region_limit - 370
                     else:
-                        gp_left_region_limit = hole_left_region_limit + 200
-                        gp_right_region_limit = hole_right_region_limit + 200
+                        gp_left_region_limit = hole_left_region_limit + 370
+                        gp_right_region_limit = hole_right_region_limit + 370
                 else:
                     gp_left_region_limit = hole_left_region_limit
                     gp_right_region_limit = hole_right_region_limit
@@ -1322,13 +1331,13 @@ if __name__ == '__main__':
             #----------------------------------------------
             
             cv2.imshow('mini CTS5 - Video', frame )
-            # cv2.imshow('mini CTS5 - Mask', mask)
-            # cv2.imshow('Mask0: pink_ball', mask0)
-            # cv2.imshow('Mask1: yellow_outer_hole', mask1)
-            # cv2.imshow('Mask2: black_inner_hole', mask2)
-            # cv2.imshow('Mask3: light_green_field', mask3)
-            # cv2.imshow('Mask4: dark_green_boundary', mask4)
-            # cv2.imshow('Mask5: yellow_near_hole', mask5)
+            cv2.imshow('mini CTS5 - Mask', mask)
+            cv2.imshow('mini CTS5 - Mask0', mask0)
+            cv2.imshow('mini CTS5 - Mask1', mask1)
+            cv2.imshow('mini CTS5 - Mask2', mask2)
+            cv2.imshow('mini CTS5 - Mask3', mask3)
+            cv2.imshow('mini CTS5 - Mask4', mask4)
+            cv2.imshow('mini CTS5 - Mask5', mask5)
 
 
         key = 0xFF & cv2.waitKey(1)
