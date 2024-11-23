@@ -1018,7 +1018,7 @@ if __name__ == '__main__':
             if status == 31:
                 cv2.line(frame, (0, int(cy_ball) + 20), (W_View_size, int(cy_ball) + 20), (255, 255, 255))
                 cv2.line(frame, (0, int(cy_ball) - 20), (W_View_size, int(cy_ball) - 20), (255, 255, 255))
-                cv2.rectangle(frame, (ball_at_hit_point_left_limit, ball_at_hit_point_upper_limit), (ball_at_hit_point_right_limit, ball_at_hit_point_lower_limit), (0, 0, 255), 2)
+                cv2.rectangle(frame, (ball_at_hit_point_left_limit_par4, ball_at_hit_point_upper_limit_par4), (ball_at_hit_point_right_limit_par4, ball_at_hit_point_lower_limit_par4), (0, 0, 255), 2)
 
             if status == 4:
                 if args['map'] == 'par4' and hit_cnt == 0:  # 파4 첫타일 때, 코너를 골 포인트로 인식
@@ -1202,7 +1202,7 @@ if __name__ == '__main__':
                                 delay = 0
                                 
                             else:                               # hole이 near_ball과 같은 선상
-                                limits = [ball_at_hit_point_left_limit, ball_at_hit_point_right_limit, ball_at_hit_point_upper_limit, ball_at_hit_point_lower_limit]
+                                limits = [ball_at_hit_point_left_limit_par4, ball_at_hit_point_right_limit_par4, ball_at_hit_point_upper_limit_par4, ball_at_hit_point_lower_limit_par4]
                                 TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)    # step
                                 delay = 3
                                 if TX_num == 0:
