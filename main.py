@@ -596,7 +596,7 @@ def corner_detecting(frame, maskf, maskb):
     orb = cv2.ORB_create()
     keypoints = orb.detect(maskf, None)
 
-    for idx, kp in enumerate(keypoints):
+    for idx, kp in enumerate(keypoints): 
         x, y = int(kp.pt[0]), int(kp.pt[1])
         roif = maskf[y - roi_num:y + roi_num + 1, x - roi_num:x + roi_num + 1]
         roib = maskb[y - roi_num:y + roi_num + 1, x - roi_num:x + roi_num + 1]  # 테두리
@@ -838,7 +838,7 @@ if __name__ == '__main__':
     ball_at_hit_point_upper_limit = int(H_View_size / 2 - ball_at_hit_point_range / 2 - 30)
     ball_at_hit_point_lower_limit = int(H_View_size / 2 + ball_at_hit_point_range / 2 - 30)
 
-    ball_at_hit_point_range_par4 = 70
+    ball_at_hit_point_range_par4 = 80
     ball_at_hit_point_left_limit_par4 = int(W_View_size / 2 - ball_at_hit_point_range / 2 + 80)
     ball_at_hit_point_right_limit_par4 = int(W_View_size / 2 + ball_at_hit_point_range / 2 + 80)
     ball_at_hit_point_upper_limit_par4 = int(H_View_size / 2 - ball_at_hit_point_range / 2 - 30)
@@ -1045,7 +1045,10 @@ if __name__ == '__main__':
 
             if status == 5:
                 # 공이 타격 포인트가 되도록 하는 범위 표시
-                cv2.rectangle(frame, (ball_at_hit_point_left_limit, ball_at_hit_point_upper_limit), (ball_at_hit_point_right_limit, ball_at_hit_point_lower_limit), (255, 255, 255), 2)
+                if args['map'] == 'par4' and hit_cnt == 0:
+                    cv2.rectangle(frame, (ball_at_hit_point_left_limit_par4, ball_at_hit_point_upper_limit_par4), (ball_at_hit_point_right_limit_par4, ball_at_hit_point_lower_limit_par4), (255, 255, 255), 2)
+                else:
+                    cv2.rectangle(frame, (ball_at_hit_point_left_limit, ball_at_hit_point_upper_limit), (ball_at_hit_point_right_limit, ball_at_hit_point_lower_limit), (255, 255, 255), 2)
 
             if status == 6:
                 # hole distance 표시
@@ -1371,6 +1374,7 @@ if __name__ == '__main__':
             # cv2.imshow('Mask3: light_green_field', mask3)
             # cv2.imshow('Mask4: dark_green_boundary', mask4)
             # cv2.imshow('Mask5: yellow_near_hole', mask5)
+            # cv2.imshow('Mask6: light_green_field_for_ball', mask6)
 
 
         key = 0xFF & cv2.waitKey(1)
