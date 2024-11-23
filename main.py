@@ -895,7 +895,7 @@ if __name__ == '__main__':
 
     head_angle = (0, -30)
 
-    after_hit_move_cnt = 10
+    after_hit_move = 10
 
     TX_num = motion_dict[head_angle]
 
@@ -1174,7 +1174,7 @@ if __name__ == '__main__':
                                 TX_num = 9          # TX9: 오른쪽턴20_골프
                             else:                   # hit right
                                 TX_num = 7          # TX7: 왼쪽턴20_골프
-                            delay = 3
+                            delay = 4
                         if goal_point_detected and TX_num in [9, 7, 14, 13]:
                             status = 4
                             TX_num = 0
@@ -1278,6 +1278,7 @@ if __name__ == '__main__':
                             TX_num = 0
                             delay = 5
                             if far_shot:
+                                after_hit_move_cnt = after_hit_move
                                 status = 61
                             else:
                                 status = 7
