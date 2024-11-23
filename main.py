@@ -425,9 +425,8 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
     # blurred_image = cv2.GaussianBlur(mask, (5, 5), 0)
 
     # Morph Close
-    kernel = np.ones((20, 20), np.uint8)    # kernel = np.ones((10, 10), np.uint8)
+    kernel = np.ones((40, 100), np.uint8)    # kernel = np.ones((20, 20), np.uint8)
     closing = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)   # kenel 크기의 작은 구멍을 메움 / 2cm 폴대 무시하도록 kernel 키움
-
 
     # 일정 크기 이상인 노란색 면적의 윤곽선 반환
     contours, _ = cv2.findContours(closing.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -1159,27 +1158,26 @@ if __name__ == '__main__':
                         if not near_hole_detected:
                             status = 2
                         else:
-                            if cy_near_hole < cy_ball - 20:      # hole이 더 위에
-                                if hit_direction == 0:
-                                    TX_num = 3
+                            if cy_near_hole < cy_ball - 20:     # hole이 near_ball보다 위
+                                if hit_direction == 0:          
+                                    TX_num = 3                  # TX3:오른쪽턴5_골프
                                 else:
-                                    TX_num = 1
+                                    TX_num = 1                  # TX1:왼쪽턴5_골프
                                 delay = 1
-                            elif cy_near_hole > cy_ball + 20:    # hole이 더 아래에
+                            elif cy_near_hole > cy_ball + 20:    # hole이 near_ball보다 아래
                                 if hit_direction == 0:
-                                    TX_num = 1
+                                    TX_num = 1                  # TX1:왼쪽턴5_골프
                                 else:
-                                    TX_num = 3
+                                    TX_num = 3                  # TX3:오른쪽턴5_골프
                                 delay = 1
                                 
-                            else:
+                            else:                               # hole이 near_ball과 같은 선상
                                 limits = [ball_at_hit_point_left_limit, ball_at_hit_point_right_limit, ball_at_hit_point_upper_limit, ball_at_hit_point_lower_limit]
                                 TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)    # step
                                 delay = 3
                                 if TX_num == 0:
                                     status = 6
                     
-
                     elif status == 4:       # 4: Hole at hit point
                         if TX_num == 0:
                             if far_shot:
