@@ -889,6 +889,8 @@ if __name__ == '__main__':
 
     head_angle = (0, -30)
 
+    after_hit_move_cnt = 10
+
     TX_num = motion_dict[head_angle]
 
     TX_data(serial_port, TX_num)
@@ -1266,11 +1268,22 @@ if __name__ == '__main__':
                         else:
                             TX_num = 0
                             delay = 5
+                            if far_shot:
+                                status = 61
+                            else:
+                                status = 7
+
+                    elif status == 61:      # Dash Toward Ball
+                        if after_hit_move_cnt > 0:
+                            TX_num = 14
+                            after_hit_move_cnt -= 1
+                        else:
                             status = 7
+                            TX_num = 0
+                            delay = 5
 
                     elif status == 7:       # 7: Tracking Ball
                         if TX_num == 0:
-                            hit_cnt += 1
                             if far_shot:
                                 head_angle_x = 90 if hit_direction == 0 else -90
                                 head_angle = (head_angle_x, -15)
@@ -1285,9 +1298,9 @@ if __name__ == '__main__':
                                 TX_data(serial_port, 23)
                                 break
                             # ball in hole
-                            elif far_shot and not ball_detected:
-                                TX_data(serial_port, 23)
-                                break
+                            # elif far_shot and not ball_detected:
+                            #     TX_data(serial_port, 23)
+                            #     break
                             elif ball_detected:
                                 delay = 5
                                 TX_num = 0
@@ -1299,6 +1312,7 @@ if __name__ == '__main__':
                                     head_angle = (head_angle_x, head_angle[1] - 15) # -0도 -> -15도 -> 30도 -> -45도 -> -60도 -> -0도
                                 TX_num = motion_dict[head_angle]
                                 delay = 5
+
 
                     print("TX_num: {}".format(TX_num))
                     TX_data(serial_port, TX_num)
