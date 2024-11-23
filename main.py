@@ -589,7 +589,7 @@ def corner_detecting(frame, maskf, maskb):
     roi_num = 30  # 주변 영역 크기
     f_thr = 185  # 코너 주변 필드 비율 임계값
     b_thr = 30  # 코너 주변 테두리 비율 임계값
-    g_from_c = 200 # 목표점 x좌표를 위한 오프셋
+    g_from_c = 170 # 목표점 x좌표를 위한 오프셋
     goal_point_x = 0 # 목표점의 x좌표
 
     # ORB 설정
@@ -895,7 +895,10 @@ if __name__ == '__main__':
 
     head_angle = (0, -30)
 
-    after_hit_move = 12
+    after_hit_move1 = 15
+    after_hit_move2 = 20
+
+    hit_strength = 0
 
     TX_num = motion_dict[head_angle]
 
@@ -1271,8 +1274,10 @@ if __name__ == '__main__':
                                     TX_num = 35     # TX35: 골프_왼쪽으로_샷3
                                 elif hole_distance > 200:
                                     TX_num = 2      # TX2: 골프_왼쪽으로_샷1
+                                    hit_strength = 2
                                 elif hole_distance > 130:
-                                    TX_num = 34     # TX34: 골프_왼쪽으로_샷2 
+                                    TX_num = 34     # TX34: 골프_왼쪽으로_샷2
+                                    hit_strength = 1 
                                 else:
                                     TX_num = 35     # TX35: 골프_왼쪽으로_샷3
                             else:
@@ -1282,7 +1287,10 @@ if __name__ == '__main__':
                             TX_num = 0
                             delay = 5
                             if far_shot:
-                                after_hit_move_cnt = after_hit_move
+                                if hit_strength == 1:
+                                    after_hit_move_cnt = after_hit_move1
+                                if hit_strength == 2:
+                                    after_hit_move_cnt = after_hit_move2
                                 status = 61
                             else:
                                 status = 7
