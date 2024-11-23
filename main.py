@@ -587,7 +587,7 @@ def corner_detecting(frame, maskf, maskb):
     corner_detected = False
     cx, cy = 0, 0
     max_mean_roif = 0
-    roi_num = 30  # 주변 영역 크기
+    roi_num = 20  # 주변 영역 크기
     f_thr = 160  # 코너 주변 필드 비율 임계값
     b_thr = 30  # 코너 주변 테두리 비율 임계값
     g_from_c = 200 # 목표점 x좌표를 위한 오프셋
@@ -602,9 +602,10 @@ def corner_detecting(frame, maskf, maskb):
         roif = maskf[y - roi_num:y + roi_num + 1, x - roi_num:x + roi_num + 1]
         roib = maskb[y - roi_num:y + roi_num + 1, x - roi_num:x + roi_num + 1]  # 테두리
         mean_roif = np.mean(roif)
+        mean_roib = np.mean(roib)
 
         
-        if mean_roif > f_thr and mean_roif > b_thr:  # 주변 필드, 테두리 비율이 임계값 이상인 경우
+        if mean_roif > f_thr and mean_roib > b_thr:  # 주변 필드, 테두리 비율이 임계값 이상인 경우
             if mean_roif > max_mean_roif:  # 가장 주변 흰색 비율이 큰 점 선택
                 max_mean_roif = mean_roif
                 cx, cy = x, y
@@ -879,7 +880,7 @@ if __name__ == '__main__':
 
     delay = 0
 
-    only_video = False
+    only_video = True
 
     hit_cnt = 1
 
@@ -916,7 +917,7 @@ if __name__ == '__main__':
         mask2 = cv2.inRange(hsv, (h_min[2], s_min[2], v_min[2]), (h_max[2], s_max[2], v_max[2]))
 
         mask3 = cv2.inRange(hsv, (h_min[3], s_min[3], v_min[3]), (h_max[3], s_max[3], v_max[3]))
-        kernel = np.ones((15, 15), np.uint8)
+        kernel = np.ones((7, 7), np.uint8)
         mask3 = cv2.morphologyEx(mask3, cv2.MORPH_OPEN, kernel)
         mask3 = cv2.morphologyEx(mask3, cv2.MORPH_CLOSE, kernel)
 
@@ -1331,6 +1332,7 @@ if __name__ == '__main__':
             #----------------------------------------------
             
             cv2.imshow('mini CTS5 - Video', frame )
+<<<<<<< Updated upstream
             cv2.imshow('mini CTS5 - Mask', mask)
             cv2.imshow('mini CTS5 - Mask0', mask0)
             cv2.imshow('mini CTS5 - Mask1', mask1)
@@ -1338,6 +1340,15 @@ if __name__ == '__main__':
             cv2.imshow('mini CTS5 - Mask3', mask3)
             cv2.imshow('mini CTS5 - Mask4', mask4)
             cv2.imshow('mini CTS5 - Mask5', mask5)
+=======
+            # cv2.imshow('mini CTS5 - Mask', mask)
+            # cv2.imshow('Mask0: pink_ball', mask0)
+            # cv2.imshow('Mask1: yellow_outer_hole', mask1)
+            # cv2.imshow('Mask2: black_inner_hole', mask2)
+            cv2.imshow('Mask3: light_green_field', mask3)
+            cv2.imshow('Mask4: dark_green_boundary', mask4)
+            # cv2.imshow('Mask5: yellow_near_hole', mask5)
+>>>>>>> Stashed changes
 
 
         key = 0xFF & cv2.waitKey(1)
