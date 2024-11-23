@@ -1162,13 +1162,13 @@ if __name__ == '__main__':
                                 TX_num = 14         # TX14: 왼쪽옆으로70연속_골프
                             else:                   # hit right
                                 TX_num = 13         # TX13:오른쪽옆으로70연속_골프
-                            delay = 2
+                            delay = 1
                         elif TX_num in [14, 13]: 
                             if hit_direction == 0:  # hit left
                                 TX_num = 9          # TX9: 오른쪽턴20_골프
                             else:                   # hit right
                                 TX_num = 7          # TX7: 왼쪽턴20_골프
-                            delay = 2
+                            delay = 3
                         if goal_point_detected and TX_num in [9, 7, 14, 13]:
                             status = 4
                             TX_num = 0
