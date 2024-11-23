@@ -63,17 +63,17 @@ hsv_Upper1 = 0
 # min_area =  [  3, 30, 50, 10, 10, 50]
 #----------- 
 # mask_list at 하늘 테라스, 18시
-color_num = [  0,  1,  2,  3,  4,  5]
-h_max =     [150,189,100,152, 75,190]
-h_min =     [  0,145,  0, 50, 28,142]
+color_num = [  0,  1,  2,  3,  4,  5, 6]
+h_max =     [150,189,100,152, 75,190, 152]
+h_min =     [  0,145,  0, 50, 28,142, 50]
 
-s_max =     [180, 59,138, 98,140, 73]
-s_min =     [ 90, 38, 56, 46, 94, 33]
+s_max =     [180, 59,138, 98,140, 73, 98]
+s_min =     [ 90, 38, 56, 46, 94, 33, 46]
     
-v_max =     [255,244,181,158,144,255]
-v_min =     [177,  0, 53, 70,  0,  0]
+v_max =     [255,244,181,158,144,255, 158]
+v_min =     [177,  0, 53, 70,  0,  0, 70]
     
-min_area =  [  3, 30, 50, 10, 10, 50]
+min_area =  [  3, 30, 50, 10, 10, 50, 50]
 #----------- 
 # # mask_list at 하늘 테라스, 13시
 # color_num = [  0,  1,  2,  3,  4, 5]
@@ -740,7 +740,7 @@ if __name__ == '__main__':
     cv2.createTrackbar('Vmax', Top_name, v_max[now_color], 255, Vmax_change)
     cv2.createTrackbar('Vmin', Top_name, v_min[now_color], 255, Vmin_change)
     cv2.createTrackbar('Min_Area', Top_name, min_area[now_color], 255, min_area_change)
-    cv2.createTrackbar('Color_num', Top_name,color_num[now_color], 5, Color_num_change)
+    cv2.createTrackbar('Color_num', Top_name,color_num[now_color], 6, Color_num_change)
 
     Trackbar_change(now_color)
 
@@ -926,6 +926,11 @@ if __name__ == '__main__':
         mask4 = cv2.morphologyEx(mask4, cv2.MORPH_CLOSE, kernel)
 
         mask5 = cv2.inRange(hsv, (h_min[5], s_min[5], v_min[5]), (h_max[5], s_max[5], v_max[5]))
+
+        mask6 = cv2.inRange(hsv, (h_min[6], s_min[6], v_min[6]), (h_max[6], s_max[6], v_max[6]))
+        kernel = np.ones((15, 15), np.uint8)
+        mask6 = cv2.morphologyEx(mask6, cv2.MORPH_OPEN, kernel)
+        mask6 = cv2.morphologyEx(mask6, cv2.MORPH_CLOSE, kernel)
         
         #mask = cv2.erode(mask, None, iterations=1)
         #mask = cv2.dilate(mask, None, iterations=1)
@@ -963,7 +968,7 @@ if __name__ == '__main__':
         # 241012
         cv2.imshow('Hole Detection with Pole Ignoring', closing)
 
-        X_Size, Y_Size, X_255_point, Y_255_point, cx_ball, cy_ball, ball_detected, Area, Angle = ball_detecting(mask0, mask3)
+        X_Size, Y_Size, X_255_point, Y_255_point, cx_ball, cy_ball, ball_detected, Area, Angle = ball_detecting(mask0, mask6)
 
         # border_before_hole_detected = border_before_hole_detecting(frame, mask3, cx_hole, cy_hole, W_View_size, H_View_size, 400, 10)
 
