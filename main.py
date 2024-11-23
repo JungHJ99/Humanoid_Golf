@@ -587,7 +587,7 @@ def corner_detecting(frame, maskf, maskb):
     cx, cy = 0, 0
     max_mean_roif = 0
     roi_num = 20  # 주변 영역 크기
-    f_thr = 160  # 코너 주변 필드 비율 임계값
+    f_thr = 170  # 코너 주변 필드 비율 임계값
     b_thr = 30  # 코너 주변 테두리 비율 임계값
     g_from_c = 200 # 목표점 x좌표를 위한 오프셋
     goal_point_x = 0 # 목표점의 x좌표
@@ -881,7 +881,7 @@ if __name__ == '__main__':
 
     only_video = False
 
-    hit_cnt = 1
+    hit_cnt = 0
 
     status_0_turn_cnt = 0
 
@@ -916,7 +916,7 @@ if __name__ == '__main__':
         mask2 = cv2.inRange(hsv, (h_min[2], s_min[2], v_min[2]), (h_max[2], s_max[2], v_max[2]))
 
         mask3 = cv2.inRange(hsv, (h_min[3], s_min[3], v_min[3]), (h_max[3], s_max[3], v_max[3]))
-        kernel = np.ones((7, 7), np.uint8)
+        kernel = np.ones((15, 15), np.uint8)
         mask3 = cv2.morphologyEx(mask3, cv2.MORPH_OPEN, kernel)
         mask3 = cv2.morphologyEx(mask3, cv2.MORPH_CLOSE, kernel)
 
@@ -947,7 +947,7 @@ if __name__ == '__main__':
         near_hole_detected, (cx_near_hole, cy_near_hole) = near_hole_detecting(frame, mask5, hsv, min_area_near_hole, max_area_near_hole)
         corner_detected, (cx_corner, cy_corner), par4_goal_x = corner_detecting(frame, mask3, mask4)
 
-        far_shot = hit_cnt == 0 or args['map'] == 'par4' and hit_cnt <= 1
+        far_shot = hit_cnt == 0 or (args['map'] == 'par4' and hit_cnt <= 1)
 
 
         # 공을 보내야하는 포인트 지정
@@ -1199,6 +1199,7 @@ if __name__ == '__main__':
                             delay = 5
                         else:
                             if not goal_point_detected:
+                                status = 3
                                 TX_num = 0
                             elif cx_goal_point <= tuned_left_limit:         # hole is at the left side
                                 TX_num = 1                                  # TX1: 왼쪽턴5_골프
@@ -1260,6 +1261,7 @@ if __name__ == '__main__':
 
                     elif status == 7:       # 7: Tracking Ball
                         if TX_num == 0:
+                            hit_cnt += 1
                             if far_shot:
                                 head_angle_x = 90 if hit_direction == 0 else -90
                                 head_angle = (head_angle_x, -15)
@@ -1288,7 +1290,6 @@ if __name__ == '__main__':
                                     head_angle = (head_angle_x, head_angle[1] - 15) # -0도 -> -15도 -> 30도 -> -45도 -> -60도 -> -0도
                                 TX_num = motion_dict[head_angle]
                                 delay = 5
-                        hit_cnt += 1
 
                     print("TX_num: {}".format(TX_num))
                     TX_data(serial_port, TX_num)
