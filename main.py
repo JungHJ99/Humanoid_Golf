@@ -392,9 +392,9 @@ def hsv_setting_read():
     #    print("hsv_setting_read Error~")
     #    return 0
 
-def ball_detecting(maskb, maskf):
+def ball_detecting(mask):
 
-    cnts = cv2.findContours(maskb.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
 
     # initialize parameter
 
@@ -407,45 +407,30 @@ def ball_detecting(maskb, maskf):
     ball_detected = False
     Area = 0
     Angle = 0
-    roi_num = 30  # 주변 영역 크기
-    f_thr = 10
-    max_field_px = 0
-    min_area_ball = 3
-    x = 0
-    y = 0
-    w = 0
-    h = 0
 
     if len(cnts) > 0:
-        for cnt in cnts:
-            x4, y4, w4, h4 = cv2.boundingRect(cnt)
+        c = max(cnts, key=cv2.contourArea)
+        ((X, Y), radius) = cv2.minEnclosingCircle(c)
 
-            cx = int(x4 + w4 / 2)
-            cy = int(y4 + h4 / 2)
+        Area = cv2.contourArea(c) / min_area[0]
+
+        if Area > 255:
+            Area = 255
+
+        if Area > min_area[0]:
+            x4, y4, w4, h4 = cv2.boundingRect(c)
+            cv2.rectangle(frame, (x4, y4), (x4 + w4, y4 + h4), (0, 255, 0), 2)
             
-            y1, y2 = max(0, y4 - roi_num), min(H_View_size, y4 + roi_num + 1)
-            x1, x2 = max(0, cx - roi_num), min(W_View_size, cx + roi_num + 1)
-            roib = maskf[y1:y2, x1:x2] # 주변의 필드 픽셀
-            mean_roib = np.mean(roib)
+            X_Size = int((255.0 / W_View_size) * w4)
+            Y_Size = int((255.0 / H_View_size) * h4)
+            X_255_point = int((255.0 / W_View_size) * X)
+            Y_255_point = int((255.0 / H_View_size) * Y)
+            cx_ball = x4 + w4 / 2
+            cy_ball = y4 + h4 / 2
+            ball_detected = True
 
-            if mean_roib > f_thr and mean_roib > max_field_px and w4 * h4 > min_area_ball:
-
-                X_Size = int((255.0 / W_View_size) * w4)
-                Y_Size = int((255.0 / H_View_size) * h4)
-                X_255_point = int((255.0 / W_View_size) * 1)
-                Y_255_point = int((255.0 / H_View_size) * 1)
-                cx_ball = cx
-                cy_ball = cy
-                x = x4
-                y = y4
-                w = w4
-                h = h4
-                ball_detected = True
-                
-                max_field_px = mean_roib
-
-        if ball_detected:
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        else:
+            ball_detected = False
             
     else:
         X_255_point = 0
@@ -965,19 +950,19 @@ if __name__ == '__main__':
         mask1 = cv2.inRange(hsv, (h_min[1], s_min[1], v_min[1]), (h_max[1], s_max[1], v_max[1]))
         mask2 = cv2.inRange(hsv, (h_min[2], s_min[2], v_min[2]), (h_max[2], s_max[2], v_max[2]))
 
-        mask3 = cv2.inRange(hsv, (h_min[3], s_min[3], v_min[3]), (h_max[3], s_max[3], v_max[3]))
-        kernel = np.ones((15, 15), np.uint8)
-        mask3 = cv2.morphologyEx(mask3, cv2.MORPH_CLOSE, kernel)
+        # mask3 = cv2.inRange(hsv, (h_min[3], s_min[3], v_min[3]), (h_max[3], s_max[3], v_max[3]))
+        # kernel = np.ones((15, 15), np.uint8)
+        # mask3 = cv2.morphologyEx(mask3, cv2.MORPH_CLOSE, kernel)
 
-        mask4 = cv2.inRange(hsv, (h_min[4], s_min[4], v_min[4]), (h_max[4], s_max[4], v_max[4]))
-        kernel = np.ones((3, 3), np.uint8)
-        mask4 = cv2.morphologyEx(mask4, cv2.MORPH_CLOSE, kernel)
+        # mask4 = cv2.inRange(hsv, (h_min[4], s_min[4], v_min[4]), (h_max[4], s_max[4], v_max[4]))
+        # kernel = np.ones((3, 3), np.uint8)
+        # mask4 = cv2.morphologyEx(mask4, cv2.MORPH_CLOSE, kernel)
 
         mask5 = cv2.inRange(hsv, (h_min[5], s_min[5], v_min[5]), (h_max[5], s_max[5], v_max[5]))
 
-        mask6 = cv2.inRange(hsv, (h_min[6], s_min[6], v_min[6]), (h_max[6], s_max[6], v_max[6]))
-        kernel = np.ones((15, 15), np.uint8)
-        mask6 = cv2.morphologyEx(mask6, cv2.MORPH_CLOSE, kernel)
+        # mask6 = cv2.inRange(hsv, (h_min[6], s_min[6], v_min[6]), (h_max[6], s_max[6], v_max[6]))
+        # kernel = np.ones((15, 15), np.uint8)
+        # mask6 = cv2.morphologyEx(mask6, cv2.MORPH_CLOSE, kernel)
         
         #mask = cv2.erode(mask, None, iterations=1)
         #mask = cv2.dilate(mask, None, iterations=1)
@@ -997,7 +982,7 @@ if __name__ == '__main__':
         
         hole_detected, hole_area, hole_width, hole_height, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
         near_hole_detected, (cx_near_hole, cy_near_hole) = near_hole_detecting(frame, mask5, hsv, min_area_near_hole, max_area_near_hole)
-        corner_detected, (cx_corner, cy_corner), par4_goal_x = corner_detecting(frame, mask3, mask4)
+        # corner_detected, (cx_corner, cy_corner), par4_goal_x = corner_detecting(frame, mask3, mask4)
 
         far_shot = hit_cnt == 0 or (args['map'] == 'par4' and hit_cnt <= 1)
 
@@ -1015,7 +1000,7 @@ if __name__ == '__main__':
         # 241012
         cv2.imshow('Hole Detection with Pole Ignoring', closing)
 
-        X_Size, Y_Size, X_255_point, Y_255_point, cx_ball, cy_ball, ball_detected, Area, Angle = ball_detecting(mask0, mask6)
+        X_Size, Y_Size, X_255_point, Y_255_point, cx_ball, cy_ball, ball_detected, Area, Angle = ball_detecting(mask0)
 
         # border_before_hole_detected = border_before_hole_detecting(frame, mask3, cx_hole, cy_hole, W_View_size, H_View_size, 400, 10)
 
