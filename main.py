@@ -1166,9 +1166,9 @@ if __name__ == '__main__':
                     if duration_time >= 290:
                         if end_cnt == 0:
                             if hit_direction == 0:
-                                TX_num = 35     # TX35: 골프_왼쪽으로_샷3
+                                TX_data(serial, 35)     # TX35: 골프_왼쪽으로_샷3
                             else:
-                                TX_num = 5      # TX5: 골프_오른쪽으로_샷1
+                                TX_data(serial, 5)      # TX5: 골프_오른쪽으로_샷1
                             delay = 5
                             end_cnt =+ 1
                         elif end_cnt == 1:
@@ -1185,7 +1185,6 @@ if __name__ == '__main__':
                         status = 0
 
                     delay = 0.5 # default delay
-
                     if current_time >= delay_until:
                         is_delay = False
 
@@ -1425,7 +1424,7 @@ if __name__ == '__main__':
 
                         elif status == 61:      # Dash Toward Ball
                             if after_hit_move_cnt > 0:
-                                TX_num = 14
+                                TX_num = 14     # TX14: 왼쪽옆으로70연속_골프
                                 after_hit_move_cnt -= 1
                             else:
                                 status = 7
