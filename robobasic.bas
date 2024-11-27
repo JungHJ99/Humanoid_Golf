@@ -2340,7 +2340,7 @@ MAIN_2:
 
     GOSUB 앞뒤기울기측정
     GOSUB 좌우기울기측정
-    GOSUB 적외선거리센서확인
+    ' GOSUB 적외선거리센서확인
 
 
     ERX 4800,A,MAIN_2	
