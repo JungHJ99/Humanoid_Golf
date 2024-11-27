@@ -105,11 +105,12 @@ color_cnt = 7
     
 # min_area =  [  3, 30, 50, 10, 10, 50]
 #-----------# 
-# 0 -> 핑크 볼 
-# 1 -> 노랑 홀
-# 2 -> 검정 홀
-# 5 -> 노랑 니어홀
-# 7 -> 회색 벙커
+# 0 -> pink_ball
+# 1 -> yellow_outer_hole
+# 2 -> black_inner_hole
+# 5 -> yellow_near_hole
+# 7 -> gray_bunker
+
 color_num = [   0,  1,  2,  3,  4,  5,  6, 7]
 h_max =     [247, 244, 108, 195, 83, 255, 212, 212]
 h_min =     [107, 124, 32, 139, 26, 199, 76, 76]
@@ -543,9 +544,14 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
                 contour_area <= max_area and            # 윤곽선의 면적이 최대 면적 이하
                 circularity >= min_circularity and      # 윤곽선의 원형도가 최소 원형도 이상
                 aspect_ratio <= max_aspect_ratio and    # 윤곽선의 종횡비가 최대 종횡비 이하
-                h_min[2] <= h_mean <= h_max[2] and      # 윤곽선 중심의 hue 값이 검정색 범위 이내 / frame 기준이므로 closing 영향 X
-                s_min[2] <= s_mean <= s_max[2] and      # 윤곽선 중심의 saturation 값이 검정색 범위 이내 / frame 기준이므로 closing 영향 X
-                v_min[2] <= v_mean <= v_max[2]):        # 윤곽선 중심의 value 값이 검정색 범위 이내 / frame 기준이므로 closing 영향 X
+
+                (h_min[2] <= h_mean <= h_max[2] and     # 윤곽선 중심의 hue 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
+                s_min[2] <= s_mean <= s_max[2] and      # 윤곽선 중심의 saturation 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
+                v_min[2] <= v_mean <= v_max[2]) or      # 윤곽선 중심의 value 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
+
+                (h_min[0] <= h_mean <= h_max[0] and     # 윤곽선 중심의 hue 값이 pink_ball 범위 이내 / frame 기준이므로 closing 영향 X
+                s_min[0] <= s_mean <= s_max[0] and      # 윤곽선 중심의 saturation 값이 pink_ball 범위 이내 / frame 기준이므로 closing 영향 X
+                v_min[0] <= v_mean <= v_max[0])):       # 윤곽선 중심의 value 값이 pink_ball 범위 이내 / frame 기준이므로 closing 영향 X
 
                 # 가장 큰 원(=홀) 찾기
                 if contour_area > largest_area:
@@ -636,8 +642,8 @@ def corner_detecting(frame, maskf, maskb):
         mean_roib = np.mean(roib)
 
         
-        if mean_roif > f_thr and mean_roib > b_thr:  # 주변 필드, 테두리 비율이 임계값 이상인 경우
-            if mean_roif > max_mean_roif:  # 가장 주변 흰색 비율이 큰 점 선택
+        if mean_roif > f_thr and mean_roib > b_thr:     # 주변 필드, 테두리 비율이 임계값 이상인 경우
+            if mean_roif > max_mean_roif:               # 가장 주변 흰색 비율이 큰 점 선택
                 max_mean_roif = mean_roif
                 cx, cy = x, y
                 corner_detected = True
@@ -963,6 +969,8 @@ if __name__ == '__main__':
 
     status_0_turn_cnt = 0
 
+    end_cnt = 0
+
     hit_direction = 0  # 0: left, 1: right
 
     head_angle = (90, -15)
@@ -1156,15 +1164,14 @@ if __name__ == '__main__':
 
                     # 4분 50초 지나면 approach_shot 후 ceremony (1순위)
                     if duration_time >= 290:
-                        end_cnt = 1
-                        if end_cnt == 1:
+                        if end_cnt == 0:
                             if hit_direction == 0:
                                 TX_num = 35     # TX35: 골프_왼쪽으로_샷3
                             else:
                                 TX_num = 5      # TX5: 골프_오른쪽으로_샷1
                             delay = 5
-                            enc_cnt =+ -1
-                        elif end_cnt == 0:
+                            end_cnt =+ 1
+                        elif end_cnt == 1:
                             TX_data(serial_port, 23)    # TX23: 앉았다일어나기
                             break
 
