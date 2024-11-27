@@ -43,6 +43,8 @@ hsv_Upper0 = 0
 hsv_Lower1 = 0
 hsv_Upper1 = 0
 
+color_cnt = 7
+
 #----------- 
 # Mask0: pink_ball
 # Mask1: yellow_outer_hole
@@ -102,15 +104,20 @@ hsv_Upper1 = 0
 # v_min =     [ 180, 0,100, 70, 67, 140]
     
 # min_area =  [  3, 30, 50, 10, 10, 50]
-#-----------
-color_num = [   0,  1,  2,  3,  4, 5,  6]
-h_max =     [247, 244, 108, 195, 83, 255, 212]
-h_min =     [107, 124, 32, 139, 26, 199, 76]
-s_max =     [158, 89, 155, 122, 140, 91, 141]
-s_min =     [110, 39, 66, 57, 110, 33, 46]
-v_max =     [255, 184, 155, 126, 112, 170, 111]
-v_min =     [151, 90, 182, 52, 0, 120, 47]
-min_area =  [3, 20, 50, 11, 10, 50, 50]
+#-----------# 
+# 0 -> 핑크 볼 
+# 1 -> 노랑 홀
+# 2 -> 검정 홀
+# 5 -> 노랑 니어홀
+# 7 -> 회색 벙커
+color_num = [   0,  1,  2,  3,  4,  5,  6, 7]
+h_max =     [247, 244, 108, 195, 83, 255, 212, 212]
+h_min =     [107, 124, 32, 139, 26, 199, 76, 76]
+s_max =     [158, 89, 155, 122, 140, 91, 141, 141]
+s_min =     [110, 39, 66, 57, 110, 33, 46, 46]
+v_max =     [255, 184, 155, 126, 112, 170, 111, 111]
+v_min =     [151, 90, 182, 52, 0, 120, 47, 47]
+min_area =  [3, 20, 50, 11, 10, 50, 50, 20]
 #----------- 
 # mask_list at 병서네 헬스장
 # 0,150,0,180,90,255,177,3
@@ -129,6 +136,8 @@ min_area =  [3, 20, 50, 11, 10, 50, 50]
 # 4,83,26,140,110,112,0,10
 # 5,255,169,91,33,170,120,50
 # 6,212,76,141,46,111,47,50
+# 7,201,164,127,74,145,112,41
+
 # par4
 # 0,247,107,158,110,255,151,3
 # 1,244,124,89,39,184,90,20
@@ -137,6 +146,8 @@ min_area =  [3, 20, 50, 11, 10, 50, 50]
 # 4,83,26,140,110,112,0,10
 # 5,255,169,91,33,170,120,50
 # 6,212,76,141,46,111,47,50
+# 7,201,164,127,74,145,112,41
+
 
 
 now_color = 0
@@ -795,7 +806,7 @@ if __name__ == '__main__':
     cv2.createTrackbar('Vmax', Top_name, v_max[now_color], 255, Vmax_change)
     cv2.createTrackbar('Vmin', Top_name, v_min[now_color], 255, Vmin_change)
     cv2.createTrackbar('Min_Area', Top_name, min_area[now_color], 255, min_area_change)
-    cv2.createTrackbar('Color_num', Top_name,color_num[now_color], 6, Color_num_change)
+    cv2.createTrackbar('Color_num', Top_name,color_num[now_color], color_cnt, Color_num_change)
 
     Trackbar_change(now_color)
 
@@ -996,6 +1007,8 @@ if __name__ == '__main__':
         # mask6 = cv2.inRange(hsv, (h_min[6], s_min[6], v_min[6]), (h_max[6], s_max[6], v_max[6]))
         # kernel = np.ones((15, 15), np.uint8)
         # mask6 = cv2.morphologyEx(mask6, cv2.MORPH_CLOSE, kernel)
+
+        mask7 = cv2.inRange(hsv, (h_min[7], s_min[7], v_min[7]), (h_max[7], s_max[7], v_max[7]))
         
         #mask = cv2.erode(mask, None, iterations=1)
         #mask = cv2.dilate(mask, None, iterations=1)
@@ -1455,6 +1468,7 @@ if __name__ == '__main__':
             # cv2.imshow('Mask4: dark_green_boundary', mask4)
             # cv2.imshow('Mask5: yellow_near_hole', mask5)
             # cv2.imshow('Mask6: light_green_field_for_ball', mask6)
+            cv2.imshow('Mask7: grey_bynker', mask7)
 
 
         key = 0xFF & cv2.waitKey(1)
