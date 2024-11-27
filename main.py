@@ -1161,7 +1161,7 @@ if __name__ == '__main__':
                 else:
 
                     # 4분 50초 지나면 approach_shot 후 ceremony (1순위)
-                    if duration_time >= 5:
+                    if duration_time >= 290:
                         if hit_direction == 0:
                             TX_data(serial_port, 35)     # TX35: 골프_왼쪽으로_샷3
                         else:
@@ -1179,7 +1179,7 @@ if __name__ == '__main__':
                     elif not ball_detected and status <= 1:
                         status = 0
 
-                    delay = 0.5 # default delay
+                    delay = 0 # default delay
                     if current_time >= delay_until:
                         is_delay = False
 
@@ -1207,10 +1207,10 @@ if __name__ == '__main__':
                                 else:
                                     if hit_direction == 0:  # left hit
                                         TX_num = 22      # TX22: 왼쪽턴45_골프
-                                        # delay = 3
+                                        delay = 0.5
                                     else:   # right hit
                                         TX_num = 24      # TX24: 오른쪽턴45_골프
-                                        # delay = 3
+                                        delay = 0.5
 
                                     status_0_turn_cnt += 1
                                     
@@ -1257,7 +1257,7 @@ if __name__ == '__main__':
                                 else:
                                     limits = [ball_at_center_left_limit, ball_at_center_right_limit, ball_at_center_upper_limit, ball_at_center_lower_limit]
                                     TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)    # step
-                                    # delay = 3
+                                    delay = 0.5
                                     if TX_num == 0:
                                         if near_hole_detected and not far_shot:
                                             if cx_ball < cx_near_hole:
@@ -1290,13 +1290,13 @@ if __name__ == '__main__':
                                     TX_num = 14         # TX14: 왼쪽옆으로70연속_골프
                                 else:                   # hit right
                                     TX_num = 13         # TX13:오른쪽옆으로70연속_골프
-                                delay = 1
+                                delay = 0.5
                             elif TX_num in [14, 13]: 
                                 if hit_direction == 0:  # hit left
                                     TX_num = 9          # TX9: 오른쪽턴20_골프
                                 else:                   # hit right
                                     TX_num = 7          # TX7: 왼쪽턴20_골프
-                                delay = 1
+                                delay = 0.5
                             if goal_point_detected and TX_num in [9, 7, 14, 13]:
                                 status = 4
                                 TX_num = 0
@@ -1314,13 +1314,13 @@ if __name__ == '__main__':
                                         TX_num = 3                  # TX3:오른쪽턴5_골프
                                     else:
                                         TX_num = 1                  # TX1:왼쪽턴5_골프
-                                    # delay = 0
+                                    delay = 0.5
                                 elif cy_near_hole > cy_ball + 20:    # hole이 near_ball보다 아래
                                     if hit_direction == 0:
                                         TX_num = 1                  # TX1:왼쪽턴5_골프
                                     else:
                                         TX_num = 3                  # TX3:오른쪽턴5_골프
-                                    # delay = 0
+                                    delay = 0.5
                                     
                                 else:                               # hole이 near_ball과 같은 선상
                                     limits = [ball_at_hit_point_left_limit_par4, ball_at_hit_point_right_limit_par4, ball_at_hit_point_upper_limit_par4, ball_at_hit_point_lower_limit_par4]
@@ -1345,11 +1345,11 @@ if __name__ == '__main__':
                                 elif cx_goal_point <= tuned_left_limit:         # hole is at the left side
                                     TX_num = 1                                  # TX1: 왼쪽턴5_골프
                                     ball_success = False
-                                    # delay = 1
+                                    delay = 0.5
                                 elif cx_goal_point >= tuned_right_limit:        # hole is at the right side
                                     TX_num = 3                                  # TX3: 오른쪽턴5_골프
                                     ball_success = False
-                                    # delay = 1
+                                    delay = 0.5
                                 else:
                                     goal_point_success = True
                                     hole_distance = get_hole_distance(hole_width)  # hole 까지의 거리 계산
@@ -1372,7 +1372,7 @@ if __name__ == '__main__':
                                     else:
                                         limits = [ball_at_hit_point_left_limit, ball_at_hit_point_right_limit, ball_at_hit_point_upper_limit, ball_at_hit_point_lower_limit]
                                     TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)  # step
-                                    # delay = 3
+                                    delay = 0.5
                                     if TX_num == 0 and (not goal_point_success or not ball_success):
                                         ball_success = True
                                         status = 4
@@ -1424,7 +1424,7 @@ if __name__ == '__main__':
                             else:
                                 status = 7
                                 TX_num = 0
-                                # delay = 5
+                                delay = 0
 
                         elif status == 7:       # 7: Tracking Ball
                             if TX_num == 0:
