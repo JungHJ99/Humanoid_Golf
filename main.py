@@ -666,7 +666,7 @@ def bunker_detecting(frame, mask, hsv, min_area_bunker, max_area_bunker):
                     largest_cY = int(M["m01"] / M["m00"])
                     bunker_detected = True
 
-    if near_hole_detected:
+    if bunker_detected:
         cv2.drawContours(frame, [largest_contour], -1, (0, 0, 0), 2)
 
     # 가장 큰 컨투어가 있을 경우, 해당 중심 좌표를 반환
@@ -1015,7 +1015,7 @@ if __name__ == '__main__':
         
         hole_detected, hole_area, hole_width, hole_height, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
         near_hole_detected, (cx_near_hole, cy_near_hole) = near_hole_detecting(frame, mask5, hsv, min_area_near_hole, max_area_near_hole)
-        bunker_detected, (cx_bunker, cy_bunker) = near_hole_detecting(frame, mask7, hsv, min_area_bunker, max_area_near_hole)
+        bunker_detected, (cx_bunker, cy_bunker) = bunker_detecting(frame, mask7, hsv, min_area_bunker, max_area_bunker)
         # corner_detected, (cx_corner, cy_corner), par4_goal_x = corner_detecting(frame, mask3, mask4)
 
         far_shot = hit_cnt == 0 or (args['map'] == 'par4' and hit_cnt <= 1)
