@@ -949,6 +949,12 @@ if __name__ == '__main__':
 
     hole_distance = 0
 
+    near_hole_detected = False
+
+    previous_View_select = View_select
+    start_time = None
+    duration_time = 0
+
     delay = 0
     delay_until = 0
     is_delay = False
@@ -1053,6 +1059,16 @@ if __name__ == '__main__':
 
         Frame_time = (clock() - old_time) * 1000.
         old_time = clock()
+
+        # View_select가 0에서 1로 변경된 시점을 start_time 저장
+        if previous_View_select == 0 and View_select == 1:
+            start_time = clock()  
+
+        # duration_time 업데이트
+        if View_select == 1 and start_time is not None:
+            duration_time = clock() - start_time
+        else:
+            duration_time = 0
            
         if View_select == 0:    # Fast operation 
             # print(" " + str(W_View_size) + " x " + str(H_View_size) + " =  %.1f ms" % (Frame_time ))
@@ -1069,8 +1085,8 @@ if __name__ == '__main__':
                 if msg_one_view > 10:
                     msg_one_view = 0                
             
-            draw_str2(frame, (3, 15), 'X: %.1d, Y: %.1d, status: %.1d, hit_cnt: %.1d, hit_direction: %.1d, TX_num: %.1d' 
-                      % (X_255_point, Y_255_point, status, hit_cnt, hit_direction, TX_num))
+            draw_str2(frame, (3, 15), 'duration_time: %.1d, X: %.1d, Y: %.1d, status: %.1d, hit_cnt: %.1d, hit_direction: %.1d, TX_num: %.1d' 
+                      % (duration_time, X_255_point, Y_255_point, status, hit_cnt, hit_direction, TX_num))
             draw_str2(frame, (3, 30), 'ball_detected: %.1d, hole_detected: %.1d, near_hole_detected: %.1d' 
                       % (ball_detected, hole_detected, near_hole_detected))
             draw_str2(frame, (3, 45), 'ball_success: %.1d, goal_point_success: %.1d' 
@@ -1133,24 +1149,43 @@ if __name__ == '__main__':
 
             if not only_video:  # for hsv select
 
-                if not ball_detected and status <= 1:
-                    status = 0
-
-                # ball in hole
-                if ball_detected and hole_detected and cx_hole - hole_width / 2 < cx_ball < cx_hole + hole_width / 2 and cy_hole - hole_height / 2 < cy_ball < cy_hole + hole_height / 2:
-                    TX_data(serial_port, 23)
-                    break
-
                 if not is_delay:
                     if motion_finished():
                         delay_until = current_time + delay
                         is_delay = True
                         TX_data(serial_port, 0)
                     # if delay == 0:
+
                 else:
-                    delay = 0.5
+
+                    # 4분 50초 지나면 approach_shot 후 ceremony (1순위)
+                    if duration_time >= 290:
+                        end_cnt = 1
+                        if end_cnt == 1:
+                            if hit_direction == 0:
+                                TX_num = 35     # TX35: 골프_왼쪽으로_샷3
+                            else:
+                                TX_num = 5      # TX5: 골프_오른쪽으로_샷1
+                            delay = 5
+                            enc_cnt =+ -1
+                        elif end_cnt == 0:
+                            TX_data(serial_port, 23)    # TX23: 앉았다일어나기
+                            break
+
+                    # ball in hole : ceremony (2순위)
+                    elif ball_detected and hole_detected and cx_hole - hole_width / 2 < cx_ball < cx_hole + hole_width / 2 and cy_hole - hole_height / 2 < cy_ball < cy_hole + hole_height / 2:
+                        TX_data(serial_port, 23)    # TX23: 앉았다일어나기
+                        break
+
+                    # 공 잃어버리면 status 0: Finding Ball로 이동 (3순위)
+                    elif not ball_detected and status <= 1:
+                        status = 0
+
+                    delay = 0.5 # default delay
+
                     if current_time >= delay_until:
                         is_delay = False
+
                         # Action by Status
                         if status == 0:         # 0: Finding Ball
                             ball_success = False
