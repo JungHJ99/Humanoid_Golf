@@ -545,7 +545,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
                 circularity >= min_circularity and      # 윤곽선의 원형도가 최소 원형도 이상
                 aspect_ratio <= max_aspect_ratio and    # 윤곽선의 종횡비가 최대 종횡비 이하
 
-                (min(h_min[2], h_min[0]) <= h_mean <= h_max[2] and     # 윤곽선 중심의 hue 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
+                (h_min[2] <= h_mean <= h_max[2] and     # 윤곽선 중심의 hue 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
                 s_min[2] <= s_mean <= s_max[2] and      # 윤곽선 중심의 saturation 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
                 v_min[2] <= v_mean <= v_max[2]) or      # 윤곽선 중심의 value 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
 
@@ -969,8 +969,6 @@ if __name__ == '__main__':
 
     status_0_turn_cnt = 0
 
-    end_cnt = 0
-
     hit_direction = 0  # 0: left, 1: right
 
     head_angle = (0, -30)
@@ -1163,17 +1161,14 @@ if __name__ == '__main__':
                 else:
 
                     # 4분 50초 지나면 approach_shot 후 ceremony (1순위)
-                    if duration_time >= 290:
-                        if end_cnt == 0:
-                            if hit_direction == 0:
-                                TX_data(serial, 35)     # TX35: 골프_왼쪽으로_샷3
-                            else:
-                                TX_data(serial, 5)      # TX5: 골프_오른쪽으로_샷1
-                            delay = 5
-                            end_cnt =+ 1
-                        elif end_cnt == 1:
-                            TX_data(serial_port, 23)    # TX23: 앉았다일어나기
-                            break
+                    if duration_time >= 5:
+                        if hit_direction == 0:
+                            TX_data(serial_port, 35)     # TX35: 골프_왼쪽으로_샷3
+                        else:
+                            TX_data(serial_port, 5)      # TX5: 골프_오른쪽으로_샷1
+                        time.sleep(8)
+                        TX_data(serial_port, 23)    # TX23: 앉았다일어나기
+                        break
 
                     # ball in hole : ceremony (2순위)
                     elif ball_detected and hole_detected and cx_hole - hole_width / 2 < cx_ball < cx_hole + hole_width / 2 and cy_hole - hole_height / 2 < cy_ball < cy_hole + hole_height / 2:
