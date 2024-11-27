@@ -119,7 +119,25 @@ min_area =  [3, 20, 50, 11, 10, 50, 50]
 # 3,154,80,123,57,108,66,10
 # 4,75,29,140,94,144,0,10
 # 5,200,160,73,33,255,0,50
+# 6,75,29,140,94,144,0,10
 #----------- 
+#par3
+# 0,247,107,158,110,255,151,3
+# 1,244,124,89,39,184,90,20
+# 2,147,24,147,78,146,82,50
+# 3,195,139,122,57,126,52,11
+# 4,83,26,140,110,112,0,10
+# 5,255,169,91,33,170,120,50
+# 6,212,76,141,46,111,47,50
+# par4
+# 0,247,107,158,110,255,151,3
+# 1,244,124,89,39,184,90,20
+# 2,147,24,147,78,146,82,50
+# 3,195,63,122,57,126,52,11
+# 4,83,26,140,110,112,0,10
+# 5,255,169,91,33,170,120,50
+# 6,212,76,141,46,111,47,50
+
 
 now_color = 0
 serial_use = 1
@@ -463,6 +481,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
     largest_contour = None
     largest_area = 0
     largest_width = 0
+    largest_height = 0
     cX, cY, cR = 0, 0, 0
     x1, x2, y1, y2 = 0, 0, 0, 0
     x_min = float('inf')
@@ -504,6 +523,8 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
                 x, y, w, h = cv2.boundingRect(cnt)  # 각 윤곽선의 경계 상자
                 x_min = x
                 x_max = x + w
+                y_min = y
+                y_max = y + h
             
                 center_region = hsv[y1:y2, x1:x2]
 
@@ -545,6 +566,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
                     largest_y1 = y1
                     largest_y2 = y2
                     largest_width = x_max - x_min
+                    largest_height = y_max - y_min
                     largest_h_mean = h_mean
                     largest_s_mean = s_mean
                     largest_v_mean = v_mean
@@ -560,7 +582,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
         cv2.drawContours(frame, [largest_contour], -1, (255, 0, 0), 2)
 
     # 홀의 면적, 중심 좌표 반환
-    return hole_detected, largest_area, largest_width, (largest_cX, largest_cY), closing
+    return hole_detected, largest_area, largest_width, largest_height, (largest_cX, largest_cY), closing
 
 min_area_near_hole = 500
 max_area_near_hole = 500000
@@ -870,8 +892,8 @@ if __name__ == '__main__':
     near_hole_at_hit_point_lower_limit = int(H_View_size / 2 + near_hole_at_hit_point_range / 2 - 50)
 
     corner_center_region_width = 100
-    corner_left_region_limit = int(W_View_size / 2 - corner_center_region_width / 3 + 10)
-    corner_right_region_limit = int(W_View_size / 2 + corner_center_region_width / 3 + 10)
+    corner_left_region_limit = int(W_View_size / 2 + 30)
+    corner_right_region_limit = int(W_View_size / 2 + corner_center_region_width + 30)
 
     near_hole_center_region_width = 80
     near_hole_left_region_limit = int(W_View_size / 2 - near_hole_center_region_width)
@@ -973,7 +995,7 @@ if __name__ == '__main__':
 
 
         
-        hole_detected, hole_area, hole_width, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
+        hole_detected, hole_area, hole_width, hole_height, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
         near_hole_detected, (cx_near_hole, cy_near_hole) = near_hole_detecting(frame, mask5, hsv, min_area_near_hole, max_area_near_hole)
         corner_detected, (cx_corner, cy_corner), par4_goal_x = corner_detecting(frame, mask3, mask4)
 
@@ -982,9 +1004,9 @@ if __name__ == '__main__':
 
         # 공을 보내야하는 포인트 지정
         if hit_cnt == 0 and args['map'] == 'par4':
-            goal_point_detected = corner_detected
-            cx_goal_point = par4_goal_x
-            cy_goal_point = cy_corner
+            goal_point_detected = near_hole_detected
+            cx_goal_point = cx_near_hole
+            cy_goal_point = cy_near_hole
         else:
             goal_point_detected = hole_detected
             cx_goal_point = cx_hole
@@ -1033,6 +1055,7 @@ if __name__ == '__main__':
                 cv2.rectangle(frame, (ball_at_center_left_limit, ball_at_center_upper_limit), (ball_at_center_right_limit, ball_at_center_lower_limit), (255, 255, 255), 2)
 
             if status == 31:
+                cv2.line(frame, (0, bottom_region_limit), (W_View_size, bottom_region_limit), (0, 0, 255), 3)
                 cv2.line(frame, (0, int(cy_ball) + 20), (W_View_size, int(cy_ball) + 20), (255, 255, 255))
                 cv2.line(frame, (0, int(cy_ball) - 20), (W_View_size, int(cy_ball) - 20), (255, 255, 255))
                 cv2.rectangle(frame, (ball_at_hit_point_left_limit_par4, ball_at_hit_point_upper_limit_par4), (ball_at_hit_point_right_limit_par4, ball_at_hit_point_lower_limit_par4), (0, 0, 255), 2)
@@ -1093,6 +1116,9 @@ if __name__ == '__main__':
                         is_delay = False
                         # Action by Status
                         if status == 0:         # 0: Finding Ball
+                            if ball_detected and hole_detected and cx_hole - hole_width / 2 < cx_ball < cx_hole + hole_width / 2 and cy_hole - hole_height / 2 < cy_ball < cy_hole + hole_height:
+                                TX_data(serial_port, 23)
+                                break
                             ball_success = False
                             goal_point_success = False
                             if TX_num == 0:
@@ -1105,10 +1131,9 @@ if __name__ == '__main__':
                                     status = 1
                                     TX_num = 0
                                     # delay = 5
-                                    if hit_cnt == 0:
+                                    if far_shot == 0:
                                         hit_direction = 0
-                                    elif args['map'] == 'par4' and hit_cnt == 1:
-                                        hit_direction = 1
+
                                     elif hole_detected and cx_hole > cx_ball and hit_cnt > 0: # ball is on the left of the hole
                                         hit_direction = 1
                                     else:                                   # ball is on the right of the hole
@@ -1143,7 +1168,7 @@ if __name__ == '__main__':
                                 # if TX_num in [1, 3]:
                                 #     delay = 3                     # delay for swing by rotation           
                                 if cy_ball < bottom_region_limit:   # ball is not close enough
-                                    TX_num = 11                     # TX11: 연속전진_골프
+                                    TX_num = 10                     # TX11: 연속전진_골프
                                 else:                               # ball is close enough
                                     if head_angle[1] > -30:         # head angle down
                                         head_angle = (0, head_angle[1] - 15)
@@ -1168,7 +1193,7 @@ if __name__ == '__main__':
                                     TX_num = ball_at_hit_point(cx_ball, cy_ball, limits)    # step
                                     # delay = 3
                                     if TX_num == 0:
-                                        if near_hole_detected:
+                                        if near_hole_detected and not far_shot:
                                             if cx_ball < cx_near_hole:
                                                 hit_direction = 1
                                             else:
@@ -1216,7 +1241,9 @@ if __name__ == '__main__':
                             if not near_hole_detected:
                                 status = 2
                             else:
-                                if cy_near_hole < cy_ball - 20:     # hole이 near_ball보다 위
+                                if cy_ball > bottom_region_limit:
+                                    TX_num = 48
+                                elif cy_near_hole < cy_ball - 20:     # hole이 near_ball보다 위
                                     if hit_direction == 0:          
                                         TX_num = 3                  # TX3:오른쪽턴5_골프
                                     else:
@@ -1292,7 +1319,7 @@ if __name__ == '__main__':
                         elif status == 6:       # 6: Hitting the Ball
                             if TX_num == 0:
                                 if hit_direction == 0:  # hit left
-                                    if args['map'] == 'par4' and hit_cnt == 0:
+                                    if far_shot:
                                         TX_num = 34
                                         hit_strength = 1
                                     elif near_hole_detected:
@@ -1346,7 +1373,7 @@ if __name__ == '__main__':
                                 hit_cnt += 1
                             else:
                                 # ball in hole
-                                if ball_detected and hole_detected and cx_hole -10 < cx_ball < cx_hole + 10 and cy_hole -5 < cy_ball < cy_hole + 5:
+                                if ball_detected and hole_detected and cx_hole - hole_width / 2 < cx_ball < cx_hole + hole_width / 2 and cy_hole - hole_height / 2 < cy_ball < cy_hole + hole_height:
                                     TX_data(serial_port, 23)
                                     break
                                 # ball in hole
