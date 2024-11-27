@@ -966,9 +966,11 @@ if __name__ == '__main__':
 
     only_video = False
 
-    hit_cnt = 0
+    hit_cnt = 2
 
     status_0_turn_cnt = 0
+
+    status_3_turn_cnt = 0
 
     hit_direction = 0  # 0: left, 1: right
 
@@ -1042,7 +1044,7 @@ if __name__ == '__main__':
         bunker_detected, (cx_bunker, cy_bunker) = bunker_detecting(frame, mask7, hsv, min_area_bunker, max_area_bunker)
         # corner_detected, (cx_corner, cy_corner), par4_goal_x = corner_detecting(frame, mask3, mask4)
 
-        far_shot = hit_cnt == 0 or (args['map'] == 'par4' and hit_cnt <= 1)
+        far_shot = hit_cnt == 0 or (args['map'] == 'par4' and hit_cnt <= 1) or status_3_turn_cnt >= 12
 
 
         # 공을 보내야하는 포인트 지정
@@ -1297,6 +1299,10 @@ if __name__ == '__main__':
                                     TX_num = 9          # TX9: 오른쪽턴20_골프
                                 else:                   # hit right
                                     TX_num = 7          # TX7: 왼쪽턴20_골프
+                                if not far_shot:
+                                    status_3_turn_cnt += 1
+                                    if status_3_turn_cnt >= 12:
+                                        TX_num = 0
                                 delay = 0.5
                             if goal_point_detected and TX_num in [9, 7, 14, 13]:
                                 status = 4
@@ -1384,6 +1390,7 @@ if __name__ == '__main__':
                                         goal_point_success = False
                     
                         elif status == 6:       # 6: Hitting the Ball
+                            status_3_turn_cnt = 0
                             if TX_num == 0:
                                 if hit_direction == 0:  # hit left
                                     if far_shot:
