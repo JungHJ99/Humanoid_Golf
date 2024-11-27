@@ -639,6 +639,39 @@ def corner_detecting(frame, maskf, maskb):
 
     return corner_detected, (cx, cy), goal_point_x
 
+min_area_bunker = 50
+max_area_bunker = 500000
+def bunker_detecting(frame, mask, hsv, min_area_bunker, max_area_bunker):
+    # 윤곽선 찾기 (mask 이미지에서 바로 찾기)
+    contours, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    largest_contour = None
+    largest_area = 0
+    largest_cX, largest_cY = 0, 0
+    bunker_detected = False
+
+    # 컨투어 중 가장 큰 윤곽선의 중심 좌표 찾기
+    for cnt in contours:
+        contour_area = cv2.contourArea(cnt)
+
+        if contour_area >= min_area_bunker and contour_area <= max_area_bunker:
+            if contour_area > largest_area:
+                largest_area = contour_area
+                largest_contour = cnt
+
+                # 중심 좌표 계산
+                M = cv2.moments(cnt)
+                if M["m00"] != 0:
+                    largest_cX = int(M["m10"] / M["m00"])
+                    largest_cY = int(M["m01"] / M["m00"])
+                    bunker_detected = True
+
+    if near_hole_detected:
+        cv2.drawContours(frame, [largest_contour], -1, (0, 0, 0), 2)
+
+    # 가장 큰 컨투어가 있을 경우, 해당 중심 좌표를 반환
+    return bunker_detected, (largest_cX, largest_cY)
+
 def ball_at_hit_point(cx, cy, limits):
 
     if cy <= limits[2]:
@@ -839,6 +872,8 @@ if __name__ == '__main__':
     border_before_hole_detected = False
 
     near_hole_detected = False
+    bunker_detected = False
+
 
         # Byoungseo 20240823
     center_region_width = 200
@@ -903,8 +938,6 @@ if __name__ == '__main__':
 
     hole_distance = 0
 
-    near_hole_detected = False
-
     delay = 0
     delay_until = 0
     is_delay = False
@@ -917,7 +950,7 @@ if __name__ == '__main__':
 
     hit_direction = 0  # 0: left, 1: right
 
-    head_angle = (0, -30)
+    head_angle = (90, -15)
 
     after_hit_move1 = 12
     after_hit_move2 = 15
@@ -982,6 +1015,7 @@ if __name__ == '__main__':
         
         hole_detected, hole_area, hole_width, hole_height, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
         near_hole_detected, (cx_near_hole, cy_near_hole) = near_hole_detecting(frame, mask5, hsv, min_area_near_hole, max_area_near_hole)
+        bunker_detected, (cx_bunker, cy_bunker) = near_hole_detecting(frame, mask7, hsv, min_area_bunker, max_area_near_hole)
         # corner_detected, (cx_corner, cy_corner), par4_goal_x = corner_detecting(frame, mask3, mask4)
 
         far_shot = hit_cnt == 0 or (args['map'] == 'par4' and hit_cnt <= 1)
