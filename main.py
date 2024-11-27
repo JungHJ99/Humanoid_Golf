@@ -973,7 +973,7 @@ if __name__ == '__main__':
 
     hit_direction = 0  # 0: left, 1: right
 
-    head_angle = (90, -15)
+    head_angle = (0, -30)
 
     after_hit_move1 = 12
     after_hit_move2 = 15
