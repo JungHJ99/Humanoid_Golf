@@ -1198,7 +1198,7 @@ if __name__ == '__main__':
                                     status = 1
                                     TX_num = 0
                                     # delay = 5
-                                    if far_shot == 0:
+                                    if far_shot:
                                         hit_direction = 0
 
                                     elif hole_detected and cx_hole > cx_ball and hit_cnt > 0: # ball is on the left of the hole
