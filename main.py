@@ -873,7 +873,7 @@ if __name__ == '__main__':
     corner_left_region_limit = int(W_View_size / 2 - corner_center_region_width / 3 + 10)
     corner_right_region_limit = int(W_View_size / 2 + corner_center_region_width / 3 + 10)
 
-    near_hole_center_region_width = 30
+    near_hole_center_region_width = 80
     near_hole_left_region_limit = int(W_View_size / 2 - near_hole_center_region_width)
     near_hole_right_region_limit = int(W_View_size / 2 + near_hole_center_region_width)
 
@@ -1105,8 +1105,10 @@ if __name__ == '__main__':
                                     status = 1
                                     TX_num = 0
                                     # delay = 5
-                                    if far_shot:
+                                    if hit_cnt == 0:
                                         hit_direction = 0
+                                    elif args['map'] == 'par4' and hit_cnt == 1:
+                                        hit_direction = 1
                                     elif hole_detected and cx_hole > cx_ball and hit_cnt > 0: # ball is on the left of the hole
                                         hit_direction = 1
                                     else:                                   # ball is on the right of the hole
