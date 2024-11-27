@@ -545,7 +545,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
                 circularity >= min_circularity and      # 윤곽선의 원형도가 최소 원형도 이상
                 aspect_ratio <= max_aspect_ratio and    # 윤곽선의 종횡비가 최대 종횡비 이하
 
-                (h_min[2] <= h_mean <= h_max[2] and     # 윤곽선 중심의 hue 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
+                (min(h_min[2], h_min[0]) <= h_mean <= h_max[2] and     # 윤곽선 중심의 hue 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
                 s_min[2] <= s_mean <= s_max[2] and      # 윤곽선 중심의 saturation 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
                 v_min[2] <= v_mean <= v_max[2]) or      # 윤곽선 중심의 value 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
 
