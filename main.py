@@ -545,13 +545,10 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
                 circularity >= min_circularity and      # 윤곽선의 원형도가 최소 원형도 이상
                 aspect_ratio <= max_aspect_ratio and    # 윤곽선의 종횡비가 최대 종횡비 이하
 
-                (h_min[2] <= h_mean <= h_max[2] and     # 윤곽선 중심의 hue 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
-                s_min[2] <= s_mean <= s_max[2] and      # 윤곽선 중심의 saturation 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
-                v_min[2] <= v_mean <= v_max[2]) or      # 윤곽선 중심의 value 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
-
-                (h_min[0] <= h_mean <= h_max[0] and     # 윤곽선 중심의 hue 값이 pink_ball 범위 이내 / frame 기준이므로 closing 영향 X
-                s_min[0] <= s_mean <= s_max[0] and      # 윤곽선 중심의 saturation 값이 pink_ball 범위 이내 / frame 기준이므로 closing 영향 X
-                v_min[0] <= v_mean <= v_max[0])):       # 윤곽선 중심의 value 값이 pink_ball 범위 이내 / frame 기준이므로 closing 영향 X
+                min(h_min[2], h_min[0]) <= h_mean <= max(h_max[2], h_max[0]) and     # 윤곽선 중심의 hue 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
+                min(s_min[2], s_min[0]) <= s_mean <= max(s_max[2], s_max[0]) and      # 윤곽선 중심의 saturation 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
+                min(v_min[2], v_min[0]) <= v_mean <= max(v_max[2], v_max[0])     # 윤곽선 중심의 value 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
+                ):
 
                 # 가장 큰 원(=홀) 찾기
                 if contour_area > largest_area:
@@ -917,9 +914,13 @@ if __name__ == '__main__':
     ball_at_hit_point_upper_limit_par4 = int(H_View_size / 2 - ball_at_hit_point_range_par4 / 2 - 30)
     ball_at_hit_point_lower_limit_par4 = int(H_View_size / 2 + ball_at_hit_point_range_par4 / 2 - 30)
 
-    hole_center_region_width = 50
-    hole_left_region_limit = int(W_View_size / 2 - hole_center_region_width / 3)
-    hole_right_region_limit = int(W_View_size / 2 + hole_center_region_width / 3)
+    if args['map'] == 'par4':
+        hole_center_region_width = 70
+    else:
+        hole_center_region_width = 40
+        
+    hole_left_region_limit = int(W_View_size / 2 - hole_center_region_width / 2)
+    hole_right_region_limit = int(W_View_size / 2 + hole_center_region_width / 2)
 
     near_hole_at_hit_point_range = 60
     near_hole_at_hit_point_left_limit = int (0)
@@ -932,8 +933,8 @@ if __name__ == '__main__':
     corner_right_region_limit = int(W_View_size / 2 + corner_center_region_width + 30)
 
     near_hole_center_region_width = 80
-    near_hole_left_region_limit = int(W_View_size / 2 - near_hole_center_region_width)
-    near_hole_right_region_limit = int(W_View_size / 2 + near_hole_center_region_width)
+    near_hole_left_region_limit = int(W_View_size / 2 - near_hole_center_region_width / 2)
+    near_hole_right_region_limit = int(W_View_size / 2 + near_hole_center_region_width / 2)
 
     status = 0
     # 0: Finding Ball
@@ -1116,11 +1117,11 @@ if __name__ == '__main__':
                     gp_right_region_limit = corner_right_region_limit
                 elif not far_shot:
                     if hit_direction == 0:
-                        gp_left_region_limit = hole_left_region_limit - 370
-                        gp_right_region_limit = hole_right_region_limit - 370
+                        gp_left_region_limit = near_hole_left_region_limit - 370
+                        gp_right_region_limit = near_hole_right_region_limit - 370
                     else:
-                        gp_left_region_limit = hole_left_region_limit + 370
-                        gp_right_region_limit = hole_right_region_limit + 370
+                        gp_left_region_limit = near_hole_left_region_limit + 370
+                        gp_right_region_limit = near_hole_right_region_limit + 370
                 else:
                     gp_left_region_limit = hole_left_region_limit
                     gp_right_region_limit = hole_right_region_limit
@@ -1406,6 +1407,8 @@ if __name__ == '__main__':
                             else:
                                 TX_num = 0
                                 # delay = 5
+                                hit_cnt += 1
+                                head_angle = (0, -30)
                                 if far_shot:
                                     if hit_strength == 1:
                                         after_hit_move_cnt = after_hit_move1
@@ -1415,44 +1418,45 @@ if __name__ == '__main__':
                                         after_hit_move_cnt = 0
                                     status = 61
                                 else:
-                                    status = 7
+                                    status = 0
+
 
                         elif status == 61:      # Dash Toward Ball
                             if after_hit_move_cnt > 0:
                                 TX_num = 14     # TX14: 왼쪽옆으로70연속_골프
                                 after_hit_move_cnt -= 1
                             else:
-                                status = 7
+                                status = 0
                                 TX_num = 0
                                 delay = 0
 
-                        elif status == 7:       # 7: Tracking Ball
-                            if TX_num == 0:
-                                if far_shot:
-                                    head_angle_x = 90 if hit_direction == 0 else -90
-                                    head_angle = (head_angle_x, -30)
-                                else:
-                                    head_angle_x = 45 if hit_direction == 0 else -45
-                                    head_angle = (head_angle_x, -45)
-                                TX_num = motion_dict[head_angle]
-                                delay = 3
-                                hit_cnt += 1
-                            else:
-                                # elif far_shot and not ball_detected:
-                                #     TX_data(serial_port, 23)
-                                #     break
-                                if ball_detected:
-                                    # delay = 5
-                                    TX_num = 0
-                                    status = 0
-                                else:
-                                    if head_angle[1] == -45:
-                                        status = 0
-                                        head_angle = (-0, -30)
-                                    else:
-                                        head_angle = (head_angle_x, head_angle[1] - 15) # -0도 -> -15도 -> 30도 -> -45도 -> -60도 -> -0도
-                                    TX_num = motion_dict[head_angle]
-                                    delay = 3
+                        # elif status == 7:       # 7: Tracking Ball
+                        #     if TX_num == 0:
+                        #         if far_shot:
+                        #             head_angle_x = 90 if hit_direction == 0 else -90
+                        #             head_angle = (head_angle_x, -30)
+                        #         else:
+                        #             head_angle_x = 45 if hit_direction == 0 else -45
+                        #             head_angle = (head_angle_x, -45)
+                        #         TX_num = motion_dict[head_angle]
+                        #         delay = 3
+                        #         hit_cnt += 1
+                        #     else:
+                        #         # elif far_shot and not ball_detected:
+                        #         #     TX_data(serial_port, 23)
+                        #         #     break
+                        #         if ball_detected:
+                        #             # delay = 5
+                        #             TX_num = 0
+                        #             status = 0
+                        #         else:
+                        #             if head_angle[1] == -45:
+                        #                 status = 0
+                        #                 head_angle = (-0, -30)
+                        #             else:
+                        #                 head_angle = (head_angle_x, head_angle[1] - 15) # -0도 -> -15도 -> 30도 -> -45도 -> -60도 -> -0도
+                        #             TX_num = motion_dict[head_angle]
+                        #             delay = 3
 
 
                         print("TX_num: {}".format(TX_num))
