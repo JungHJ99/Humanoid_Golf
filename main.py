@@ -1042,9 +1042,9 @@ if __name__ == '__main__':
 
         # 공을 보내야하는 포인트 지정
         if hit_cnt == 0 and args['map'] == 'par4':
-            goal_point_detected = near_hole_detected
-            cx_goal_point = cx_near_hole
-            cy_goal_point = cy_near_hole
+            goal_point_detected = bunker_detected
+            cx_goal_point = cx_bunker
+            cy_goal_point = cy_bunker
         else:
             goal_point_detected = hole_detected
             cx_goal_point = cx_hole
