@@ -875,7 +875,6 @@ if __name__ == '__main__':
     
     old_time = clock()
 
-    View_select = 0
     msg_one_view = 0
     
     ball_detected = False
@@ -951,7 +950,6 @@ if __name__ == '__main__':
 
     near_hole_detected = False
 
-    previous_View_select = View_select
     start_time = None
     duration_time = 0
 
@@ -1060,12 +1058,10 @@ if __name__ == '__main__':
         Frame_time = (clock() - old_time) * 1000.
         old_time = clock()
 
-        # View_select가 0에서 1로 변경된 시점을 start_time 저장
-        if previous_View_select == 0 and View_select == 1:
-            start_time = clock()  
+        previous_View_select = View_select
 
         # duration_time 업데이트
-        if View_select == 1 and start_time is not None:
+        if  start_time is not None:
             duration_time = clock() - start_time
         else:
             duration_time = 0
@@ -1514,6 +1510,8 @@ if __name__ == '__main__':
         elif key == ord(' '):  # spacebar Key
             if View_select == 0:
                 View_select = 1
+                if  start_time is None:
+                    start_time = clock()
             else:
                 View_select = 0
         elif key == ord('s') or key == ord('S'):  # s or S Key:  Setting valus Save
