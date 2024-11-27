@@ -902,7 +902,10 @@ if __name__ == '__main__':
     ball_at_center_upper_limit = int(H_View_size / 2 - ball_at_center_range / 2)
     ball_at_center_lower_limit = int(H_View_size / 2 + ball_at_center_range / 2)
 
-    ball_at_hit_point_range = 40
+    if args['map'] == 'par4':
+        ball_at_hit_point_range = 40
+    else:
+        ball_at_hit_point_range = 30
     ball_at_hit_point_left_limit = int(W_View_size / 2 - ball_at_hit_point_range / 2 + 80)
     ball_at_hit_point_right_limit = int(W_View_size / 2 + ball_at_hit_point_range / 2 + 80)
     ball_at_hit_point_upper_limit = int(H_View_size / 2 - ball_at_hit_point_range / 2 - 30)
@@ -917,7 +920,7 @@ if __name__ == '__main__':
     if args['map'] == 'par4':
         hole_center_region_width = 70
     else:
-        hole_center_region_width = 40
+        hole_center_region_width = 30
         
     hole_left_region_limit = int(W_View_size / 2 - hole_center_region_width / 2)
     hole_right_region_limit = int(W_View_size / 2 + hole_center_region_width / 2)
@@ -966,7 +969,7 @@ if __name__ == '__main__':
 
     only_video = False
 
-    hit_cnt = 2
+    hit_cnt = 0
 
     status_0_turn_cnt = 0
 
