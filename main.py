@@ -129,7 +129,7 @@ min_area =  [3, 20, 50, 11, 10, 50, 50, 20]
 # 5,200,160,73,33,255,0,50
 # 6,75,29,140,94,144,0,10
 #----------- 
-#par3
+#par3 -new
 # 0,247,107,158,110,255,151,3
 # 1,244,124,89,39,184,90,20
 # 2,147,24,147,78,146,82,50
@@ -138,6 +138,17 @@ min_area =  [3, 20, 50, 11, 10, 50, 50, 20]
 # 5,255,169,91,33,170,120,50
 # 6,212,76,141,46,111,47,50
 # 7,201,164,127,74,145,112,41
+
+#par4 -new
+# 0,255,30,158,86,255,180,3
+# 1,255,134,112,39,176,102,20
+# 2,166,24,147,81,156,82,50
+# 3,195,63,122,57,126,52,11
+# 4,83,26,140,110,112,0,10
+# 5,255,169,91,33,170,120,50
+# 6,212,76,141,46,111,47,50
+# 7,255,107,147,115,145,112,41
+
 
 # par4
 # 0,247,107,158,110,255,151,3
@@ -467,7 +478,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
     # blurred_image = cv2.GaussianBlur(mask, (5, 5), 0)
 
     # Morph Close
-    kernel = np.ones((25, 25), np.uint8)    # kernel = np.ones((20, 20), np.uint8)
+    kernel = np.ones((15, 15), np.uint8)    # kernel = np.ones((20, 20), np.uint8)
     closing = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)   # kenel 크기의 작은 구멍을 메움 / 2cm 폴대 무시하도록 kernel 키움
 
     # 일정 크기 이상인 노란색 면적의 윤곽선 반환
@@ -510,7 +521,7 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
                 if M["m00"] != 0:
                     cX = int(M["m10"] / M["m00"])
                     cY = int(M["m01"] / M["m00"])
-                    cR = int(round(math.sqrt(0.1 * contour_area)))
+                    cR = int(round(math.sqrt(0.05 * contour_area)))
 
                 y1 = cY - cR
                 y2 = cY + cR
@@ -698,8 +709,8 @@ def hole_in_ball_detecting(frame, mask, hsv, min_area, max_area, min_circularity
     # print("v_mean: {}".format(largest_v_mean))
 
     # 홀의 윤곽선 표시, 중심 좌표 계산
-    if largest_ellipse is not None:
-        cv2.drawContours(frame, [largest_contour], -1, (255, 0, 0), 2)
+    # if largest_ellipse is not None:
+    #     cv2.drawContours(frame, [largest_contour], -1, (133, 0, 133), 2)
 
     # 홀의 면적, 중심 좌표 반환
     return hole_detected, largest_area, largest_width, largest_height, (largest_cX, largest_cY), closing
@@ -1024,24 +1035,24 @@ if __name__ == '__main__':
     ball_at_center_lower_limit = int(H_View_size / 2 + ball_at_center_range / 2)
 
     if args['map'] == 'par4':
-        ball_at_hit_point_range = 40
-    else:
         ball_at_hit_point_range = 30
+    else:
+        ball_at_hit_point_range = 25
     ball_at_hit_point_left_limit = int(W_View_size / 2 - ball_at_hit_point_range / 2 + 80)
     ball_at_hit_point_right_limit = int(W_View_size / 2 + ball_at_hit_point_range / 2 + 80)
     ball_at_hit_point_upper_limit = int(H_View_size / 2 - ball_at_hit_point_range / 2 - 30)
     ball_at_hit_point_lower_limit = int(H_View_size / 2 + ball_at_hit_point_range / 2 - 30)
 
-    ball_at_hit_point_range_par4 = 80
+    ball_at_hit_point_range_par4 = 30
     ball_at_hit_point_left_limit_par4 = int(W_View_size / 2 - ball_at_hit_point_range_par4 / 2 + 80)
     ball_at_hit_point_right_limit_par4 = int(W_View_size / 2 + ball_at_hit_point_range_par4 / 2 + 80)
     ball_at_hit_point_upper_limit_par4 = int(H_View_size / 2 - ball_at_hit_point_range_par4 / 2 - 30)
     ball_at_hit_point_lower_limit_par4 = int(H_View_size / 2 + ball_at_hit_point_range_par4 / 2 - 30)
 
     if args['map'] == 'par4':
-        hole_center_region_width = 70
+        hole_center_region_width = 50
     else:
-        hole_center_region_width = 30
+        hole_center_region_width = 20
         
     hole_left_region_limit = int(W_View_size / 2 - hole_center_region_width / 2)
     hole_right_region_limit = int(W_View_size / 2 + hole_center_region_width / 2)
@@ -1478,11 +1489,11 @@ if __name__ == '__main__':
                                 elif cx_goal_point <= tuned_left_limit:         # hole is at the left side
                                     TX_num = 1                                  # TX1: 왼쪽턴5_골프
                                     ball_success = False
-                                    delay = 0.5
+                                    delay = 1.2
                                 elif cx_goal_point >= tuned_right_limit:        # hole is at the right side
                                     TX_num = 3                                  # TX3: 오른쪽턴5_골프
                                     ball_success = False
-                                    delay = 0.5
+                                    delay = 1.2`
                                 else:
                                     goal_point_success = True
                                     hole_distance = get_hole_distance(hole_width)  # hole 까지의 거리 계산
@@ -1519,8 +1530,10 @@ if __name__ == '__main__':
                             status_3_turn_cnt = 0
                             if TX_num == 0:
                                 if hit_direction == 0:  # hit left
-                                    if far_shot:
+                                    if args['map'] == 'par4' and hit_cnt <= 1:
                                         TX_num = 34
+                                    elif args['map'] == 'par3' and hit_cnt == 0:
+                                        TX_num = 2
                                         hit_strength = 1
                                     elif near_hole_detected:
                                         TX_num = 35     # TX35: 골프_왼쪽으로_샷3
