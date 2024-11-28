@@ -1053,8 +1053,8 @@ if __name__ == '__main__':
     near_hole_at_hit_point_lower_limit = int(H_View_size / 2 + near_hole_at_hit_point_range / 2 - 50)
 
     corner_center_region_width = 100
-    corner_left_region_limit = int(W_View_size / 2 + 30)
-    corner_right_region_limit = int(W_View_size / 2 + corner_center_region_width + 30)
+    corner_left_region_limit = int(W_View_size / 2 + 60)
+    corner_right_region_limit = int(W_View_size / 2 + corner_center_region_width + 60)
 
     near_hole_center_region_width = 80
     near_hole_left_region_limit = int(W_View_size / 2 - near_hole_center_region_width / 2)
