@@ -1118,8 +1118,8 @@ if __name__ == '__main__':
         frame = rawCapture.array
         grabbed = frame is not None and frame.size > 0
 
-        if args.get("video") and not grabbed:
-            break
+        # if args.get("video") and not grabbed:
+        #     break
 
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)    # HSV => YUV
         mask = cv2.inRange(hsv, hsv_Lower, hsv_Upper)
@@ -1297,12 +1297,12 @@ if __name__ == '__main__':
                             TX_data(serial_port, 5)      # TX5: 골프_오른쪽으로_샷1
                         time.sleep(8)
                         TX_data(serial_port, 23)    # TX23: 앉았다일어나기
-                        break
+                        # break
 
                     # ball in hole : ceremony (2순위)
                     elif ball_detected and hole_in_ball_detected and cx_hole_in_ball - hole_in_ball_width / 2 < cx_ball < cx_hole_in_ball + hole_in_ball_width / 2 and cy_hole_in_ball - hole_in_ball_height / 2 < cy_ball < cy_hole_in_ball + hole_in_ball_height / 2 and ((args['map'] == 'par3' and hit_cnt >= 1) or (args['map'] == 'par4' and hit_cnt >= 2)):
                         TX_data(serial_port, 23)    # TX23: 앉았다일어나기
-                        break
+                        # break
 
                     # 공 잃어버리면 status 0: Finding Ball로 이동 (3순위)
                     elif not ball_detected and status <= 1:
@@ -1644,7 +1644,7 @@ if __name__ == '__main__':
         
         if key == 27:  # ESC  Key
             TX_data(serial_port, 0)
-            break
+            # break
         elif key == ord(' '):  # spacebar Key
             if View_select == 0:
                 View_select = 1
