@@ -544,7 +544,128 @@ def hole_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_as
                 contour_area <= max_area and            # 윤곽선의 면적이 최대 면적 이하
                 circularity >= min_circularity and      # 윤곽선의 원형도가 최소 원형도 이상
                 aspect_ratio <= max_aspect_ratio and    # 윤곽선의 종횡비가 최대 종횡비 이하
+                
+                h_min[2] <= h_mean <= h_max[2] and      # 윤곽선 중심의 hue 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
+                s_min[2] <= s_mean <= s_max[2] and      # 윤곽선 중심의 saturation 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
+                v_min[2] <= v_mean <= v_max[2]):        # 윤곽선 중심의 value 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
 
+                # 가장 큰 원(=홀) 찾기
+                if contour_area > largest_area:
+                    largest_area = contour_area
+                    largest_ellipse = ellipse
+                    largest_contour = cnt
+                    hole_detected = True
+                    largest_cX = cX
+                    largest_cY = cY
+                    largest_cR = cR
+
+                    largest_x1 = x1
+                    largest_x2 = x2
+                    largest_y1 = y1
+                    largest_y2 = y2
+                    largest_width = x_max - x_min
+                    largest_height = y_max - y_min
+                    largest_h_mean = h_mean
+                    largest_s_mean = s_mean
+                    largest_v_mean = v_mean
+
+    # print("x1: {}, x2: {}, y1: {}, y2: {}".format(largest_x1, largest_x2, largest_y1, largest_y2))
+
+    # print("h_mean: {}".format(largest_h_mean))
+    # print("s_mean: {}".format(largest_s_mean))
+    # print("v_mean: {}".format(largest_v_mean))
+
+    # 홀의 윤곽선 표시, 중심 좌표 계산
+    if largest_ellipse is not None:
+        cv2.drawContours(frame, [largest_contour], -1, (255, 0, 0), 2)
+
+    # 홀의 면적, 중심 좌표 반환
+    return hole_detected, largest_area, largest_width, largest_height, (largest_cX, largest_cY), closing
+
+def hole_in_ball_detecting(frame, mask, hsv, min_area, max_area, min_circularity, max_aspect_ratio):
+
+    # GaussianBlurW
+    # blurred_image = cv2.GaussianBlur(mask, (5, 5), 0)
+
+    # Morph Close
+    kernel = np.ones((25, 25), np.uint8)    # kernel = np.ones((20, 20), np.uint8)
+    closing = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)   # kenel 크기의 작은 구멍을 메움 / 2cm 폴대 무시하도록 kernel 키움
+
+    # 일정 크기 이상인 노란색 면적의 윤곽선 반환
+    contours, _ = cv2.findContours(closing.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    hole_detected = False
+    largest_ellipse = None
+    largest_contour = None
+    largest_area = 0
+    largest_width = 0
+    largest_height = 0
+    cX, cY, cR = 0, 0, 0
+    x1, x2, y1, y2 = 0, 0, 0, 0
+    x_min = float('inf')
+    x_max = float('-inf')
+
+    largest_cX, largest_cY, largest_cR = 0, 0, 0
+    largest_x1, largest_x2, largest_y1, largest_y2, largest_x_min, largest_x_max, largest_h_mean, largest_s_mean, largest_v_mean = 0, 0, 0, 0, 0, 0, 0, 0, 0
+
+    # 필터링을 위한 파라미터 계산
+    for cnt in contours:
+        
+        if len(cnt) >= 5:
+            ellipse = cv2.fitEllipse(cnt)
+            center, axes, angle = ellipse
+            major_axis = max(axes)
+            minor_axis = min(axes)
+
+            if minor_axis >0:
+                aspect_ratio = major_axis / minor_axis
+            else:
+                continue
+
+            contour_area = cv2.contourArea(cnt)
+            arc_length = cv2.arcLength(cnt, True)
+            circularity = 4 * np.pi * (contour_area / (arc_length ** 2))
+            
+            try:
+                M = cv2.moments(cnt)
+                if M["m00"] != 0:
+                    cX = int(M["m10"] / M["m00"])
+                    cY = int(M["m01"] / M["m00"])
+                    cR = int(round(math.sqrt(0.1 * contour_area)))
+
+                y1 = cY - cR
+                y2 = cY + cR
+                x1 = cX - cR
+                x2 = cX + cR
+
+                x, y, w, h = cv2.boundingRect(cnt)  # 각 윤곽선의 경계 상자
+                x_min = x
+                x_max = x + w
+                y_min = y
+                y_max = y + h
+            
+                center_region = hsv[y1:y2, x1:x2]
+
+            except:     #240921 error
+                print([y1, y2, x1, x2, cX, cY, cR])
+                raise 
+                
+
+            if center_region.size == 0:
+                print("center_region.size == 0")
+                continue
+            
+            center_region_h, center_region_s, center_region_v = cv2.split(center_region)
+            h_mean = np.mean(center_region_h)
+            s_mean = np.mean(center_region_s)
+            v_mean = np.mean(center_region_v)
+
+            # 필터링 조건
+            if (contour_area >= min_area and            # 윤곽선의 면적이 최소 면적 이상
+                contour_area <= max_area and            # 윤곽선의 면적이 최대 면적 이하
+                circularity >= min_circularity and      # 윤곽선의 원형도가 최소 원형도 이상
+                aspect_ratio <= max_aspect_ratio and    # 윤곽선의 종횡비가 최대 종횡비 이하
+                
                 min(h_min[2], h_min[0]) <= h_mean <= max(h_max[2], h_max[0]) and     # 윤곽선 중심의 hue 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
                 min(s_min[2], s_min[0]) <= s_mean <= max(s_max[2], s_max[0]) and      # 윤곽선 중심의 saturation 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
                 min(v_min[2], v_min[0]) <= v_mean <= max(v_max[2], v_max[0])     # 윤곽선 중심의 value 값이 black_inner_hole 범위 이내 / frame 기준이므로 closing 영향 X
@@ -1043,6 +1164,8 @@ if __name__ == '__main__':
 
         
         hole_detected, hole_area, hole_width, hole_height, (cx_hole, cy_hole), closing = hole_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
+        hole_in_ball_detected, hole_in_ball_area, hole_in_ball_width, hole_in_ball_height, (cx_hole_in_ball, cy_hole_in_ball), closing_hole_in_ball = hole_in_ball_detecting(frame, mask1, hsv, min_area_hole, max_area_hole, min_circularity_hole, max_aspect_ratio_hole)
+        
         near_hole_detected, (cx_near_hole, cy_near_hole) = near_hole_detecting(frame, mask5, hsv, min_area_near_hole, max_area_near_hole)
         bunker_detected, (cx_bunker, cy_bunker) = bunker_detecting(frame, mask7, hsv, min_area_bunker, max_area_bunker)
         # corner_detected, (cx_corner, cy_corner), par4_goal_x = corner_detecting(frame, mask3, mask4)
@@ -1177,7 +1300,7 @@ if __name__ == '__main__':
                         break
 
                     # ball in hole : ceremony (2순위)
-                    elif ball_detected and hole_detected and cx_hole - hole_width / 2 < cx_ball < cx_hole + hole_width / 2 and cy_hole - hole_height / 2 < cy_ball < cy_hole + hole_height / 2:
+                    elif ball_detected and hole_in_ball_detected and cx_hole_in_ball - hole_in_ball_width / 2 < cx_ball < cx_hole_in_ball + hole_in_ball_width / 2 and cy_hole_in_ball - hole_in_ball_height / 2 < cy_ball < cy_hole_in_ball + hole_in_ball_height / 2 and ((args['map'] == 'par3' and hit_cnt >= 1) or (args['map'] == 'par4' and hit_cnt >= 2)):
                         TX_data(serial_port, 23)    # TX23: 앉았다일어나기
                         break
 
