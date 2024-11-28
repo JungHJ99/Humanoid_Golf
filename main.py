@@ -1319,7 +1319,7 @@ if __name__ == '__main__':
                             if TX_num == 0:
                                 head_angle = (0, head_angle[1])
                                 TX_num = motion_dict[head_angle]
-                                delay = 2.5
+                                delay = 3
                             else:
                                 # now_color = 0
                                 if ball_detected:  
@@ -1350,7 +1350,7 @@ if __name__ == '__main__':
                                         else: 
                                             head_angle = (0, head_angle[1] - 15)
                                         TX_num = motion_dict[head_angle]
-                                        delay = 2.5
+                                        delay = 3
                                     
                             
                         elif status == 1:        # 1: Walking towards the Ball
@@ -1368,7 +1368,7 @@ if __name__ == '__main__':
                                     if head_angle[1] > -30:         # head angle down
                                         head_angle = (0, head_angle[1] - 15)
                                         TX_num = motion_dict[head_angle]
-                                        delay = 2.5
+                                        delay = 3
                                     else:                           # go to status 2
                                         status = 2
                                         TX_num = 0
@@ -1378,7 +1378,7 @@ if __name__ == '__main__':
                             if TX_num == 0:
                                 head_angle = (0, -80)
                                 TX_num = motion_dict[head_angle]           # head front down
-                                delay = 2.5
+                                delay = 3
                             else:
                                 if not ball_detected:
                                     status = 21
@@ -1402,7 +1402,7 @@ if __name__ == '__main__':
                         elif status == 21:       # 2: Near Ball Lost
                             head_angle = (0, -45)
                             TX_num = motion_dict[head_angle]           # head front down
-                            delay = 2.5
+                            delay = 3
                             status = 0
 
 
@@ -1413,7 +1413,7 @@ if __name__ == '__main__':
                                 else:
                                     head_angle = (45 if hit_direction == 0 else -45, -45)
                                 TX_num = motion_dict[head_angle]            # head left up
-                                delay = 2.5
+                                delay = 3
                             elif TX_num in [9, 7, motion_dict[head_angle]]:
                                 if hit_direction == 0:  # hit left
                                     TX_num = 14         # TX14: 왼쪽옆으로70연속_골프
@@ -1470,7 +1470,7 @@ if __name__ == '__main__':
                                     head_angle = (45 if hit_direction == 0 else -45, -45)
 
                                 TX_num = motion_dict[head_angle]                # head left up
-                                delay = 2.5
+                                delay = 3
                             else:
                                 if not goal_point_detected:
                                     status = 3
