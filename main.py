@@ -1035,7 +1035,7 @@ if __name__ == '__main__':
     ball_at_center_lower_limit = int(H_View_size / 2 + ball_at_center_range / 2)
 
     if args['map'] == 'par4':
-        ball_at_hit_point_range = 30
+        ball_at_hit_point_range = 40
     else:
         ball_at_hit_point_range = 25
     ball_at_hit_point_left_limit = int(W_View_size / 2 - ball_at_hit_point_range / 2 + 80)
@@ -1043,7 +1043,7 @@ if __name__ == '__main__':
     ball_at_hit_point_upper_limit = int(H_View_size / 2 - ball_at_hit_point_range / 2 - 30)
     ball_at_hit_point_lower_limit = int(H_View_size / 2 + ball_at_hit_point_range / 2 - 30)
 
-    ball_at_hit_point_range_par4 = 30
+    ball_at_hit_point_range_par4 = 40
     ball_at_hit_point_left_limit_par4 = int(W_View_size / 2 - ball_at_hit_point_range_par4 / 2 + 80)
     ball_at_hit_point_right_limit_par4 = int(W_View_size / 2 + ball_at_hit_point_range_par4 / 2 + 80)
     ball_at_hit_point_upper_limit_par4 = int(H_View_size / 2 - ball_at_hit_point_range_par4 / 2 - 30)
@@ -1493,7 +1493,7 @@ if __name__ == '__main__':
                                 elif cx_goal_point >= tuned_right_limit:        # hole is at the right side
                                     TX_num = 3                                  # TX3: 오른쪽턴5_골프
                                     ball_success = False
-                                    delay = 1.2`
+                                    delay = 1.2
                                 else:
                                     goal_point_success = True
                                     hole_distance = get_hole_distance(hole_width)  # hole 까지의 거리 계산
